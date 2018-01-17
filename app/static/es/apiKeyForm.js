@@ -105,7 +105,7 @@ const setupListsTable = response => {
 		tableHTML += "<td>" + response[i].name + "</td>";
 		tableHTML += "<td>" + response[i].stats.member_count.toLocaleString() + "</td>";
 		tableHTML += "<td></td>";
-		tableHTML += "<td><a class='analyze-link' href='#'><div class='analyze-link-text'>Analyze</div><svg class='i-chevron-right' viewBox='0 0 32 32' width='16' height='16' fill='none' stroke='currentcolor' stroke-linecap='round' stroke-linejoin='round' stroke-width='3'><path d='M12 30 L24 16 12 2'></path></svg></a></td>";
+		tableHTML += "<td class='analyze-link-column'><a class='analyze-link' href='#'><div class='analyze-link-text'>Analyze</div><svg class='i-chevron-right' viewBox='0 0 32 32' width='16' height='16' fill='none' stroke='currentcolor' stroke-linecap='round' stroke-linejoin='round' stroke-width='3'><path d='M12 30 L24 16 12 2'></path></svg></a></td>";
 		tableHTML += "</tr>";
 	}
 	tableHTML += "</tbody>";
