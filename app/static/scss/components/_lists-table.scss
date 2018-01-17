@@ -1,0 +1,27 @@
+.section-two table {
+	margin: 2 * $navHeight 0;
+}
+
+.section-two thead {
+    font-family: Proxima Nova Bold;
+    color: $crimson;
+
+    th {
+    	border-top: none;
+    }
+}
+
+.section-two td {
+    border-top: 2.5px solid $light-grey;
+}
+
+.analyze-link {
+	display: inline-flex;
+	align-items: center;
+	font-family: Proxima Nova Bold;
+}
+
+.analyze-link-text {
+	margin-right: 3px;
+	margin-bottom: 2px;
+}

@@ -1,0 +1,21 @@
+$crimson: #a71930;
+$dark-grey: #555;
+$medium-grey: #ccc;
+$light-grey: #ededed;
+
+$link-color: $crimson;
+$link-hover-decoration: none;
+
+$navHeight: 60px;
+
+$api-key-form-elt-margin: 0rem .75rem 2.25rem .75rem;
+$api-key-form-input-top-padding: .67rem;
+$api-key-form-input-padding: $api-key-form-input-top-padding 1.33rem;
+$api-key-form-font-size: 1.6rem;
+$api-key-form-line-height: 1.5;
+$api-key-form-transition: 0.5s ease;
+
+$api-key-invalid-input-color: rgba(238, 95, 91, .25);
+$api-key-invalid-msg-color: rgb(238, 95, 91);
+$api-key-valid-input-color: rgba(98, 196, 98, .25);
+$api-key-valid-msg-color: rgb(98, 196, 98);

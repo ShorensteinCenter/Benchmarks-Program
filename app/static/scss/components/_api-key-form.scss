@@ -1,0 +1,98 @@
+.api-key-form-justify {
+	justify-content: center;
+}
+
+%api-key-form-elt {
+	padding: $api-key-form-input-padding;
+	font-size: $api-key-form-font-size;
+	line-height: $api-key-form-line-height;
+	transition: $api-key-form-transition;
+	border-radius: 1px;
+	border: 1px solid $medium-grey; 
+	background: transparent;
+	color: $body-color;
+} 
+
+.api-key-input-wrapper {
+	position: relative;
+	padding: 0;
+	margin: $api-key-form-elt-margin;
+}
+
+.api-key-input-wrapper:after {
+    position: absolute;
+    top: 2 * $api-key-form-input-top-padding + 
+    	$api-key-form-font-size * $api-key-form-line-height + 0.25rem;
+    transition: $api-key-form-transition;
+    opacity: 0;
+}
+
+.api-key-input-wrapper.invalid:after {
+	opacity: 1;
+	content: 'Please enter a valid MailChimp API key.';
+	color: $api-key-invalid-msg-color;
+}
+
+.api-key-input-wrapper.valid:after {
+	opacity: 1;
+	content: 'Fetching MailChimp lists...';
+	color: $api-key-valid-msg-color;
+}
+
+#key {
+	@extend %api-key-form-elt;
+	position: relative;
+	width: 100%;
+    
+    & ~ .focus-bg {
+		position: absolute; 
+		left: 0; 
+		top: 0; 
+		width: 100%; 
+		height: 100%; 
+		background-color: $light-grey;
+		opacity: 0; 
+		transition: $api-key-form-transition; 
+		z-index: -1;
+    }
+
+    &:focus {
+    	outline: 0;
+    }
+
+    &:focus ~ .focus-bg {
+    	opacity: 1;
+    }
+}
+
+#key.invalid ~ .focus-bg {
+	background-color: $api-key-invalid-input-color;
+	opacity: 1;
+}
+
+#key.valid ~ .focus-bg {
+	background-color: $api-key-valid-input-color;
+	opacity: 1;
+}
+
+.api-key-submit-wrapper.inactive {
+	cursor: not-allowed;
+}
+
+#submit {
+	@extend %api-key-form-elt;
+	cursor: pointer;
+
+	&:hover {
+		background-color: $light-grey;
+	}
+
+	&:focus {
+		outline: 0;
+	}
+}
+
+#submit.inactive {
+	background-color: $light-grey;
+	pointer-events: none;
+}

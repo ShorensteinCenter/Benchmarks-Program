@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1 shrink-to-fit=no">
+		<meta name="csrf-token" content="{{ csrf_token() }}">
+		<title>Shorenstein Center Email Benchmarks</title>
+		<meta name="description" content="XXX">
+		<link rel="stylesheet" type="text/css" href="/static/css/styles.min.css">
+		<script src="/static/js/scripts.min.js" async></script>
+	</head>
+	<body>
+		<nav class="navbar">
+		 	<a class="navbar-brand" href="/">Test</a>
+		</nav>
+		<div class="page-wrapper">
+			<div class="container-fluid section-one">
+				<div class="row">
+					<div class="col home-page-title">
+						<h1 class="home-page-title-text">Enter your API key.</h1>
+					</div>
+				</div>
+				<div class="row api-key-form-justify">
+					<div class="col">
+	    				<form action="#" class="api-key-form" method="post" autocomplete="off">
+	    					<div class="row api-key-form-justify">
+		        				<div class="api-key-input-wrapper">
+			            			{{ form.key(size=38) }}
+			            			<span class="focus-bg"></span>
+			            		</div>
+			            		<div class="api-key-submit-wrapper">
+		        					{{ form.submit() }}
+		        				</div>
+	        				</div>
+	    				</form>
+					</div>
+				</div>
+			</div>
+			<div class="container-fluid section-two">
+				<div class="row">
+					<div class="col-12 col-md-10 offset-md-1 col-xl-8 offset-xl-2">
+						<table class="table">
+						  <thead>
+						    <tr>
+						      <th scope="col">List</th>
+						      <th scope="col">Members</th>
+						      <th scope="col">Analysis Time</th>
+						      <th scope="col"></th>
+						    </tr>
+						  </thead>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
