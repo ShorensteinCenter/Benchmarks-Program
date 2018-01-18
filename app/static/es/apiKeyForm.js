@@ -4,7 +4,6 @@ const
 	msgFields = form.querySelectorAll('.api-key-input-wrapper, #key'),
 	csrf_token = document.querySelector('meta[name=csrf-token]').content;
 
-
 /* Validate an API Key Submitted via the form */
 const submitApiKey = async event => {
 	event.preventDefault();
@@ -27,7 +26,7 @@ const submitApiKey = async event => {
 	        },
 	 		request = new Request('/validateAPIKey', payload);
 	 	try {
-	 		let response = await fetch(request);
+	 		const response = await fetch(request);
 	 		if (response.ok) {
 	 			showMsg('valid');
 	 			getLists();
@@ -80,39 +79,28 @@ const getLists = async () => {
 		payload = {
 			method: 'GET',
 			credentials: 'same-origin',
-	        headers: headers,
+	        headers: headers
 	    },
 	 	request = new Request('/getLists', payload);
-	 try {
-	 	let response = await fetch(request);
-	 	if (response.ok) {
-	 		let content = await response.json();
+	try {
+		const response = await fetch(request);
+		if (response.ok) {
+	 		const content = await response.json();
 	 		setupListsTable(content.lists);
 	 	}
 	 	else
 	 		throw new Error(response.statusText);
-	 }
-	 catch(e) {
-	 	console.log('Failed to fetch:', e);
-	 }
+	}
+	catch(e) {
+		console.log('Failed to fetch:', e);
+	}
 }
 
-/* Fill lists table with details */ 
-const setupListsTable = response => {
-	let tableHTML = "<tbody>";
-	for (let i = 0; i < response.length; ++i) {
-		tableHTML += "<tr>";
-		tableHTML += "<td>" + response[i].name + "</td>";
-		tableHTML += "<td>" + response[i].stats.member_count.toLocaleString() + "</td>";
-		tableHTML += "<td></td>";
-		tableHTML += "<td class='analyze-link-column'><a class='analyze-link' href='#'><div class='analyze-link-text'>Analyze</div><svg class='i-chevron-right' viewBox='0 0 32 32' width='16' height='16' fill='none' stroke='currentcolor' stroke-linecap='round' stroke-linejoin='round' stroke-width='3'><path d='M12 30 L24 16 12 2'></path></svg></a></td>";
-		tableHTML += "</tr>";
-	}
-	tableHTML += "</tbody>";
-	document.querySelector('thead').insertAdjacentHTML('afterend', tableHTML);
+/* Transition from one section of the form to the next */
+const slideLeft = amt => {
 	const slides = document.querySelectorAll('.container-fluid');
 	for (let i = 0; i < slides.length; ++i)
-		slides[i].style.transform = 'translateX(-100vw)';
-} 
+		slides[i].style.transform = 'translateX(' + amt + ')';
+}
 
 form.addEventListener('submit', submitApiKey);

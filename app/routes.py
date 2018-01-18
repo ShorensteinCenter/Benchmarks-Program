@@ -1,6 +1,7 @@
-from flask import render_template, jsonify, session
+from flask import render_template, jsonify, session, request
 from app import app
 from app.forms import ApiKeyForm
+from app.lists import MailChimpList
 import requests
 
 # Home Page
@@ -24,8 +25,17 @@ def validateKey():
 def getLists():
 	request_uri = 'https://' + session['data_center'] + '.api.mailchimp.com/3.0/'
 	params = (
-		('fields', 'lists.name,lists.stats.member_count'),
+		('fields', 'lists.id,lists.name,lists.stats.member_count'),
 		('count', session['num_lists']),
 	)
 	response = requests.get(request_uri + 'lists', params=params, auth=('shorenstein', session['key']))
 	return jsonify(response.json())
+
+# Takes a list id and imports the list data
+@app.route('/analyzeList', methods=['GET'])
+def analyzeList():
+	mailing_list = MailChimpList(request.args.get('id'))
+	if mailing_list.import_data():
+		return jsonify(True)
+	else:
+		return jsonify(mailing_list.errors)
