@@ -25,7 +25,7 @@ def validateKey():
 def getLists():
 	request_uri = 'https://' + session['data_center'] + '.api.mailchimp.com/3.0/'
 	params = (
-		('fields', 'lists.id,lists.name,lists.stats.member_count'),
+		('fields', 'lists.id,lists.name,lists.stats.member_count,lists.stats.unsubscribe_count,lists.stats.cleaned_count'),
 		('count', session['num_lists']),
 	)
 	response = requests.get(request_uri + 'lists', params=params, auth=('shorenstein', session['key']))
@@ -34,8 +34,11 @@ def getLists():
 # Takes a list id and imports the list data
 @app.route('/analyzeList', methods=['GET'])
 def analyzeList():
-	mailing_list = MailChimpList(request.args.get('id'))
+	mailing_list = MailChimpList(request.args.get('id'), request.args.get('size'))
 	if mailing_list.import_data():
+		mailing_list.calc_unique_members()
+		mailing_list.calc_high_open_rate_pct()
+		print(mailing_list.high_open_rate_pct)
 		return jsonify(True)
 	else:
-		return jsonify(mailing_list.errors)
+		return jsonify(mailing_list.errors), 500
