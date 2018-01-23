@@ -40,6 +40,7 @@ const analyzeList = (id, count) => {
 		const analyzeLinks = document.querySelectorAll('.analyze-link');
 		for (let i = 0; i < analyzeLinks.length; ++i)
 			analyzeLinks[i].removeEventListener('click', listeners[i]);
+		slideLeft('-200vw');
 		const
 			headers = new Headers({
 				"X-CSRFToken": csrf_token
@@ -62,6 +63,5 @@ const analyzeList = (id, count) => {
 		catch(e) {
 			console.log('Failed to fetch:', e);
 		}
-
 	}
 }

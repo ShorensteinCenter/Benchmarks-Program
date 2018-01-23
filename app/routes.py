@@ -35,10 +35,10 @@ def getLists():
 @app.route('/analyzeList', methods=['GET'])
 def analyzeList():
 	mailing_list = MailChimpList(request.args.get('id'), request.args.get('size'))
-	if mailing_list.import_data():
-		mailing_list.calc_unique_members()
+	try:
+		mailing_list.import_list_data()
 		mailing_list.calc_high_open_rate_pct()
-		print(mailing_list.high_open_rate_pct)
+		mailing_list.import_members_activity()
 		return jsonify(True)
-	else:
-		return jsonify(mailing_list.errors), 500
+	except ConnectionError as e:
+		return jsonify(e), 500
