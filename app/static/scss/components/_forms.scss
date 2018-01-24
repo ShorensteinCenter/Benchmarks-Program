@@ -1,0 +1,96 @@
+.form-justify {
+	justify-content: center;
+}
+
+%form-elt {
+	padding: $form-input-padding;
+	font-size: $form-font-size;
+	line-height: $form-line-height;
+	transition: $form-transition;
+	border-radius: 1px;
+	border: 1px solid $medium-grey; 
+	background: transparent;
+	color: $body-color;
+} 
+
+.form-input-wrapper {
+	position: relative;
+	padding: 0;
+	margin: $form-elt-margin;
+}
+
+.form-input-wrapper:after {
+    position: absolute;
+    top: 2 * $form-input-top-padding + 
+    	$form-font-size * $form-line-height + 0.25rem;
+    transition: $form-transition;
+    opacity: 0;
+}
+
+.form-input-wrapper.invalid:after {
+	opacity: 1;
+	color: $form-invalid-msg-color;
+}
+
+.form-input-wrapper.valid:after {
+	opacity: 1;
+	color: $form-valid-msg-color;
+}
+
+#key {
+	@extend %form-elt;
+	position: relative;
+	width: 100%;
+    
+    & ~ .focus-bg {
+		position: absolute; 
+		left: 0; 
+		top: 0; 
+		width: 100%; 
+		height: 100%; 
+		background-color: $light-grey;
+		opacity: 0; 
+		transition: $form-transition; 
+		z-index: -1;
+    }
+
+    &:focus {
+    	outline: 0;
+    }
+
+    &:focus ~ .focus-bg {
+    	opacity: 1;
+    }
+}
+
+#key.invalid ~ .focus-bg {
+	background-color: $form-invalid-input-color;
+	opacity: 1;
+}
+
+#key.valid ~ .focus-bg {
+	background-color: $form-valid-input-color;
+	opacity: 1;
+}
+
+.form-submit-wrapper.inactive {
+	cursor: not-allowed;
+}
+
+#submit {
+	@extend %form-elt;
+	cursor: pointer;
+
+	&:hover {
+		background-color: $light-grey;
+	}
+
+	&:focus {
+		outline: 0;
+	}
+}
+
+#submit.inactive {
+	background-color: $light-grey;
+	pointer-events: none;
+}

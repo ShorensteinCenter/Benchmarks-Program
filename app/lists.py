@@ -8,9 +8,12 @@ import json
 
 class MailChimpList():
 
-	def __init__(self, id, list_size):
+	def __init__(self, id, members, unsubscribes, cleans):
 		self.id = id
-		self.list_size = int(list_size)
+		self.members = int(members)
+		self.unsubscribes = int(unsubscribes)
+		self.cleans = int(cleans)
+		self.list_size = self.members + self.unsubscribes + self.cleans
 		
 		# The max size of a request to the MailChimp API
 		self.chunk_size = 15000
@@ -18,6 +21,12 @@ class MailChimpList():
 		# The number of requests to make
 		# If list contains less than chunk_size members, this is 1 request
 		self.number_of_chunks = 1 if self.list_size < self.chunk_size else self.list_size // self.chunk_size + 1
+
+	# Calculates pct of members, unsubscribes, and cleans
+	def calc_list_breakdown(self):
+		self.member_pct = "{:.2%}".format(self.members/self.list_size)
+		self.unsubscribe_pct = "{:.2%}".format(self.unsubscribes/self.list_size)
+		self.clean_pct = "{:.2%}".format(self.cleans/self.list_size)
 
 	# Imports information about all list members from the MailChimp API 3.0
 	def import_list_data(self):
@@ -70,7 +79,7 @@ class MailChimpList():
 			return await response.text()
 
 	# Semaphore getter/context manager
-	# Converts response to dict and appends member id for processing
+	# Converts response to dict for processing
 	async def fetch_member_activity_sem(self, sem, url, params, client_session):
 		async with sem:
 			return json.loads(await self.fetch_member_activity(url, params, client_session))
@@ -108,11 +117,8 @@ class MailChimpList():
 			pd.set_option('display.max_colwidth', 1000)
 			print(type(members_activity['activity']))
 			print(members_activity['activity'])
-			#activity = json_normalize(members_actvity['activity'])
-			#print(activity)
 
 	# Imports the recent activity for each list member
-	# Merges the recent activity with the list dataframe
 	def import_members_activity(self):
 
 		# Create a list of unique ids

@@ -16,7 +16,7 @@ nav {
     top: 0;
     width: 100vw;
     min-height: 100%;
-	transition: $api-key-form-transition;
+	transition: $form-transition;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -32,4 +32,8 @@ nav {
 
 .section-three {
 	left: 200vw;
+}
+
+.section-four {
+	left: 300vw;
 }

@@ -1,18 +1,19 @@
 from flask import render_template, jsonify, session, request
 from app import app
-from app.forms import ApiKeyForm
-from app.lists import MailChimpList
+from app.forms import ApiKeyForm, EmailForm
 import requests
+from app.tasks import analyze_list
 
 # Home Page
 @app.route('/')
 def index():
-	form = ApiKeyForm()
-	return render_template('index.html', form=form)
+	keyForm = ApiKeyForm()
+	emailForm = EmailForm()
+	return render_template('index.html', keyForm=keyForm, emailForm=emailForm)
 
 # Validates a post'ed API key
 @app.route('/validateAPIKey', methods=['POST'])
-def validateKey():
+def validate_key():
 	form = ApiKeyForm()
 	if form.validate_on_submit():
 		return jsonify(True)
@@ -22,7 +23,7 @@ def validateKey():
 # Returns a JSON containing list names and number of members
 # Corresponding to most recently validated API key
 @app.route('/getLists', methods=['GET'])
-def getLists():
+def get_lists():
 	request_uri = 'https://' + session['data_center'] + '.api.mailchimp.com/3.0/'
 	params = (
 		('fields', 'lists.id,lists.name,lists.stats.member_count,lists.stats.unsubscribe_count,lists.stats.cleaned_count'),
@@ -31,14 +32,24 @@ def getLists():
 	response = requests.get(request_uri + 'lists', params=params, auth=('shorenstein', session['key']))
 	return jsonify(response.json())
 
-# Takes a list id and imports the list data
-@app.route('/analyzeList', methods=['GET'])
-def analyzeList():
-	mailing_list = MailChimpList(request.args.get('id'), request.args.get('size'))
-	try:
-		mailing_list.import_list_data()
-		mailing_list.calc_high_open_rate_pct()
-		mailing_list.import_members_activity()
+# Handles email address submission
+@app.route('/submitEmail', methods=['POST'])
+def submit_email():
+	form = EmailForm()
+	if form.validate_on_submit():
+		analyze_list.delay(request.form['listId'], request.form['memberCount'], 
+			request.form['unsubscribeCount'], request.form['cleanedCount'])
 		return jsonify(True)
-	except ConnectionError as e:
-		return jsonify(e), 500
+	else:
+		return jsonify(form.errors), 400
+
+# Controller function to handle list analysis
+#def analyzeList(listId, members, unsubscribes, cleans):
+	#mailing_list = MailChimpList(listId, members, unsubscribes, cleans)
+	#try:
+		#mailing_list.import_list_data()
+		#mailing_list.calc_high_open_rate_pct()
+		#mailing_list.import_members_activity()
+		#return jsonify(True)
+	#except ConnectionError as e:
+		#return jsonify(e), 500

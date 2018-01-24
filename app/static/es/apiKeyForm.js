@@ -1,23 +1,21 @@
 const
-	form = document.querySelector('.api-key-form'),
-	inactiveFields = form.querySelectorAll('.api-key-submit-wrapper, #submit');
-	msgFields = form.querySelectorAll('.api-key-input-wrapper, #key'),
+	apiForm = document.querySelector('.api-key-form'),
 	csrf_token = document.querySelector('meta[name=csrf-token]').content;
 
 /* Validate an API Key Submitted via the form */
 const submitApiKey = async event => {
 	event.preventDefault();
-	toggleForm(true);
-	if (!clientSideValidation()) {
-		toggleForm(false);
-		showMsg('invalid');
+	toggleForm(true, apiForm, submitApiKey);
+	if (!apiKeyClientSideValidation()) {
+		toggleForm(false, apiForm, submitApiKey);
+		showMsg('invalid', apiForm);
 	}
 	else {
 		const
 			headers = new Headers({
 				"X-CSRFToken": csrf_token
 			}),
-			formData = new FormData(form),
+			formData = new FormData(apiForm),
 			payload = {
 				method: 'POST',
 				credentials: 'same-origin',
@@ -28,24 +26,29 @@ const submitApiKey = async event => {
 	 	try {
 	 		const response = await fetch(request);
 	 		if (response.ok) {
-	 			showMsg('valid');
+	 			showMsg('valid', apiForm);
 	 			getLists();
 	 		}
 	 		else
 	 			throw new Error(response.statusText);
 	 	}
 	 	catch(e) {
-			toggleForm(false);
-			showMsg('invalid');
-			console.log('Failed to fetch:', e);
+			toggleForm(false, apiForm, submitApiKey);
+			showMsg('invalid', apiForm);
+			console.error('Failed to fetch:', e);
 	 	}
 	}
 }
 
-/* Enable or Disable the API Key Form */
-const toggleForm = disable => {
+/* Enable or Disable a form */
+const toggleForm = (disable, formElt, listener) => {
+	const 
+		inactiveFields = formElt.
+			querySelectorAll('.form-submit-wrapper, #submit'),
+		msgFields = formElt.
+			querySelectorAll('.form-input-wrapper, #key');
 	if (disable) {
-		form.removeEventListener('submit', submitApiKey);
+		formElt.removeEventListener('submit', listener);
 		for (let i = 0; i < msgFields.length; ++i)
 			msgFields[i].classList.remove('invalid');
 		for (let i = 0; i < inactiveFields.length; ++i)
@@ -54,18 +57,20 @@ const toggleForm = disable => {
 	else {
 		for (let i = 0; i < inactiveFields.length; ++i)
 			inactiveFields[i].classList.remove('inactive');
-		form.addEventListener('submit', submitApiKey);
+		formElt.addEventListener('submit', listener);
 	}
 }
 
-/* Perform client-side validation of the API Key Form */
-const clientSideValidation = () => {
-	const key = form.querySelector('#key').value;
+/* Perform client-side validation of the api key Form */
+const apiKeyClientSideValidation = () => {
+	const key = apiForm.querySelector('#key').value;
 	return (key.length !== 0 && key.search('-us') !== -1);
 }
 
 /* Show form messages */
-const showMsg = msg => {
+const showMsg = (msg, formElt) => {
+	msgFields = formElt.
+			querySelectorAll('.form-input-wrapper, #key');
 	for (let i = 0; i < msgFields.length; ++i)
 		msgFields[i].classList.add(msg);
 }
@@ -103,4 +108,4 @@ const slideLeft = amt => {
 		slides[i].style.transform = 'translateX(' + amt + ')';
 }
 
-form.addEventListener('submit', submitApiKey);
+apiForm.addEventListener('submit', submitApiKey);

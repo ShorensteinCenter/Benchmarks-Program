@@ -19,7 +19,9 @@ const bootstrap = {
 
 // js
 const js = {
-	in: static + 'es/*',
+	in: [static + 'es/apiKeyForm.js', 
+		static + 'es/listsTable.js',
+		static + 'es/emailForm.js'],
 	out: static + 'js/'
 };
 

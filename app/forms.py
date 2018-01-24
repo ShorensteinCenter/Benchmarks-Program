@@ -48,3 +48,7 @@ class ApiKeyForm(FlaskForm):
 		session['num_lists'] = response.json().get('total_items')
 
 		return True
+
+class EmailForm(FlaskForm):
+	key = StringField('Email Address')
+	submit = SubmitField('Submit')

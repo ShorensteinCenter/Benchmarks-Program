@@ -20,16 +20,16 @@
 						<h1 class="home-page-title-text">Enter your API key.</h1>
 					</div>
 				</div>
-				<div class="row api-key-form-justify">
+				<div class="row form-justify">
 					<div class="col">
 	    				<form action="#" class="api-key-form" method="post" autocomplete="off">
-	    					<div class="row api-key-form-justify">
-		        				<div class="api-key-input-wrapper">
-			            			{{ form.key(size=38) }}
+	    					<div class="row form-justify">
+		        				<div class="form-input-wrapper">
+			            			{{ keyForm.key(size=38) }}
 			            			<span class="focus-bg"></span>
 			            		</div>
-			            		<div class="api-key-submit-wrapper">
-		        					{{ form.submit() }}
+			            		<div class="form-submit-wrapper">
+		        					{{ keyForm.submit() }}
 		        				</div>
 	        				</div>
 	    				</form>
@@ -53,6 +53,33 @@
 				</div>
 			</div>
 			<div class="container-fluid section-three">
+				<div class="row">
+					<div class="col home-page-title">
+						<h1 class="home-page-title-text">Enter your email address.</h1>
+					</div>
+				</div>
+				<div class="row form-justify">
+					<div class="col">
+	    				<form action="#" class="email-form" method="post" autocomplete="off">
+	    					<div class="row form-justify">
+		        				<div class="form-input-wrapper">
+			            			{{ emailForm.key(size=38) }}
+			            			<span class="focus-bg"></span>
+			            		</div>
+			            		<div class="form-submit-wrapper">
+		        					{{ emailForm.submit() }}
+		        				</div>
+	        				</div>
+	    				</form>
+					</div>
+				</div>
+			</div>
+			<div class="container-fluid section-four">
+				<div class="row">
+					<div class="col home-page-title">
+						<h1 class="home-page-title-text">Thanks!<br>We'll email you shortly.</h1>
+					</div>
+				</div>
 			</div>
 		</div>
 	</body>
