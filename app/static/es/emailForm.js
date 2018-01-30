@@ -17,16 +17,15 @@ const submitEmail = async event => {
 		showMsg('invalid', emailForm);
 	}
 	else {
-		const
-			headers = new Headers({
-				"X-CSRFToken": csrf_token
-			}),
-			formData = new FormData(emailForm);
+		let formData = new FormData(emailForm);
 		formData.append('listId', listId);
 		formData.append('memberCount', memberCount);
 		formData.append('unsubscribeCount', unsubscribeCount);
 		formData.append('cleanedCount', cleanedCount);
 		const
+			headers = new Headers({
+				"X-CSRFToken": csrf_token
+			}),
 			payload = {
 				method: 'POST',
 				credentials: 'same-origin',

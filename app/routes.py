@@ -38,17 +38,13 @@ def submit_email():
 	form = EmailForm()
 	if form.validate_on_submit():
 		analyze_list.delay(request.form['listId'], request.form['memberCount'], 
-			request.form['unsubscribeCount'], request.form['cleanedCount'])
+			request.form['unsubscribeCount'], request.form['cleanedCount'], 
+			session['key'], session['data_center'])
 		return jsonify(True)
 	else:
 		return jsonify(form.errors), 400
 
-# Controller function to handle list analysis
 #def analyzeList(listId, members, unsubscribes, cleans):
-	#mailing_list = MailChimpList(listId, members, unsubscribes, cleans)
-	#try:
-		#mailing_list.import_list_data()
-		#mailing_list.calc_high_open_rate_pct()
 		#mailing_list.import_members_activity()
 		#return jsonify(True)
 	#except ConnectionError as e:
