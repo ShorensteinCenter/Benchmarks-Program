@@ -29,12 +29,15 @@ class ApiKeyForm(FlaskForm):
 
 		# Get total number of lists
 		# If connection refused by server or request fails, bad API key
-		request_uri = 'https://' + data_center + '.api.mailchimp.com/3.0/'
+		request_uri = ('https://' + data_center +
+			'.api.mailchimp.com/3.0/')
 		params = (
 			('fields', 'total_items'),
 		)
 		try:
-			response = requests.get(request_uri + 'lists', params=params, auth=('shorenstein', key))
+			response = (requests.get(request_uri +
+				'lists', params=params, 
+				auth=('shorenstein', key)))
 		except requests.exceptions.ConnectionError:
 			self.key.errors.append('Connection to MailChimp servers refused')
 			return False

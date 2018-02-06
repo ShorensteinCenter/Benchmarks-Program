@@ -1,17 +1,18 @@
 from flask import render_template, jsonify, session, request
-from app import app
+from app import app, csrf
 from app.forms import ApiKeyForm, EmailForm
 import requests
-from app.tasks import analyze_list
+from app.tasks import init_list_analysis
 
 # Home Page
 @app.route('/')
 def index():
 	keyForm = ApiKeyForm()
 	emailForm = EmailForm()
-	return render_template('index.html', keyForm=keyForm, emailForm=emailForm)
+	return render_template('index.html',
+		keyForm=keyForm, emailForm=emailForm)
 
-# Validates a post'ed API key
+# Validates a posted API key
 @app.route('/validateAPIKey', methods=['POST'])
 def validate_key():
 	form = ApiKeyForm()
@@ -24,12 +25,18 @@ def validate_key():
 # Corresponding to most recently validated API key
 @app.route('/getLists', methods=['GET'])
 def get_lists():
-	request_uri = 'https://' + session['data_center'] + '.api.mailchimp.com/3.0/'
+	request_uri = ('https://' + session['data_center'] +
+		'.api.mailchimp.com/3.0/')
 	params = (
-		('fields', 'lists.id,lists.name,lists.stats.member_count,lists.stats.unsubscribe_count,lists.stats.cleaned_count'),
+		('fields', 'lists.id,lists.name,'
+			'lists.stats.member_count,'
+			'lists.stats.unsubscribe_count,'
+			'lists.stats.cleaned_count'),
 		('count', session['num_lists']),
 	)
-	response = requests.get(request_uri + 'lists', params=params, auth=('shorenstein', session['key']))
+	response = (requests.get(request_uri + 'lists',
+		params=params,
+		auth=('shorenstein', session['key'])))
 	return jsonify(response.json())
 
 # Handles email address submission
@@ -37,15 +44,12 @@ def get_lists():
 def submit_email():
 	form = EmailForm()
 	if form.validate_on_submit():
-		analyze_list.delay(request.form['listId'], request.form['memberCount'], 
-			request.form['unsubscribeCount'], request.form['cleanedCount'], 
-			session['key'], session['data_center'])
+		init_list_analysis.delay(request.form['listId'],
+			request.form['memberCount'], 
+			request.form['unsubscribeCount'],
+			request.form['cleanedCount'], 
+			session['key'],
+			session['data_center'])
 		return jsonify(True)
 	else:
 		return jsonify(form.errors), 400
-
-#def analyzeList(listId, members, unsubscribes, cleans):
-		#mailing_list.import_members_activity()
-		#return jsonify(True)
-	#except ConnectionError as e:
-		#return jsonify(e), 500
