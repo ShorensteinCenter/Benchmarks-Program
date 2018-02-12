@@ -6,7 +6,8 @@ let
 	listId = "",
 	memberCount = 0,
 	unsubscribeCount = 0,
-	cleanedCount = 0;
+	cleanedCount = 0,
+	openRate = 0;
 
 /* Fill lists table with details */ 
 const setupListsTable = response => {
@@ -21,7 +22,8 @@ const setupListsTable = response => {
 			response[i].id + "' member-count='" + response[i].stats.member_count + 
 			"' unsubscribe-count='" + response[i].stats.unsubscribe_count + 
 			"' cleaned-count='" + response[i].stats.cleaned_count + 
-			"' href='#'><div class='analyze-link-text'>Analyze</div>" + 
+			"' open-rate='" + response[i].stats.open_rate + "'" +
+			" href='#'><div class='analyze-link-text'>Analyze</div>" + 
 			"<svg class='i-chevron-right' viewBox='0 0 32 32' width='16' height='16' " +
 			"fill='none' stroke='currentcolor' stroke-linecap='round' stroke-linejoin='round' " +
 			"stroke-width='3'><path d='M12 30 L24 16 12 2'></path></svg></a></td>";
@@ -36,7 +38,8 @@ const setupListsTable = response => {
 			members = analyzeLinks[i].getAttribute('member-count'),
 			unsubscribes = analyzeLinks[i].getAttribute('unsubscribe-count'),
 			cleans = analyzeLinks[i].getAttribute('cleaned-count');
-			listener = analyzeList(listId, members, unsubscribes, cleans);
+			openRate = analyzeLinks[i].getAttribute('open-rate');
+			listener = analyzeList(listId, members, unsubscribes, cleans, openRate);
 		analyzeLinks[i].addEventListener('click', listener);
 		listeners[i] = listener;
 	}
@@ -44,7 +47,7 @@ const setupListsTable = response => {
 }
 
 /* Selects a list for processing */
-const analyzeList = (id, members, unsubscribes, cleans) => {
+const analyzeList = (id, members, unsubscribes, cleans, openPct) => {
 	return e => {
 		e.preventDefault();
 		const analyzeLinks = document.querySelectorAll('.analyze-link');
@@ -54,6 +57,7 @@ const analyzeList = (id, members, unsubscribes, cleans) => {
 		memberCount = members;
 		unsubscribeCount = unsubscribes;
 		cleanedCount = cleans;
+		openRate = openPct;
 		slideLeft('-200vw');
 	}
 }

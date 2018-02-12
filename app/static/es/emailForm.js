@@ -22,6 +22,7 @@ const submitEmail = async event => {
 		formData.append('memberCount', memberCount);
 		formData.append('unsubscribeCount', unsubscribeCount);
 		formData.append('cleanedCount', cleanedCount);
+		formData.append('openRate', openRate);
 		const
 			headers = new Headers({
 				"X-CSRFToken": csrf_token

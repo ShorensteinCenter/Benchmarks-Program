@@ -26,16 +26,16 @@ def validate_key():
 @app.route('/getLists', methods=['GET'])
 def get_lists():
 	request_uri = ('https://' + session['data_center'] +
-		'.api.mailchimp.com/3.0/')
+		'.api.mailchimp.com/3.0/lists')
 	params = (
 		('fields', 'lists.id,lists.name,'
 			'lists.stats.member_count,'
 			'lists.stats.unsubscribe_count,'
-			'lists.stats.cleaned_count'),
+			'lists.stats.cleaned_count,'
+			'lists.stats.open_rate'),
 		('count', session['num_lists']),
 	)
-	response = (requests.get(request_uri + 'lists',
-		params=params,
+	response = (requests.get(request_uri, params=params,
 		auth=('shorenstein', session['key'])))
 	return jsonify(response.json())
 
@@ -47,7 +47,8 @@ def submit_email():
 		init_list_analysis.delay(request.form['listId'],
 			request.form['memberCount'], 
 			request.form['unsubscribeCount'],
-			request.form['cleanedCount'], 
+			request.form['cleanedCount'],
+			request.form['openRate'],
 			session['key'],
 			session['data_center'])
 		return jsonify(True)

@@ -1,10 +1,11 @@
 from flask import session
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
+from wtforms.validators import DataRequired, Email
 import requests
 
 class ApiKeyForm(FlaskForm):
-	key = StringField('API Key')
+	key = StringField('API Key', validators=[DataRequired()])
 	submit = SubmitField('Submit')
 
 	def __init__(self, *args, **kwargs):
@@ -53,5 +54,6 @@ class ApiKeyForm(FlaskForm):
 		return True
 
 class EmailForm(FlaskForm):
-	key = StringField('Email Address')
+	key = (StringField('Email Address',
+		validators=[DataRequired(), Email()]))
 	submit = SubmitField('Submit')

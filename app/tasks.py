@@ -1,36 +1,65 @@
-from app import celery
+from app import celery, db
 from app.lists import MailChimpList
-import boto3
+from app.models import ListStats
+from sqlalchemy.sql.functions import func
 
-# Pull in basic list data (members, per-member stats, etc.)
-# Store basic list data in S3
-# Make batch request to MailChimp for each list member's activity
+# Pull in list data, perform calculations, then store results
 @celery.task
-def init_list_analysis(list_id, members, unsubscribes, cleans, api_key, data_center):
+def init_list_analysis(list_id, members, unsubscribes, cleans, open_rate, api_key, data_center):
 	
-	# Create a new list instance and import basic data
-	mailing_list = (MailChimpList(list_id, 
-		members, unsubscribes, cleans, api_key, data_center))
-	mailing_list.import_list_data()
+	# Try to pull the list stats from database
+	existing_list = ListStats.query.filter_by(list_id=list_id).first()
 
-	print('starting member import')
-	# Import the member activity as well
-	mailing_list.import_members_activity()
+	# Placeholder for list stats
+	stats = None
 
-	# Do data science shit
-	mailing_list.calc_list_breakdown()
-	mailing_list.calc_high_open_rate_pct()
-	mailing_list.calc_cur_yr_stats()
+	if existing_list is None:
+
+		# Create a new list instance and import basic data
+		mailing_list = MailChimpList(list_id, members,
+			unsubscribes, cleans, api_key, data_center)
+		mailing_list.import_list_data()
+
+		# Import the member activity as well
+		mailing_list.import_members_activity()
+
+		# Do the data science shit
+		mailing_list.calc_list_breakdown()
+		mailing_list.calc_high_open_rate_pct()
+		mailing_list.calc_cur_yr_stats()
+		
+		# Get list stats
+		stats = mailing_list.get_list_stats()
+
+		# Store the stats in database
+		list_stats = ListStats(list_id=list_id, api_key=api_key,
+			data_center=data_center, open_rate=open_rate,
+			member_pct=stats['member_pct'],
+			unsubscribe_pct=stats['unsubscribe_pct'],
+			clean_pct=stats['clean_pct'],
+			high_open_rt_pct=stats['high_open_rt_pct'],
+			cur_yr_members=stats['cur_yr_members'],
+			cur_yr_members_open_rt=stats['cur_yr_members_open_rt'])
+		db.session.merge(list_stats)
+		db.session.commit()
+
+	else:
+		
+		# Get list stats from database results
+		stats = {'member_pct': existing_list.member_pct,
+			'unsubscribe_pct': existing_list.unsubscribe_pct,
+			'clean_pct': existing_list.clean_pct,
+			'high_open_rt_pct': existing_list.high_open_rt_pct,
+			'cur_yr_members': existing_list.cur_yr_members,
+			'cur_yr_members_open_rt': existing_list.cur_yr_members_open_rt}
+
+	# Generate averages
+	avg_stats = db.session.query(func.avg(ListStats.open_rate),
+		func.avg(ListStats.member_pct),
+		func.avg(ListStats.unsubscribe_pct),
+		func.avg(ListStats.clean_pct),
+		func.avg(ListStats.high_open_rt_pct),
+		func.avg(ListStats.cur_yr_members),
+		func.avg(ListStats.cur_yr_members_open_rt)).first()
 	
-	"""
-	# Store list data and metadata in S3
-	metadata = mailing_list.get_list_metadata()
-	csv = mailing_list.get_list_as_csv()
-	filename = list_id + '_partial.csv'	
-	s3 = boto3.client('s3')
-	s3.put_object(Body=csv.getvalue(), Bucket='partialdfs', 
-		Key=filename, Metadata=metadata)
-
-	mailing_list.batch_request_memb_act()
-	"""
-
+	# Generate graphs

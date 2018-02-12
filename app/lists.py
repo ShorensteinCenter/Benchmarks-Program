@@ -7,12 +7,10 @@ import io
 from datetime import datetime, timedelta, timezone
 import iso8601
 
-
-class MailChimpList():
+class MailChimpList(object):
 
 	# The max size of a request to the MailChimp API
-	# This is for direct requests
-	# Batch requests are performed differently
+	# This is for direct requests to the members endpoint
 	CHUNK_SIZE = 5000
 
 	# The number of simultaneous connections accepted by the API
@@ -161,8 +159,6 @@ class MailChimpList():
 			# Await completion of all requests and gather results
 			responses = await asyncio.gather(*tasks)
 
-		print('done with member import')
-
 		# Calculate timestamp for one year ago
 		now = datetime.now(timezone.utc)
 		one_year_ago = now - timedelta(days=365)
@@ -199,12 +195,12 @@ class MailChimpList():
 	def calc_list_breakdown(self):
 		self.total_list_size = (self.members + 
 			self.unsubscribes + self.cleans)
-		self.member_pct = ("{:.2%}".format(
-			self.members/self.total_list_size))
-		self.unsubscribe_pct = ("{:.2%}".format(
-			self.unsubscribes/self.total_list_size))
-		self.clean_pct = ("{:.2%}".format(
-			self.cleans/self.total_list_size))
+		self.member_pct = (self.members /
+			self.total_list_size)
+		self.unsubscribe_pct = (self.unsubscribes /
+			self.total_list_size)
+		self.clean_pct = (self.cleans /
+			self.total_list_size)
 
 	# Calculates the percentage of members
 	# Who open greater than 80% of the time
@@ -216,7 +212,7 @@ class MailChimpList():
 
 		# Merge the dataframes
 		self.df = (self.df[['status', 'timestamp_opt',
-			'timestamp_signup', 'id']].join(stats))
+			'timestamp_signup', 'id', 'recent_open']].join(stats))
 
 		# Sum the number of rows where average open rate exceeds 0.8
 		# Then divide by the total number of rows
@@ -226,17 +222,19 @@ class MailChimpList():
 	# Calculates list size and open rate
 	# Only includes subs who have opened an email in the previous year
 	def calc_cur_yr_stats(self):
-		self.cur_yr_members = self.df['recent_open'].count()
+		self.cur_yr_members = int(self.df['recent_open'].count())
 		self.cur_yr_members_open_rt = (self.df[self.df['recent_open']
 			.notnull()]['avg_open_rate'].mean())
 
-	# Returns instance attributes as a dictionary
-	def get_list_metadata(self):
-		metadata = {'id': self.id, 'members': str(self.members),
-			'unsubscribes': str(self.unsubscribes), 
-			'cleans': str(self.cleans), 'api_key': self.api_key, 
-			'data_center': self.data_center}
-		return metadata
+	# Returns list stats as a dictionary
+	def get_list_stats(self):
+		stats = {'member_pct': self.member_pct,
+			'unsubscribe_pct': self.unsubscribe_pct,
+			'clean_pct': self.clean_pct,
+			'high_open_rt_pct': self.high_open_rt_pct,
+			'cur_yr_members': self.cur_yr_members,
+			'cur_yr_members_open_rt': self.cur_yr_members_open_rt}
+		return stats
 
 	# Returns a string buffer containing a CSV of the list data
 	def get_list_as_csv(self):
