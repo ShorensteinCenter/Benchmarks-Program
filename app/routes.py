@@ -45,6 +45,7 @@ def submit_email():
 	form = EmailForm()
 	if form.validate_on_submit():
 		init_list_analysis.delay(request.form['listId'],
+			request.form['listName'],
 			request.form['memberCount'], 
 			request.form['unsubscribeCount'],
 			request.form['cleanedCount'],

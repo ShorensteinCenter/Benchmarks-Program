@@ -21,8 +21,9 @@ class MailChimpList(object):
 	# Otherwise MailChimp will flag as too many requests
 	MAX_ACTIVITY_CONNECTIONS = 2
 
-	def __init__(self, id, members, unsubscribes, cleans, api_key, data_center):
+	def __init__(self, id, open_rate, members, unsubscribes, cleans, api_key, data_center):
 		self.id = id
+		self.open_rate = float(open_rate)
 		self.members = int(members)
 		self.unsubscribes = int(unsubscribes)
 		self.cleans = int(cleans)
@@ -191,6 +192,10 @@ class MailChimpList(object):
 			self.import_members_async(member_list)))
 		loop.run_until_complete(future)
 
+	# Calculates the open rate
+	def calc_open_rate(self):
+		self.open_rate = self.open_rate / 100
+
 	# Calculates pct of members, unsubscribes, and cleans
 	def calc_list_breakdown(self):
 		self.total_list_size = (self.members + 
@@ -228,7 +233,8 @@ class MailChimpList(object):
 
 	# Returns list stats as a dictionary
 	def get_list_stats(self):
-		stats = {'member_pct': self.member_pct,
+		stats = {'open_rate': self.open_rate,
+			'member_pct': self.member_pct,
 			'unsubscribe_pct': self.unsubscribe_pct,
 			'clean_pct': self.clean_pct,
 			'high_open_rt_pct': self.high_open_rt_pct,
