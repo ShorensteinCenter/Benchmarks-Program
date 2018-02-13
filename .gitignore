@@ -1,3 +1,7 @@
 node_modules/
 ngrok.exe
 charts/*.png
+__pycache__
+app/__pycache__
+migrations/__pycache__
+*.pyc
