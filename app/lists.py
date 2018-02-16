@@ -227,7 +227,8 @@ class MailChimpList(object):
 	# Calculates list size and open rate
 	# Only includes subs who have opened an email in the previous year
 	def calc_cur_yr_stats(self):
-		self.cur_yr_members = int(self.df['recent_open'].count())
+		self.cur_yr_member_pct = (int(self.df['recent_open']
+			.count()) / self.members)
 		self.cur_yr_members_open_rt = (self.df[self.df['recent_open']
 			.notnull()]['avg_open_rate'].mean())
 
@@ -238,7 +239,7 @@ class MailChimpList(object):
 			'unsubscribe_pct': self.unsubscribe_pct,
 			'clean_pct': self.clean_pct,
 			'high_open_rt_pct': self.high_open_rt_pct,
-			'cur_yr_members': self.cur_yr_members,
+			'cur_yr_member_pct': self.cur_yr_member_pct,
 			'cur_yr_members_open_rt': self.cur_yr_members_open_rt}
 		return stats
 

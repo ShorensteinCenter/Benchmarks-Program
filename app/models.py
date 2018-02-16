@@ -9,7 +9,7 @@ class ListStats(db.Model):
 	unsubscribe_pct = db.Column(db.Float)
 	clean_pct = db.Column(db.Float)
 	high_open_rt_pct = db.Column(db.Float)
-	cur_yr_members = db.Column(db.Integer)
+	cur_yr_member_pct = db.Column(db.Float)
 	cur_yr_members_open_rt = db.Column(db.Float)
 
 	def __repr__(self):

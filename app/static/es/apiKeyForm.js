@@ -19,24 +19,24 @@ const submitApiKey = async event => {
 			payload = {
 				method: 'POST',
 				credentials: 'same-origin',
-	            headers: headers,
-	            body: formData
-	        },
-	 		request = new Request('/validateAPIKey', payload);
-	 	try {
-	 		const response = await fetch(request);
-	 		if (response.ok) {
-	 			showMsg('valid', apiForm);
-	 			getLists();
-	 		}
-	 		else
-	 			throw new Error(response.statusText);
-	 	}
-	 	catch(e) {
+				headers: headers,
+				body: formData
+			},
+			request = new Request('/validateAPIKey', payload);
+		try {
+			const response = await fetch(request);
+			if (response.ok) {
+				showMsg('valid', apiForm);
+				getLists();
+			}
+			else
+				throw new Error(response.statusText);
+		}
+		catch(e) {
 			toggleForm(false, apiForm, submitApiKey);
 			showMsg('invalid', apiForm);
 			console.error('Failed to fetch:', e);
-	 	}
+		}
 	}
 }
 
@@ -84,17 +84,17 @@ const getLists = async () => {
 		payload = {
 			method: 'GET',
 			credentials: 'same-origin',
-	        headers: headers
-	    },
-	 	request = new Request('/getLists', payload);
+			headers: headers
+		},
+		request = new Request('/getLists', payload);
 	try {
 		const response = await fetch(request);
 		if (response.ok) {
-	 		const content = await response.json();
-	 		setupListsTable(content.lists);
-	 	}
-	 	else
-	 		throw new Error(response.statusText);
+			const content = await response.json();
+			setupListsTable(content.lists);
+		}
+		else
+			throw new Error(response.statusText);
 	}
 	catch(e) {
 		console.log('Failed to fetch:', e);
