@@ -1,12 +1,13 @@
 from flask import render_template
 from app import app, celery, db, mail
 from app.lists import MailChimpList
-from app.models import ListStats
+from app.models import ListStats, AppUser
 from app.charts import BarChart
 from sqlalchemy.sql.functions import func
 from flask_mail import Message
 
-# Pull in list data, perform calculations, then store results
+# Pull in list data, perform calculations, store results
+# Generate charts, email charts to user
 @celery.task
 def init_list_analysis(list_id, list_name, members,
 	unsubscribes, cleans, open_rate, api_key,
@@ -61,6 +62,12 @@ def init_list_analysis(list_id, list_name, members,
 			'high_open_rt_pct': existing_list.high_open_rt_pct,
 			'cur_yr_member_pct': existing_list.cur_yr_member_pct,
 			'cur_yr_members_open_rt': existing_list.cur_yr_members_open_rt}
+
+	# Log that the request occured
+	current_user = AppUser(user_email=user_email,
+		list_id=list_id)
+	db.session.add(current_user)
+	db.session.commit()
 
 	# Generate averages
 	avg_stats = db.session.query(func.avg(ListStats.open_rate),
