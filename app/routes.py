@@ -51,7 +51,8 @@ def submit_email():
 			request.form['cleanedCount'],
 			request.form['openRate'],
 			session['key'],
-			session['data_center'])
+			session['data_center'],
+			form.key.data)
 		return jsonify(True)
 	else:
 		return jsonify(form.errors), 400

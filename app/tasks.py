@@ -1,12 +1,16 @@
-from app import celery, db
+from flask import render_template
+from app import app, celery, db, mail
 from app.lists import MailChimpList
 from app.models import ListStats
-from sqlalchemy.sql.functions import func
 from app.charts import BarChart
+from sqlalchemy.sql.functions import func
+from flask_mail import Message
 
 # Pull in list data, perform calculations, then store results
 @celery.task
-def init_list_analysis(list_id, list_name, members, unsubscribes, cleans, open_rate, api_key, data_center):
+def init_list_analysis(list_id, list_name, members,
+	unsubscribes, cleans, open_rate, api_key,
+	data_center, user_email):
 	
 	# Try to pull the list stats from database
 	existing_list = ListStats.query.filter_by(list_id=list_id).first()
@@ -67,13 +71,14 @@ def init_list_analysis(list_id, list_name, members, unsubscribes, cleans, open_r
 		func.avg(ListStats.cur_yr_member_pct),
 		func.avg(ListStats.cur_yr_members_open_rt)).first()
 	
-	# Generate charts
+	# Generate charts, export them as pngs
+	# Then save them in /charts
 	open_rate_chart = BarChart('Avg. Open Rate',
 		{'Your List': [stats['open_rate']],
 		'Average': [avg_stats[0]]})
 	open_rate_chart.render_png(list_id + '_open_rate')
 
-	list_breakdown_chart = BarChart('List Breakdown',
+	list_breakdown_chart = BarChart('List Composition',
 		{'Member %': [stats['member_pct'], avg_stats[1]],
 		'Unsubscribed %': [stats['unsubscribe_pct'], avg_stats[2]],
 		'Cleaned %': [stats['clean_pct'], avg_stats[3]]},
@@ -98,3 +103,12 @@ def init_list_analysis(list_id, list_name, members, unsubscribes, cleans, open_r
 		'Average': [avg_stats[6]]})
 	cur_yr_members_open_rt_chart.render_png(
 		list_id + 'cur_yr_members_open_rt')
+
+	# Send charts as an email report
+	with app.app_context():
+		msg = Message('Your Email List Report is Ready!',
+			sender='shorensteintesting@gmail.com',
+			recipients=[user_email],
+			html=render_template('email.html',
+				list_name=list_name))
+		mail.send(msg)
