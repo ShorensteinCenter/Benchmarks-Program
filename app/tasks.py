@@ -9,25 +9,25 @@ from flask_mail import Message
 # Pull in list data, perform calculations, store results
 # Generate charts, email charts to user
 @celery.task
-def init_list_analysis(list_id, list_name, members,
-	unsubscribes, cleans, open_rate, api_key,
-	data_center, user_email):
-	
+def init_list_analysis(list_id, list_name, count,
+	open_rate, api_key, data_center, user_email):
+
 	# Try to pull the list stats from database
-	existing_list = ListStats.query.filter_by(list_id=list_id).first()
+	existing_list = (ListStats.query.
+		filter_by(list_id=list_id).first())
 
 	# Placeholder for list stats
 	stats = None
 
 	if existing_list is None:
 
-		# Create a new list instance and import basic data
+		# Create a new list instance and import basic member data
 		mailing_list = MailChimpList(list_id, open_rate,
-			members, unsubscribes, cleans, api_key, data_center)
+			count, api_key, data_center)
 		mailing_list.import_list_data()
 
-		# Import the member activity as well
-		mailing_list.import_members_activity()
+		# Import the subscriber activity as well, and merge
+		mailing_list.import_sub_activity()
 
 		# Do the data science shit
 		mailing_list.calc_open_rate()
@@ -43,12 +43,13 @@ def init_list_analysis(list_id, list_name, members,
 			api_key=api_key,
 			data_center=data_center,
 			open_rate=stats['open_rate'],
-			member_pct=stats['member_pct'],
-			unsubscribe_pct=stats['unsubscribe_pct'],
-			clean_pct=stats['clean_pct'],
+			subscribed_pct=stats['subscribed_pct'],
+			unsubscribed_pct=stats['unsubscribed_pct'],
+			cleaned_pct=stats['cleaned_pct'],
+			pending_pct=stats['pending_pct'],
 			high_open_rt_pct=stats['high_open_rt_pct'],
-			cur_yr_member_pct=stats['cur_yr_member_pct'],
-			cur_yr_members_open_rt=stats['cur_yr_members_open_rt'])
+			cur_yr_sub_pct=stats['cur_yr_sub_pct'],
+			cur_yr_sub_open_rt=stats['cur_yr_sub_open_rt'])
 		db.session.merge(list_stats)
 		db.session.commit()
 
@@ -56,12 +57,13 @@ def init_list_analysis(list_id, list_name, members,
 
 		# Get list stats from database results
 		stats = {'open_rate': existing_list.open_rate,
-			'member_pct': existing_list.member_pct,
-			'unsubscribe_pct': existing_list.unsubscribe_pct,
-			'clean_pct': existing_list.clean_pct,
+			'subscribed_pct': existing_list.subscribed_pct,
+			'unsubscribed_pct': existing_list.unsubscribed_pct,
+			'cleaned_pct': existing_list.cleaned_pct,
+			'pending_pct': existing_list.pending_pct,
 			'high_open_rt_pct': existing_list.high_open_rt_pct,
-			'cur_yr_member_pct': existing_list.cur_yr_member_pct,
-			'cur_yr_members_open_rt': existing_list.cur_yr_members_open_rt}
+			'cur_yr_sub_pct': existing_list.cur_yr_sub_pct,
+			'cur_yr_sub_open_rt': existing_list.cur_yr_sub_open_rt}
 
 	# Log that the request occured
 	current_user = AppUser(user_email=user_email,
@@ -71,47 +73,50 @@ def init_list_analysis(list_id, list_name, members,
 
 	# Generate averages
 	avg_stats = db.session.query(func.avg(ListStats.open_rate),
-		func.avg(ListStats.member_pct),
-		func.avg(ListStats.unsubscribe_pct),
-		func.avg(ListStats.clean_pct),
+		func.avg(ListStats.subscribed_pct),
+		func.avg(ListStats.unsubscribed_pct),
+		func.avg(ListStats.cleaned_pct),
+		func.avg(ListStats.pending_pct),
 		func.avg(ListStats.high_open_rt_pct),
-		func.avg(ListStats.cur_yr_member_pct),
-		func.avg(ListStats.cur_yr_members_open_rt)).first()
+		func.avg(ListStats.cur_yr_sub_pct),
+		func.avg(ListStats.cur_yr_sub_open_rt)).first()
 	
-	# Generate charts, export them as pngs
-	# Then save them in /charts
+	# Generate charts
+	# Export them as pngs to /charts
 	open_rate_chart = BarChart('Avg. Open Rate',
 		{'Your List': [stats['open_rate']],
 		'Average': [avg_stats[0]]})
 	open_rate_chart.render_png(list_id + '_open_rate')
 
 	list_breakdown_chart = BarChart('List Composition',
-		{'Member %': [stats['member_pct'], avg_stats[1]],
-		'Unsubscribed %': [stats['unsubscribe_pct'], avg_stats[2]],
-		'Cleaned %': [stats['clean_pct'], avg_stats[3]]},
+		{'Subscribed %': [stats['subscribed_pct'], avg_stats[1]],
+		'Unsubscribed %': [stats['unsubscribed_pct'], avg_stats[2]],
+		'Cleaned %': [stats['cleaned_pct'], avg_stats[3]],
+		'Pending %': [stats['pending_pct'], avg_stats[4]]},
 		('Your List', 'Average'))
 	list_breakdown_chart.render_png(list_id + '_breakdown')
 
 	high_open_rt_pct_chart = BarChart(
-		'% of List Members with Open Rate >80%',
+		'% of Subscribers with Open Rate >80%',
 		{'Your List': [stats['high_open_rt_pct']],
-		'Average': [avg_stats[4]]})
+		'Average': [avg_stats[5]]})
 	high_open_rt_pct_chart.render_png(list_id + '_high_open_rt')
 
 	cur_yr_member_pct_chart = BarChart(
-		'% of List Members who Opened an Email in the Last 365 Days',
-		{'Your List': [stats['cur_yr_member_pct']],
-		'Average': [avg_stats[5]]})
+		'% of Subscribers who Opened an Email in the Last 365 Days',
+		{'Your List': [stats['cur_yr_sub_pct']],
+		'Average': [avg_stats[6]]})
 	cur_yr_member_pct_chart.render_png(list_id + 'cur_yr_memb_pct')
 
 	cur_yr_members_open_rt_chart = BarChart(
-		'Avg. Open Rate -\nList Members who Opened an Email in the Last 365 Days',
-		{'Your List': [stats['cur_yr_members_open_rt']],
-		'Average': [avg_stats[6]]})
+		'Avg. Open Rate -\nSubscribers who Opened an Email in the Last 365 Days',
+		{'Your List': [stats['cur_yr_sub_open_rt']],
+		'Average': [avg_stats[7]]})
 	cur_yr_members_open_rt_chart.render_png(
-		list_id + 'cur_yr_members_open_rt')
+		list_id + 'cur_yr_sub_open_rt')
 
 	# Send charts as an email report
+	# Due to the way Flask-Mail works, reimport app_context first
 	with app.app_context():
 		msg = Message('Your Email List Report is Ready!',
 			sender='shorensteintesting@gmail.com',

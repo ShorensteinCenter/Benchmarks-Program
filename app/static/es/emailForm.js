@@ -19,10 +19,8 @@ const submitEmail = async event => {
 	else {
 		let formData = new FormData(emailForm);
 		formData.append('listId', listId);
-		formData.append('listName', listName)
-		formData.append('memberCount', memberCount);
-		formData.append('unsubscribeCount', unsubscribeCount);
-		formData.append('cleanedCount', cleanedCount);
+		formData.append('listName', listName);
+		formData.append('totalCount', totalCount)
 		formData.append('openRate', openRate);
 		const
 			headers = new Headers({

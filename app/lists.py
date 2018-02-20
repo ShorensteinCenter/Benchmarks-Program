@@ -21,18 +21,17 @@ class MailChimpList(object):
 	# Otherwise MailChimp will flag as too many requests
 	MAX_ACTIVITY_CONNECTIONS = 2
 
-	def __init__(self, id, open_rate, members, unsubscribes, cleans, api_key, data_center):
+	def __init__(self, id, open_rate, count,
+		api_key, data_center):
 		self.id = id
 		self.open_rate = float(open_rate)
-		self.members = int(members)
-		self.unsubscribes = int(unsubscribes)
-		self.cleans = int(cleans)
+		self.count = int(count)
 		self.api_key = api_key
 		self.data_center = data_center
 
 	# Asynchronously imports list data for CHUNK_SIZE members
 	async def fetch_list_data(self, url, params, session):
-		async with session.get(url, params=params,auth=BasicAuth('shorenstein', self.api_key)) as response:
+		async with session.get(url, params=params, auth=BasicAuth('shorenstein', self.api_key)) as response:
 			return await response.text()
 
 	# Make requests with semaphore
@@ -42,7 +41,7 @@ class MailChimpList(object):
 			res = await self.fetch_list_data(url, params, session)
 			return json.loads(res)['members']
 
-	# Asynchronously runs the import of basic list data
+	# Asynchronously runs the import of basic member data
 	async def import_list_async(self, r):
 
 		# MailChimp API endpoint for requests
@@ -64,7 +63,7 @@ class MailChimpList(object):
 			for x in range(r):
 			
 				# Calculate the number of members for this request
-				chunk = (str(self.members % self.CHUNK_SIZE 
+				chunk = (str(self.count % self.CHUNK_SIZE 
 					if x == r - 1 else self.CHUNK_SIZE))
 
 				# Calculate where in the mailing list to begin request from
@@ -77,7 +76,6 @@ class MailChimpList(object):
 						'members.stats,members.id'),
 					('count', chunk),
 					('offset', offset),
-					('status', 'subscribed'),
 				)
 
 				# Add a new import task to the queue for each chunk
@@ -97,13 +95,13 @@ class MailChimpList(object):
 		# Create a pandas dataframe to store the results
 		self.df = pd.DataFrame(list_data)
 
-	# Imports the recent activity for each list member
+	# Imports the stats for each list member
 	def import_list_data(self):
 
 		# The number of total requests to make to MailChimp
-		# If list contains less than CHUNK_SIZE members, this is 1 request
-		number_of_requests = (1 if self.members < self.CHUNK_SIZE
-			else self.members // self.CHUNK_SIZE + 1)
+		# If list is smaller than CHUNK_SIZE, this is 1 request
+		number_of_requests = (1 if self.count < self.CHUNK_SIZE
+			else self.count // self.CHUNK_SIZE + 1)
 
 		# Async tasks with asyncio
 		loop = asyncio.get_event_loop()
@@ -111,24 +109,24 @@ class MailChimpList(object):
 			(self.import_list_async(number_of_requests)))
 		loop.run_until_complete(future)
 
-	# Returns list of md5-hashed email ids
+	# Returns list of md5-hashed email ids for subscribers only
 	def get_list_ids(self):
-		return self.df['id'].tolist()
+		return self.df[self.df['status'] == 'subscribed']['id'].tolist()
 
-	# Asynchronously imports member activity for a single member
-	async def fetch_member_activity(self, url, params, session):
+	# Asynchronously imports subscriber activity for a single sub
+	async def fetch_sub_activity(self, url, params, session):
 		async with session.get(url, params=params, auth=BasicAuth('shorenstein', self.api_key)) as response:
 			return await response.text()
 
 	# Make requests with semaphore
 	# Convert response to dict for processing
-	async def fetch_member_activity_sem(self, sem, url, params, session):
+	async def fetch_sub_activity_sem(self, sem, url, params, session):
 		async with sem:
-			res = await self.fetch_member_activity(url, params, session)
+			res = await self.fetch_sub_activity(url, params, session)
 			return json.loads(res)
 
-	# Asynchronously runs the import of member data
-	async def import_members_async(self, member_list):
+	# Asynchronously runs the import of subscriber activity
+	async def import_sub_activity_async(self, subscriber_list):
 		params = (
 			('fields', 'activity.action,activity.timestamp,email_id'),
 		)
@@ -148,12 +146,12 @@ class MailChimpList(object):
 
 		# Create a session with which to make requests
 		async with ClientSession() as session:
-			for member_id in member_list:
+			for subscriber_id in subscriber_list:
 
-				# Add a new import task to the queue for each list member
+				# Add a new import task to the queue for each list subscriber
 				task = asyncio.ensure_future(self
-					.fetch_member_activity_sem(sem,
-					request_uri.format(member_id),
+					.fetch_sub_activity_sem(sem,
+					request_uri.format(subscriber_id),
 					params, session))
 				tasks.append(task)
 
@@ -174,40 +172,52 @@ class MailChimpList(object):
 			for response in responses]
 
 		# Convert results to a dataframe
-		member_activities = pd.DataFrame(activities)
+		subscriber_activities = pd.DataFrame(activities)
+
+		print(self.df)
 
 		# Merge dataframes
 		self.df = pd.merge(self.df, 
-			member_activities, on="id")
+			subscriber_activities, on='id', how='left')
 
-	# Imports the recent activity for each list member
-	def import_members_activity(self):
+		print(self.df)
 
-		# Get a list of unique ids
-		member_list = self.get_list_ids()
+	# Imports the recent activity for each list subscriber
+	def import_sub_activity(self):
+
+		# Get a list of unique subscriber ids
+		subscriber_list = self.get_list_ids()
+
+		# Store the number of subscribers for later
+		self.subscribers = len(subscriber_list)
 
 		# Async tasks with asyncio
 		loop = asyncio.get_event_loop()
 		future = (asyncio.ensure_future(
-			self.import_members_async(member_list)))
+			self.import_sub_activity_async(subscriber_list)))
 		loop.run_until_complete(future)
 
 	# Calculates the open rate
 	def calc_open_rate(self):
 		self.open_rate = self.open_rate / 100
 
-	# Calculates pct of members, unsubscribes, and cleans
+	# Calculates the list breakdown
 	def calc_list_breakdown(self):
-		self.total_list_size = (self.members + 
-			self.unsubscribes + self.cleans)
-		self.member_pct = (self.members /
-			self.total_list_size)
-		self.unsubscribe_pct = (self.unsubscribes /
-			self.total_list_size)
-		self.clean_pct = (self.cleans /
-			self.total_list_size)
+		statuses = self.df.status.unique()
+		self.subscribed_pct = (0 if 'subscribed' not in statuses
+			else self.df.status.value_counts()['subscribed'] /
+			self.count)
+		self.unsubscribed_pct = (0 if 'unsubscribed' not in statuses
+			else self.df.status.value_counts()['unsubscribed'] /
+			self.count)
+		self.cleaned_pct = (0 if 'cleaned' not in statuses
+			else self.df.status.value_counts()['cleaned'] /
+			self.count)
+		self.pending_pct = (0 if 'pending' not in statuses
+			else self.df.status.value_counts()['pending'] /
+			self.count)
 
-	# Calculates the percentage of members
+	# Calculates the percentage of subscribers
 	# Who open greater than 80% of the time
 	def calc_high_open_rate_pct(self):
 
@@ -220,27 +230,30 @@ class MailChimpList(object):
 			'timestamp_signup', 'id', 'recent_open']].join(stats))
 
 		# Sum the number of rows where average open rate exceeds 0.8
+		# And the member is a subscriber
 		# Then divide by the total number of rows
 		self.high_open_rt_pct = (sum(x > 0.8
-			for x in self.df['avg_open_rate']) / self.total_list_size)
+			for x in self.df[self.df['status'] == 'subscribed']
+			['avg_open_rate']) / self.subscribers)
 
 	# Calculates list size and open rate
 	# Only includes subs who have opened an email in the previous year
 	def calc_cur_yr_stats(self):
-		self.cur_yr_member_pct = (int(self.df['recent_open']
-			.count()) / self.members)
-		self.cur_yr_members_open_rt = (self.df[self.df['recent_open']
+		self.cur_yr_sub_pct = (int(self.df['recent_open']
+			.count()) / self.subscribers)
+		self.cur_yr_sub_open_rt = (self.df[self.df['recent_open']
 			.notnull()]['avg_open_rate'].mean())
 
 	# Returns list stats as a dictionary
 	def get_list_stats(self):
 		stats = {'open_rate': self.open_rate,
-			'member_pct': self.member_pct,
-			'unsubscribe_pct': self.unsubscribe_pct,
-			'clean_pct': self.clean_pct,
+			'subscribed_pct': self.subscribed_pct,
+			'unsubscribed_pct': self.unsubscribed_pct,
+			'cleaned_pct': self.cleaned_pct,
+			'pending_pct': self.pending_pct,
 			'high_open_rt_pct': self.high_open_rt_pct,
-			'cur_yr_member_pct': self.cur_yr_member_pct,
-			'cur_yr_members_open_rt': self.cur_yr_members_open_rt}
+			'cur_yr_sub_pct': self.cur_yr_sub_pct,
+			'cur_yr_sub_open_rt': self.cur_yr_sub_open_rt}
 		return stats
 
 	# Returns a string buffer containing a CSV of the list data

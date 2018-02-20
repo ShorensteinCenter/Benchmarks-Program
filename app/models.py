@@ -6,12 +6,13 @@ class ListStats(db.Model):
 	api_key = db.Column(db.String(64))
 	data_center = db.Column(db.String(64))
 	open_rate = db.Column(db.Float)
-	member_pct = db.Column(db.Float)
-	unsubscribe_pct = db.Column(db.Float)
-	clean_pct = db.Column(db.Float)
+	subscribed_pct = db.Column(db.Float)
+	unsubscribed_pct = db.Column(db.Float)
+	cleaned_pct = db.Column(db.Float)
+	pending_pct = db.Column(db.Float)
 	high_open_rt_pct = db.Column(db.Float)
-	cur_yr_member_pct = db.Column(db.Float)
-	cur_yr_members_open_rt = db.Column(db.Float)
+	cur_yr_sub_pct = db.Column(db.Float)
+	cur_yr_sub_open_rt = db.Column(db.Float)
 
 	def __repr__(self):
 		return '<ListStats {}>'.format(self.list_id)

@@ -46,9 +46,7 @@ def submit_email():
 	if form.validate_on_submit():
 		init_list_analysis.delay(request.form['listId'],
 			request.form['listName'],
-			request.form['memberCount'], 
-			request.form['unsubscribeCount'],
-			request.form['cleanedCount'],
+			request.form['totalCount'],
 			request.form['openRate'],
 			session['key'],
 			session['data_center'],
