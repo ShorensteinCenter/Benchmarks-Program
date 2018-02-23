@@ -116,6 +116,7 @@ def init_list_analysis(list_id, list_name, count,
 		list_id + 'cur_yr_sub_open_rt')
 
 	# Send charts as an email report
+	#test 2
 	# Due to the way Flask-Mail works, reimport app_context first
 	with app.app_context():
 		msg = Message('Your Email List Report is Ready!',

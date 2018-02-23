@@ -5,4 +5,3 @@ __pycache__
 app/__pycache__
 migrations/__pycache__
 *.pyc
-
