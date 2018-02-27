@@ -1,10 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.min.css',
-		_external=True) }}">
+		<style>@font-face {font-family: 'Proxima Nova'; src: url("{{ url_for('static', filename='fonts/Proxima Nova.ttf', _external=True) }}") format('truetype');}</style>
 	</head>
 	<body>
-		<p>{{ list_name }}</p>
+		<p style="text-align:left;margin-bottom:2em">
+			<img style="width:175px;" alt="logo" src="{{ url_for('static', filename='img/logo.png', _external=True) }}">
+		</p>
+		<p style="color:#a71930;text-align:center;font-size:35px;font-family:Proxima Nova,Verdana,sans-serif;margin-bottom:3em">We've analyzed {{ list_name }}!</p>
+		<p style="text-align:center">
+			<img style="min-width:400px;max-width:100%;" alt="Avg. Open Rate" src="{{ url_for('static', filename='charts/' + list_id + '_open_rate.png', _external=True) }}">
+		</p>
+		<p style="text-align:center">
+			<img style="min-width:400px;max-width:100%;" alt="List Composition" src="{{ url_for('static', filename='charts/' + list_id + '_breakdown.png', _external=True) }}">
+		</p>
+		<p style="text-align:center">
+			<img style="min-width:400px;max-width:100%;" alt="% of Subscribers with Open Rate >80%" src="{{ url_for('static', filename='charts/' + list_id + '_high_open_rt.png', _external=True) }}">
+		</p>
+		<p style="text-align:center">
+			<img style="min-width:400px;max-width:100%;" alt="% of Subscribers who Opened an Email in the Last 365 Days" src="{{ url_for('static', filename='charts/' + list_id + '_cur_yr_memb_pct.png', _external=True) }}">
+		</p>
+		<p style="text-align:center">
+			<img style="min-width:400px;max-width:100%;" alt="Avg. Open Rate - Subscribers who Opened an Email in the Last 365 Days" src="{{ url_for('static', filename='charts/' + list_id + '_cur_yr_sub_open_rt.png', _external=True) }}">
+		</p>
 	</body>
 </html>

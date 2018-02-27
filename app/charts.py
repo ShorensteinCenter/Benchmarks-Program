@@ -14,7 +14,7 @@ class Chart(object):
 			'{:.1%}'.format(x))
 
 	def render_png(self, chart_name):
-		self.chart.render_to_png('charts/' + chart_name + '.png')
+		self.chart.render_to_png('app/static/charts/{}.png'.format(chart_name))
 
 class BarChart(Chart):
 	def __init__(self, title, data, x_labels=None):
@@ -23,6 +23,7 @@ class BarChart(Chart):
 			if data_list[0] > data_list[1] else data_list[1])
 		self.chart = pygal.Bar(title=title,
 			legend_box_size=15,
+			width=1000,
 			legend_at_bottom=True,
 			truncate_legend=-1,
 			max_scale=7,

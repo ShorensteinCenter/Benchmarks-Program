@@ -2,6 +2,15 @@ nav {
 	background-color: white;
 }
 
+.navbar-brand {
+	padding-top: 0.5rem;
+	padding-bottom: 0.5rem;
+
+	svg {
+		height: 50px;
+	}
+}
+
 .page-wrapper {
 	position: absolute;
     top: 0;

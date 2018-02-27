@@ -106,14 +106,14 @@ def init_list_analysis(list_id, list_name, count,
 		'% of Subscribers who Opened an Email in the Last 365 Days',
 		{'Your List': [stats['cur_yr_sub_pct']],
 		'Average': [avg_stats[6]]})
-	cur_yr_member_pct_chart.render_png(list_id + 'cur_yr_memb_pct')
+	cur_yr_member_pct_chart.render_png(list_id + '_cur_yr_memb_pct')
 
 	cur_yr_members_open_rt_chart = BarChart(
 		'Avg. Open Rate -\nSubscribers who Opened an Email in the Last 365 Days',
 		{'Your List': [stats['cur_yr_sub_open_rt']],
 		'Average': [avg_stats[7]]})
 	cur_yr_members_open_rt_chart.render_png(
-		list_id + 'cur_yr_sub_open_rt')
+		list_id + '_cur_yr_sub_open_rt')
 
 	# Send charts as an email report
 	# Due to the way Flask-Mail works, reimport app_context first
@@ -122,5 +122,5 @@ def init_list_analysis(list_id, list_name, count,
 			sender='shorensteintesting@gmail.com',
 			recipients=[user_email],
 			html=render_template('email.html',
-				list_name=list_name))
+				list_name=list_name, list_id=list_id))
 		mail.send(msg)
