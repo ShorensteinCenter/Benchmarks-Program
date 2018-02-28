@@ -174,13 +174,9 @@ class MailChimpList(object):
 		# Convert results to a dataframe
 		subscriber_activities = pd.DataFrame(activities)
 
-		print(self.df)
-
 		# Merge dataframes
 		self.df = pd.merge(self.df, 
 			subscriber_activities, on='id', how='left')
-
-		print(self.df)
 
 	# Imports the recent activity for each list subscriber
 	def import_sub_activity(self):
