@@ -25,6 +25,7 @@ def validate_key():
 # Corresponding to most recently validated API key
 @app.route('/getLists', methods=['GET'])
 def get_lists():
+	print(session['key'])
 	request_uri = ('https://' + session['data_center'] +
 		'.api.mailchimp.com/3.0/lists')
 	params = (
