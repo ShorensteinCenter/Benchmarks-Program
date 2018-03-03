@@ -3,7 +3,6 @@ from app import app, csrf
 from app.forms import ApiKeyForm, EmailForm
 import requests
 from app.tasks import init_list_analysis
-import os
 
 # Home Page
 @app.route('/')
@@ -18,7 +17,6 @@ def index():
 def validate_key():
 	form = ApiKeyForm()
 	if form.validate_on_submit():
-		app.logger.info(session['key'])
 		return jsonify(True)
 	else:
 		return jsonify(form.errors), 400
