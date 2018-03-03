@@ -3,6 +3,7 @@ from app import app, csrf
 from app.forms import ApiKeyForm, EmailForm
 import requests
 from app.tasks import init_list_analysis
+import os
 
 # Home Page
 @app.route('/')
@@ -17,6 +18,7 @@ def index():
 def validate_key():
 	form = ApiKeyForm()
 	if form.validate_on_submit():
+		app.logger.info(session['key'])
 		return jsonify(True)
 	else:
 		return jsonify(form.errors), 400
@@ -25,7 +27,6 @@ def validate_key():
 # Corresponding to most recently validated API key
 @app.route('/getLists', methods=['GET'])
 def get_lists():
-	print(session['key'])
 	request_uri = ('https://' + session['data_center'] +
 		'.api.mailchimp.com/3.0/lists')
 	params = (
