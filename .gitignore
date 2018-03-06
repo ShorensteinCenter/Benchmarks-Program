@@ -6,3 +6,5 @@ app/__pycache__
 migrations/__pycache__
 *.pyc
 app.db
+*.log
+celerybeat-schedule.*

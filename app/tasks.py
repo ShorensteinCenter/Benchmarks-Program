@@ -6,6 +6,46 @@ from app.charts import BarChart
 from sqlalchemy.sql.functions import func
 from flask_mail import Message
 
+# Does the dirty work of actually pulling in a list
+# And storing the resulting calculations in a database
+def import_analyze_store_list(list_id, count, open_rate,
+	api_key, data_center):
+	
+	# Create a new list instance and import member data/activity
+	mailing_list = MailChimpList(list_id, open_rate,
+		count, api_key, data_center)
+	mailing_list.import_list_data()
+
+	# Import the subscriber activity as well, and merge
+	mailing_list.import_sub_activity()
+
+	# Do the data science shit
+	mailing_list.calc_open_rate()
+	mailing_list.calc_list_breakdown()
+	mailing_list.calc_high_open_rate_pct()
+	mailing_list.calc_cur_yr_stats()
+	
+	# Get list stats
+	stats = mailing_list.get_list_stats()
+
+	# Store the stats in database
+	list_stats = ListStats(list_id=list_id,
+		api_key=api_key,
+		data_center=data_center,
+		count=count,
+		open_rate=stats['open_rate'],
+		subscribed_pct=stats['subscribed_pct'],
+		unsubscribed_pct=stats['unsubscribed_pct'],
+		cleaned_pct=stats['cleaned_pct'],
+		pending_pct=stats['pending_pct'],
+		high_open_rt_pct=stats['high_open_rt_pct'],
+		cur_yr_sub_pct=stats['cur_yr_sub_pct'],
+		cur_yr_sub_open_rt=stats['cur_yr_sub_open_rt'])
+	db.session.merge(list_stats)
+	db.session.commit()
+
+	return stats
+
 # Pull in list data, perform calculations, store results
 # Generate charts, email charts to user
 @celery.task
@@ -21,37 +61,8 @@ def init_list_analysis(list_id, list_name, count,
 
 	if existing_list is None:
 
-		# Create a new list instance and import basic member data
-		mailing_list = MailChimpList(list_id, open_rate,
-			count, api_key, data_center)
-		mailing_list.import_list_data()
-
-		# Import the subscriber activity as well, and merge
-		mailing_list.import_sub_activity()
-
-		# Do the data science shit
-		mailing_list.calc_open_rate()
-		mailing_list.calc_list_breakdown()
-		mailing_list.calc_high_open_rate_pct()
-		mailing_list.calc_cur_yr_stats()
-		
-		# Get list stats
-		stats = mailing_list.get_list_stats()
-
-		# Store the stats in database
-		list_stats = ListStats(list_id=list_id,
-			api_key=api_key,
-			data_center=data_center,
-			open_rate=stats['open_rate'],
-			subscribed_pct=stats['subscribed_pct'],
-			unsubscribed_pct=stats['unsubscribed_pct'],
-			cleaned_pct=stats['cleaned_pct'],
-			pending_pct=stats['pending_pct'],
-			high_open_rt_pct=stats['high_open_rt_pct'],
-			cur_yr_sub_pct=stats['cur_yr_sub_pct'],
-			cur_yr_sub_open_rt=stats['cur_yr_sub_open_rt'])
-		db.session.merge(list_stats)
-		db.session.commit()
+		stats = import_analyze_store_list(list_id,
+			count, open_rate, api_key, data_center)
 
 	else:
 
@@ -124,3 +135,18 @@ def init_list_analysis(list_id, list_name, count,
 			html=render_template('email.html',
 				list_name=list_name, list_id=list_id))
 		mail.send(msg)
+
+# Goes through the database and updates all the calculations
+@celery.task
+def update_stored_data():
+
+	# Grab what we have in the database
+	lists_stats = ListStats.query.with_entities(
+		ListStats.list_id,ListStats.count,ListStats.open_rate,
+		ListStats.api_key,ListStats.data_center).all()
+
+	for list_stats in lists_stats:
+
+		import_analyze_store_list(list_stats.list_id, 
+			list_stats.count, list_stats.open_rate,
+			list_stats.api_key, list_stats.data_center)
