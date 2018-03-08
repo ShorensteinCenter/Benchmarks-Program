@@ -18,18 +18,18 @@ class Chart(object):
 
 class BarChart(Chart):
 	def __init__(self, title, data, x_labels=None):
-		data_list = list(v[0] for v in data.values())
-		max_y_val = (data_list[0] 
-			if data_list[0] > data_list[1] else data_list[1])
+		data_list = list(val for v in data.values() for val in v)
+		max_y_val = max(data_list)
+		max_y_axis = (max_y_val * self.Y_AXIS_MULTIPLIER
+			if (max_y_val * self.Y_AXIS_MULTIPLIER) <= 1
+			else 1)
 		self.chart = pygal.Bar(title=title,
 			legend_box_size=15,
 			width=1000,
 			legend_at_bottom=True,
 			truncate_legend=-1,
 			max_scale=7,
-			range=(0, max_y_val * self.Y_AXIS_MULTIPLIER
-				if max_y_val * self.Y_AXIS_MULTIPLIER <= 1
-				else 1),
+			range=(0, max_y_axis),
 			print_values=True,
 			print_values_position='top',
 			style=DefaultStyle(

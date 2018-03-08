@@ -137,6 +137,7 @@ def init_list_analysis(list_id, list_name, count,
 		mail.send(msg)
 
 # Goes through the database and updates all the calculations
+# This task is run by Celery Beat
 @celery.task
 def update_stored_data():
 
@@ -145,6 +146,7 @@ def update_stored_data():
 		ListStats.list_id,ListStats.count,ListStats.open_rate,
 		ListStats.api_key,ListStats.data_center).all()
 
+	# Update each list's calculations in sequence 
 	for list_stats in lists_stats:
 
 		import_analyze_store_list(list_stats.list_id, 
