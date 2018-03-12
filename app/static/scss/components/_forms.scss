@@ -21,6 +21,7 @@
 
 .form-input-wrapper:after {
     position: absolute;
+    left: 0rem;
     top: 2 * $form-input-top-padding + 
     	$form-font-size * $form-line-height + 0.25rem;
     transition: $form-transition;
