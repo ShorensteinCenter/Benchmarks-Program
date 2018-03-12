@@ -3,7 +3,6 @@
 }
 
 .section-two thead {
-    font-family: Proxima Nova Bold;
     color: $crimson;
 
     th {
@@ -22,7 +21,7 @@
 .analyze-link {
 	display: inline-flex;
 	align-items: center;
-	font-family: Proxima Nova Bold;
+	font-weight: 700;
 }
 
 .analyze-link-text {
