@@ -149,6 +149,8 @@ def update_stored_data():
 	# Update each list's calculations in sequence 
 	for list_stats in lists_stats:
 
+		# We make sure to multiply the open rate by 100
+		# To match the raw data format from the API
 		import_analyze_store_list(list_stats.list_id, 
-			list_stats.count, list_stats.open_rate,
+			list_stats.count, list_stats.open_rate * 100,
 			list_stats.api_key, list_stats.data_center)
