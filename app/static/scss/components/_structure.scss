@@ -25,7 +25,7 @@ nav {
     top: 0;
     width: 100vw;
     min-height: 100%;
-	transition: $form-transition;
+	transition: $form-transition transform;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;

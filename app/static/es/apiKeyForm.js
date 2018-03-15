@@ -1,6 +1,6 @@
 const
 	apiForm = document.querySelector('.api-key-form'),
-	csrf_token = document.querySelector('meta[name=csrf-token]').content;
+	csrfToken = document.querySelector('meta[name=csrf-token]').content;
 
 /* Validate an API Key Submitted via the form */
 const submitApiKey = async event => {
@@ -13,7 +13,7 @@ const submitApiKey = async event => {
 	else {
 		const
 			headers = new Headers({
-				"X-CSRFToken": csrf_token
+				"X-CSRFToken": csrfToken
 			}),
 			formData = new FormData(apiForm),
 			payload = {
@@ -79,7 +79,7 @@ const showMsg = (msg, formElt) => {
 const getLists = async () => {
 	const
 		headers = new Headers({
-			"X-CSRFToken": csrf_token
+			"X-CSRFToken": csrfToken
 		}),
 		payload = {
 			method: 'GET',

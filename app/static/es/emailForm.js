@@ -24,7 +24,7 @@ const submitEmail = async event => {
 		formData.append('openRate', openRate);
 		const
 			headers = new Headers({
-				"X-CSRFToken": csrf_token
+				"X-CSRFToken": csrfToken
 			}),
 			payload = {
 				method: 'POST',
