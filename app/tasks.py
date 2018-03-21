@@ -94,12 +94,14 @@ def init_list_analysis(list_id, list_name, count,
 	
 	# Generate charts
 	# Export them as pngs to /charts
-	open_rate_chart = BarChart('Avg. Open Rate',
+	open_rate_chart = BarChart('Average User Unique'
+		'Open Rate vs. Industry Average',
 		{'Your List': [stats['open_rate']],
 		'Average': [avg_stats[0]]})
 	open_rate_chart.render_png(list_id + '_open_rate')
 
-	list_breakdown_chart = BarChart('List Composition',
+	list_breakdown_chart = BarChart('List Composition vs. '
+		'Industry Average',
 		{'Subscribed %': [stats['subscribed_pct'], avg_stats[1]],
 		'Unsubscribed %': [stats['unsubscribed_pct'], avg_stats[2]],
 		'Cleaned %': [stats['cleaned_pct'], avg_stats[3]],
@@ -107,20 +109,22 @@ def init_list_analysis(list_id, list_name, count,
 		('Your List', 'Average'))
 	list_breakdown_chart.render_png(list_id + '_breakdown')
 
-	high_open_rt_pct_chart = BarChart(
-		'% of Subscribers with Open Rate >80%',
+	high_open_rt_pct_chart = BarChart('Percentage of Subscribers '
+		'with User Unique Open Rate >80% vs. Industry Average',
 		{'Your List': [stats['high_open_rt_pct']],
 		'Average': [avg_stats[5]]})
 	high_open_rt_pct_chart.render_png(list_id + '_high_open_rt')
 
-	cur_yr_member_pct_chart = BarChart(
-		'% of Subscribers who Opened an Email in the Last 365 Days',
+	cur_yr_member_pct_chart = BarChart('User Unique Open Rate '
+		'among Subscribers who Opened in last 365 Days '
+		'vs. Industry Average',
 		{'Your List': [stats['cur_yr_sub_pct']],
 		'Average': [avg_stats[6]]})
 	cur_yr_member_pct_chart.render_png(list_id + '_cur_yr_memb_pct')
 
-	cur_yr_members_open_rt_chart = BarChart(
-		'Avg. Open Rate -\nSubscribers who Opened an Email in the Last 365 Days',
+	cur_yr_members_open_rt_chart = BarChart('User Unique Open Rate '
+		'among Subscribers who Opened in last 365 Days '
+		'vs. Industry Average',
 		{'Your List': [stats['cur_yr_sub_open_rt']],
 		'Average': [avg_stats[7]]})
 	cur_yr_members_open_rt_chart.render_png(
