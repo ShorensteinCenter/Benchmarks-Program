@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from pandas.io.json import json_normalize
 import asyncio
 from aiohttp import ClientSession, BasicAuth
@@ -174,9 +175,17 @@ class MailChimpList(object):
 		# Convert results to a dataframe
 		subscriber_activities = pd.DataFrame(activities)
 
-		# Merge dataframes
-		self.df = pd.merge(self.df, 
-			subscriber_activities, on='id', how='left')
+		# Merge dataframes if any subscribers have recently opened
+		# Else add an empty recent_open column to dataframe
+		# This allows us to assume that a "recent open" column exists
+		if 'recent_open' in subscriber_activities:
+
+			self.df = pd.merge(self.df, 
+				subscriber_activities, on='id', how='left')
+
+		else:
+
+			self.df['recent_open'] = np.NaN
 
 	# Imports the recent activity for each list subscriber
 	def import_sub_activity(self):
@@ -239,6 +248,10 @@ class MailChimpList(object):
 			.count()) / self.subscribers)
 		self.cur_yr_sub_open_rt = (self.df[self.df['recent_open']
 			.notnull()]['avg_open_rate'].mean())
+
+		# Catchall for taking mean of NaN values
+		if self.cur_yr_sub_open_rt is np.NaN:
+			self.cur_yr_sub_open_rt = 0
 
 	# Returns list stats as a dictionary
 	def get_list_stats(self):
