@@ -129,7 +129,7 @@ def init_list_analysis(list_id, list_name, count,
 	# Send charts as an email report
 	# Due to the way Flask-Mail works, reimport app_context first
 	with app.app_context():
-		msg = Message('Your Email List Report is Ready!',
+		msg = Message('Your Email Benchmarking Report is Ready!',
 			sender='shorensteintesting@gmail.com',
 			recipients=[user_email],
 			html=render_template('email.html',

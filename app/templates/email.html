@@ -1,27 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<style>@font-face {font-family: 'Proxima Nova'; src: url("{{ url_for('static', filename='fonts/Proxima Nova.ttf', _external=True) }}") format('truetype');}</style>
+		<style>@import url('https://fonts.googleapis.com/css?family=Montserrat:400,500,700')</style>
 	</head>
 	<body>
 		<p style="text-align:left;margin-bottom:2em">
 			<img style="width:175px;" alt="logo" src="{{ url_for('static', filename='img/logo.png', _external=True) }}">
 		</p>
-		<p style="color:#a71930;text-align:center;font-size:35px;font-family:Proxima Nova,Verdana,sans-serif;margin-bottom:3em">We've analyzed {{ list_name }}!</p>
+		<p style="color:#a71930;text-align:center;font-weight:500;font-size:35px;font-family:Montserrat,Verdana,sans-serif;margin-bottom:3em">We've analyzed <strong>the {{ list_name }} list!</strong></p>
 		<p style="text-align:center">
-			<img style="min-width:400px;max-width:100%;" alt="Avg. Open Rate" src="{{ url_for('static', filename='charts/' + list_id + '_open_rate.png', _external=True) }}">
+			<img style="min-width:400px;max-width:100%;" alt="List Composition vs. Industry Average" src="{{ url_for('static', filename='charts/' + list_id + '_breakdown.png', _external=True) }}">
 		</p>
 		<p style="text-align:center">
-			<img style="min-width:400px;max-width:100%;" alt="List Composition" src="{{ url_for('static', filename='charts/' + list_id + '_breakdown.png', _external=True) }}">
+			<img style="min-width:400px;max-width:100%;" alt="Average User Unique Open Rate vs. Industry Average" src="{{ url_for('static', filename='charts/' + list_id + '_open_rate.png', _external=True) }}">
 		</p>
 		<p style="text-align:center">
-			<img style="min-width:400px;max-width:100%;" alt="% of Subscribers with Open Rate >80%" src="{{ url_for('static', filename='charts/' + list_id + '_high_open_rt.png', _external=True) }}">
+			<img style="min-width:400px;max-width:100%;" alt="Percentage of Subscribers with User Unique Open Rate >80% vs. Industry Average" src="{{ url_for('static', filename='charts/' + list_id + '_high_open_rt.png', _external=True) }}">
 		</p>
 		<p style="text-align:center">
-			<img style="min-width:400px;max-width:100%;" alt="% of Subscribers who Opened an Email in the Last 365 Days" src="{{ url_for('static', filename='charts/' + list_id + '_cur_yr_memb_pct.png', _external=True) }}">
+			<img style="min-width:400px;max-width:100%;" alt="User Unique Open Rate among Subscribers who Opened in last 365 Days vs. Industry Average" src="{{ url_for('static', filename='charts/' + list_id + '_cur_yr_memb_pct.png', _external=True) }}">
 		</p>
 		<p style="text-align:center">
 			<img style="min-width:400px;max-width:100%;" alt="Avg. Open Rate - Subscribers who Opened an Email in the Last 365 Days" src="{{ url_for('static', filename='charts/' + list_id + '_cur_yr_sub_open_rt.png', _external=True) }}">
+		</p>
+		<p style="text-align:center;font-family:Montserrat,Verdana,sans-serif;font-size:11px;color:#555"><span style="color:#a71930;">User Unique Open Rate</span> is the number of unique emails opened divided by number of total emails received o <span style="color:#a71930;">Subscribed</span> are current subscribers o <span style="color:#a71930;">Unsubscribed</span> are subscribers who removed themselves from list or the list owner removed o <span style="color:#a71930;">Pending</span> are semi-subscribers stuck in the limbo of double opt in o <span style="color:#a71930;">Cleaned</span> are subscribers removed from the list, typically by a service provider after email bounces o <span style="color:#a71930;">Opened in last 365 Days</span> refers to a subscriber whose list activity includes at least one "open" event in the 365 days prior to this analysis. Note that we cache some data to reduce analysis time, so very recent list activity (e.g. occurring in the past 1-2 weeks) may not be reflected in this statistic o <span style="color:#a71930;">Average</span> is the mean figure across all lists in our data set.<br><br>For more information on how to analyze the health of your email list using data science tools, please see our <a style="text-decoration:none;color:#a71930;" href="https://shorensteincenter.org/email-analysis-research-guide/">Research Guide</a>.
 		</p>
 	</body>
 </html>

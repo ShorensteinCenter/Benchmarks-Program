@@ -8,8 +8,11 @@ let
 	totalCount = 0,
 	openRate = 0;
 
+/* Approx. how long (in seconds) it takes to analyze a list member */
+const analysisTime = 0.18;
+
 /* Function for converting seconds to times */
-const secondsToHms = d => {
+const secondsToHm = d => {
 	if (d == 0)
 		return "N/A";
     d = Number(d);
@@ -17,13 +20,13 @@ const secondsToHms = d => {
     const 
     	h = Math.floor(d / 3600),
     	m = Math.floor(d % 3600 / 60),
-    	s = Math.floor(d % 3600 % 60),
-    	hDisplay = h > 0 ? h + (h == 1 ? " hour, " : " hours, ") : "",
-    	mDisplay = m > 0 ? m + (m == 1 ? " minute, " : " minutes, ") : "",
-    	sDisplay = s > 0 ? s + (s == 1 ? " second" : " seconds") : "",
-    	hms = hDisplay + mDisplay + sDisplay;
+    	hDisplay = h > 0 ? h + (m == 0 ? 
+    		(h == 1 ? " hour" : " hours") : 
+    		(h == 1 ? " hour, " : " hours, "))  : "",
+    	mDisplay = m > 0 ? m + (m == 1 ? " minute" : " minutes") : "",
+    	hm = hDisplay + mDisplay;
     
-    return hms ? "~" + hms : "<1 second";
+    return hm ? "~" + hm : "<1 minute";
 }
 
 /* Fill lists table with details */ 
@@ -34,7 +37,8 @@ const setupListsTable = response => {
 		tableHTML += "<td>" + response[i].name + "</td>";
 		tableHTML += "<td class='d-none d-md-table-cell'>" + 
 			response[i].stats.member_count.toLocaleString() + "</td>";
-		const calcTime = secondsToHms(response[i].stats.member_count  * 0.18);
+		const calcTime = 
+			secondsToHm(response[i].stats.member_count  * analysisTime);
 		tableHTML += "<td class='d-none d-md-table-cell'>" + 
 			calcTime + "</td>";
 		if (response[i].stats.member_count > 0) {
