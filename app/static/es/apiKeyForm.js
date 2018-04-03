@@ -70,7 +70,7 @@ const apiKeyClientSideValidation = () => {
 /* Show form messages */
 const showMsg = (msg, formElt) => {
 	msgFields = formElt.
-			querySelectorAll('.form-input-wrapper, #key');
+		querySelectorAll('.form-input-wrapper, #key');
 	for (let i = 0; i < msgFields.length; ++i)
 		msgFields[i].classList.add(msg);
 }

@@ -9,7 +9,7 @@ let
 	openRate = 0;
 
 /* Approx. how long (in seconds) it takes to analyze a list member */
-const analysisTime = 0.18;
+const analysisTime = 0.24;
 
 /* Function for converting seconds to times */
 const secondsToHm = d => {

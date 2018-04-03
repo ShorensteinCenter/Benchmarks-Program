@@ -3,10 +3,12 @@ import numpy as np
 from pandas.io.json import json_normalize
 import asyncio
 from aiohttp import ClientSession, BasicAuth
+import requests
 import json
 import io
 from datetime import datetime, timedelta, timezone
 import iso8601
+from billiard import current_process
 
 class MailChimpList(object):
 
@@ -22,8 +24,7 @@ class MailChimpList(object):
 	# Otherwise MailChimp will flag as too many requests
 	MAX_ACTIVITY_CONNECTIONS = 2
 
-	def __init__(self, id, open_rate, count,
-		api_key, data_center):
+	def __init__(self, id, open_rate, count, api_key, data_center):
 		self.id = id
 		self.open_rate = float(open_rate)
 		self.count = int(count)
@@ -116,7 +117,7 @@ class MailChimpList(object):
 
 	# Asynchronously imports subscriber activity for a single sub
 	async def fetch_sub_activity(self, url, params, session):
-		async with session.get(url, params=params, auth=BasicAuth('shorenstein', self.api_key)) as response:
+		async with session.get(url, params=params, auth=BasicAuth('shorenstein', self.api_key), proxy=self.proxy) as response:
 			return await response.text()
 
 	# Make requests with semaphore
@@ -144,6 +145,27 @@ class MailChimpList(object):
 
 		# Semaphore to limit max simultaneous connections to MailChimp API
 		sem = asyncio.Semaphore(self.MAX_ACTIVITY_CONNECTIONS)
+
+		# We proxy requests using US Proxies to prevent MailChimp blocks
+		# Get the worker number for this Celery worker
+		# We want each worker to control its corresponding proxy process
+		# Note that workers are zero-indexed, proxy procceses are not
+		p = current_process()
+		proxy_process_number = str(p.index + 1)
+		
+		# Use the US Proxies API to get the proxy info
+		proxy_request_uri = 'http://us-proxies.com/api.php'
+		params = (
+		    ('api', ''),
+		    ('uid', '9557'),
+		    ('pwd', '8003475d920448337b0d82e427e8b3e1'),
+		    ('cmd', 'rotate'),
+		    ('process', proxy_process_number)
+		)
+		proxy_response = requests.get(proxy_request_uri, params=params)
+		proxy_response_vars = proxy_response.text.split(':')
+		self.proxy = ('http://' + proxy_response_vars[1] + 
+			':' + proxy_response_vars[2])
 
 		# Create a session with which to make requests
 		async with ClientSession() as session:
@@ -179,12 +201,9 @@ class MailChimpList(object):
 		# Else add an empty recent_open column to dataframe
 		# This allows us to assume that a "recent open" column exists
 		if 'recent_open' in subscriber_activities:
-
 			self.df = pd.merge(self.df, 
 				subscriber_activities, on='id', how='left')
-
 		else:
-
 			self.df['recent_open'] = np.NaN
 
 	# Imports the recent activity for each list subscriber
