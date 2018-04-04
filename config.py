@@ -3,7 +3,7 @@ import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config(object):
-	SECRET_KEY = 'test_secret_key'
+	SECRET_KEY = os.environ.get('SECRET_KEY')
 	CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 	TASK_SERIALIZER = 'json'
 	CELERYBEAT_SCHEDULE = {
