@@ -9,6 +9,7 @@ import io
 from datetime import datetime, timedelta, timezone
 import iso8601
 from billiard import current_process
+import os
 
 class MailChimpList(object):
 
@@ -23,6 +24,9 @@ class MailChimpList(object):
 	# This number is lower than MAX_CONNECTIONS
 	# Otherwise MailChimp will flag as too many requests
 	MAX_ACTIVITY_CONNECTIONS = 2
+
+	# The approximate amount of time (in seconds) it takes to cold boot a proxy
+	PROXY_BOOT_TIME = 30
 
 	def __init__(self, id, open_rate, count, api_key, data_center):
 		self.id = id
@@ -158,14 +162,17 @@ class MailChimpList(object):
 		params = (
 		    ('api', ''),
 		    ('uid', '9557'),
-		    ('pwd', '8003475d920448337b0d82e427e8b3e1'),
+		    ('pwd', os.environ.get('PROXY_AUTH_PWD')),
 		    ('cmd', 'rotate'),
-		    ('process', proxy_process_number)
+		    ('process', proxy_process_number),
 		)
 		proxy_response = requests.get(proxy_request_uri, params=params)
 		proxy_response_vars = proxy_response.text.split(':')
 		self.proxy = ('http://' + proxy_response_vars[1] + 
 			':' + proxy_response_vars[2])
+
+		# Allow some time for the proxy server to boot up
+		await asyncio.sleep(self.PROXY_BOOT_TIME)
 
 		# Create a session with which to make requests
 		async with ClientSession() as session:
