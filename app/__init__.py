@@ -11,6 +11,7 @@ from logging.handlers import RotatingFileHandler
 app = Flask(__name__)
 app.config.from_object(Config)
 
+# Set up logging
 formatter = logging.Formatter("[%(asctime)s] "
 	"{%(pathname)s:%(lineno)d} %(levelname)s - %(message)s")
 handler = RotatingFileHandler(

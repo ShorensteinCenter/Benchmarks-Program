@@ -21,4 +21,4 @@ class Config(object):
 	MAIL_PORT = 465
 	MAIL_USE_SSL = True
 	MAIL_USERNAME = 'shorensteintesting@gmail.com'
-	MAIL_PASSWORD = 'hkshkshks'
+	MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
