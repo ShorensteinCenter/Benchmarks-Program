@@ -15,18 +15,18 @@ const analysisTime = 0.24;
 const secondsToHm = d => {
 	if (d == 0)
 		return "N/A";
-    d = Number(d);
-    
-    const 
-    	h = Math.floor(d / 3600),
-    	m = Math.floor(d % 3600 / 60),
-    	hDisplay = h > 0 ? h + (m == 0 ? 
-    		(h == 1 ? " hour" : " hours") : 
-    		(h == 1 ? " hour, " : " hours, "))  : "",
-    	mDisplay = m > 0 ? m + (m == 1 ? " minute" : " minutes") : "",
-    	hm = hDisplay + mDisplay;
-    
-    return hm ? "~" + hm : "<1 minute";
+	d = Number(d);
+	
+	const 
+		h = Math.floor(d / 3600),
+		m = Math.floor(d % 3600 / 60),
+		hDisplay = h > 0 ? h + (m == 0 ? 
+			(h == 1 ? " hour" : " hours") : 
+			(h == 1 ? " hour, " : " hours, "))  : "",
+		mDisplay = m > 0 ? m + (m == 1 ? " minute" : " minutes") : "",
+		hm = hDisplay + mDisplay;
+	
+	return hm ? "~" + hm : "<1 minute";
 }
 
 /* Fill lists table with details */ 

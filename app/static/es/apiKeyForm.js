@@ -69,8 +69,8 @@ const apiKeyClientSideValidation = () => {
 
 /* Show form messages */
 const showMsg = (msg, formElt) => {
-	msgFields = formElt.
-		querySelectorAll('.form-input-wrapper, #key');
+	const msgFields = formElt.
+			querySelectorAll('.form-input-wrapper, #key');
 	for (let i = 0; i < msgFields.length; ++i)
 		msgFields[i].classList.add(msg);
 }
@@ -97,7 +97,7 @@ const getLists = async () => {
 			throw new Error(response.statusText);
 	}
 	catch(e) {
-		console.log('Failed to fetch:', e);
+		console.error('Failed to fetch:', e);
 	}
 }
 

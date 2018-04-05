@@ -5,7 +5,8 @@ const
     uglify = require('gulp-uglify-es').default,
     concat = require('gulp-concat'),
     gutil = require('gulp-util'),
-    autoprefixer = require('gulp-autoprefixer');
+    autoprefixer = require('gulp-autoprefixer'),
+    eslint = require('gulp-eslint');
 
 // static and templates folders
 const
@@ -48,6 +49,14 @@ gulp.task('scss', () => {
 		.pipe(gulp.dest(scss.out));
 });
 
+// lint es
+gulp.task('lint', () => {
+	return gulp.src(js.in)
+		.pipe(eslint())
+		.pipe(eslint.format())
+		.pipe(eslint.failAfterError());
+});
+
 // uglify es
 gulp.task('uglify', () => {
 	return gulp.src(js.in)
@@ -59,8 +68,10 @@ gulp.task('uglify', () => {
 
 // default task
 gulp.task('default', 
-	gulp.series(gulp.parallel('scss', 'uglify'), () => {
-		gulp.watch(scss.watch, gulp.series('scss'));
-		gulp.watch(js.in, gulp.series('uglify'));
-	})
+	gulp.series(gulp.parallel('scss', gulp.series('lint', 'uglify')), 
+		() => {
+			gulp.watch(scss.watch, gulp.series('scss'));
+			gulp.watch(js.in, gulp.series('lint', 'uglify'));
+		}
+	)
 );
