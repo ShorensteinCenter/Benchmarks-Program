@@ -43,7 +43,9 @@ class ApiKeyForm(FlaskForm):
 			self.key.errors.append('Connection to MailChimp servers refused')
 			return False
 		if response.status_code != 200:
-			self.key.errors.append('MailChimp responded with error code ' + str(response.status_code))
+			self.key.errors.append(
+				'MailChimp responded with error code ' + 
+				str(response.status_code))
 			return False
 
 		# Store API key, data center, and number of lists in session

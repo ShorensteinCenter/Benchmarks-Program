@@ -5,6 +5,7 @@ from app.models import ListStats, AppUser
 from app.charts import BarChart
 from sqlalchemy.sql.functions import func
 from flask_mail import Message
+import requests
 
 # Does the dirty work of actually pulling in a list
 # And storing the resulting calculations in a database
@@ -20,8 +21,8 @@ def import_analyze_store_list(list_id, count, open_rate,
 	mailing_list.import_sub_activity()
 
 	# Do the data science shit
-	mailing_list.calc_open_rate()
 	mailing_list.calc_list_breakdown()
+	mailing_list.calc_open_rate()
 	mailing_list.calc_high_open_rate_pct()
 	mailing_list.calc_cur_yr_stats()
 	
@@ -33,6 +34,7 @@ def import_analyze_store_list(list_id, count, open_rate,
 		api_key=api_key,
 		data_center=data_center,
 		count=count,
+		subscribers=stats['subscribers'],
 		open_rate=stats['open_rate'],
 		subscribed_pct=stats['subscribed_pct'],
 		unsubscribed_pct=stats['unsubscribed_pct'],
@@ -67,7 +69,8 @@ def init_list_analysis(list_id, list_name, count,
 	else:
 
 		# Get list stats from database results
-		stats = {'open_rate': existing_list.open_rate,
+		stats = {'subscribers': existing_list.subscribers,
+			'open_rate': existing_list.open_rate,
 			'subscribed_pct': existing_list.subscribed_pct,
 			'unsubscribed_pct': existing_list.unsubscribed_pct,
 			'cleaned_pct': existing_list.cleaned_pct,
@@ -83,7 +86,8 @@ def init_list_analysis(list_id, list_name, count,
 	db.session.commit()
 
 	# Generate averages
-	avg_stats = db.session.query(func.avg(ListStats.open_rate),
+	avg_stats = db.session.query(func.avg(ListStats.subscribers),
+		func.avg(ListStats.open_rate),
 		func.avg(ListStats.subscribed_pct),
 		func.avg(ListStats.unsubscribed_pct),
 		func.avg(ListStats.cleaned_pct),
@@ -94,7 +98,7 @@ def init_list_analysis(list_id, list_name, count,
 	
 	# Generate charts
 	# Export them as pngs to /charts
-	open_rate_chart = BarChart('Average User Unique'
+	open_rate_chart = BarChart('Average User Unique '
 		'Open Rate vs. Industry Average',
 		{'Your List': [stats['open_rate']],
 		'Average': [avg_stats[0]]})
@@ -115,12 +119,11 @@ def init_list_analysis(list_id, list_name, count,
 		'Average': [avg_stats[5]]})
 	high_open_rt_pct_chart.render_png(list_id + '_high_open_rt')
 
-	cur_yr_member_pct_chart = BarChart('User Unique Open Rate '
-		'among Subscribers who Opened in last 365 Days '
-		'vs. Industry Average',
+	cur_yr_member_pct_chart = BarChart('Percentage of Subscribers '
+		'who Opened in last 365 Days vs. Industry Average',
 		{'Your List': [stats['cur_yr_sub_pct']],
 		'Average': [avg_stats[6]]})
-	cur_yr_member_pct_chart.render_png(list_id + '_cur_yr_memb_pct')
+	cur_yr_member_pct_chart.render_png(list_id + '_cur_yr_sub_pct')
 
 	cur_yr_members_open_rt_chart = BarChart('User Unique Open Rate '
 		'among Subscribers who Opened in last 365 Days '
@@ -147,14 +150,30 @@ def update_stored_data():
 
 	# Grab what we have in the database
 	lists_stats = ListStats.query.with_entities(
-		ListStats.list_id,ListStats.count,ListStats.open_rate,
-		ListStats.api_key,ListStats.data_center).all()
+		ListStats.list_id,ListStats.api_key,ListStats.data_center).all()
 
 	# Update each list's calculations in sequence 
 	for list_stats in lists_stats:
 
-		# We make sure to multiply the open rate by 100
-		# To match the raw data format from the API
+		# First repull the number of list members
+		# And the list overall open rate
+		# This may have changed since we originally pulled the list data
+		request_uri = ('https://' + list_stats.data_center +
+			'.api.mailchimp.com/3.0/lists/' + list_stats.list_id)
+		params = (
+			('fields', 'stats.member_count,'
+				'stats.unsubscribe_count,'
+				'stats.cleaned_count,'
+				'stats.open_rate'),
+		)
+		response = (requests.get(request_uri, params=params,
+			auth=('shorenstein', list_stats.api_key)))
+		response_stats = response.json().get('stats')
+		count = (response_stats['member_count'] +
+			response_stats['unsubscribe_count'] +
+			response_stats['cleaned_count'])
+		open_rate = response_stats['open_rate']
+
+		# Then re-run the calculations and update the database
 		import_analyze_store_list(list_stats.list_id, 
-			list_stats.count, list_stats.open_rate * 100,
-			list_stats.api_key, list_stats.data_center)
+			count, open_rate, list_stats.api_key, list_stats.data_center)

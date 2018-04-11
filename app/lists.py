@@ -281,7 +281,8 @@ class MailChimpList(object):
 
 	# Returns list stats as a dictionary
 	def get_list_stats(self):
-		stats = {'open_rate': self.open_rate,
+		stats = {'subscribers': self.subscribers,
+			'open_rate': self.open_rate,
 			'subscribed_pct': self.subscribed_pct,
 			'unsubscribed_pct': self.unsubscribed_pct,
 			'cleaned_pct': self.cleaned_pct,
