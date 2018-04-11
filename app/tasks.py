@@ -98,6 +98,8 @@ def init_list_analysis(list_id, list_name, count,
 		func.avg(ListStats.cur_yr_sub_open_rt)).first()
 	
 	# Generate charts
+	# Using OrderedDict (for now) as Pygal occasionally seems to break with
+	# The Python 3.5 dictionary standard which preserves order by default
 	# Export them as pngs to /charts
 	list_size_chart = BarChart('List Size vs. Database Average',
 		OrderedDict([

@@ -11,17 +11,21 @@
 		<p style="text-align:center">
 			<img style="min-width:400px;max-width:100%;" alt="List Size vs. Database Average" src="{{ url_for('static', filename='charts/' + list_id + '_size.png', _external=True) }}">
 		</p>
+		<p style="font-family:Montserrat,Verdana,sans-serif;"><span style="color:#a71930;">List Size</span> represents the total number of subscribers on your list versus the database average. A better way of looking at your list is through our list composition metric below.</p>
 		<p style="text-align:center">
 			<img style="min-width:400px;max-width:100%;" alt="List Composition vs. Database Average" src="{{ url_for('static', filename='charts/' + list_id + '_breakdown.png', _external=True) }}">
 		</p>
+		<p style="font-family:Montserrat,Verdana,sans-serif;"><span style="color:#a71930;">The Basic List Composition</span> records the total number of unique email addresses contained in the entire list and breaks them into percentages. In this case, the entire list refers to all email addresses ever acquired, both currently and formerly subscribed. MailChimp has four possible values for list member status: Subscribed (current subscribers), Unsubscribed, (subscribers who removed themselves from list or the list owner removed), Cleaned (subscribers removed from the list, typically by a service provider after email bounces) and Pending (semi-subscribers stuck in the limbo of double opt in—or, someone gave his/her email address but did not hit the confirmation button in his/her email inbox).</p>
 		<p style="text-align:center">
 			<img style="min-width:400px;max-width:100%;" alt="Average User Unique Open Rate vs. Database Average" src="{{ url_for('static', filename='charts/' + list_id + '_open_rate.png', _external=True) }}">
 		</p>
+		<p>This is the traditional way of looking at your email performance, but this metric loses a large part of the story. A better way to look at your open rate is through a distribution of open rates, or in other words, the open rates of the individuals that make up your Average Open Rate.</p>
 		<p style="text-align:center">
 			<img style="min-width:400px;max-width:100%;" alt="Percentage of Subscribers with User Unique Open Rate >80% vs. Database Average" src="{{ url_for('static', filename='charts/' + list_id + '_high_open_rt.png', _external=True) }}">
 		</p>
 		<p style="text-align:center">
-			<img style="min-width:400px;max-width:100%;" alt="User Unique Open Rate among Subscribers who Opened in last 365 Days vs. Database Average" src="{{ url_for('static', filename='charts/' + list_id + '_cur_yr_memb_pct.png', _external=True) }}">
+			<img style="min-width:400px;max-width:100%;" alt="Percentage of Subscribers '
+		'who Opened in last 365 Days vs. Database Average" src="{{ url_for('static', filename='charts/' + list_id + '_cur_yr_sub_pct.png', _external=True) }}">
 		</p>
 		<p style="text-align:center">
 			<img style="min-width:400px;max-width:100%;" alt="User Unique Open Rate among Subscribers who Opened in last 365 Days vs. Database Average" src="{{ url_for('static', filename='charts/' + list_id + '_cur_yr_sub_open_rt.png', _external=True) }}">
