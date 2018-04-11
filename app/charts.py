@@ -9,9 +9,9 @@ class Chart(object):
 		for series_name, series_data in data.items():
 			self.chart.add(series_name, series_data)
 
-	def set_precision(self):
+	def set_precision(self, percentage):
 		self.chart.value_formatter = (lambda x: 
-			'{:.1%}'.format(x))
+			'{:.1%}'.format(x) if percentage else '{:,d}'.format(int(x)))
 
 	def render_png(self, chart_name):
 		self.chart.render_to_png('app/static/charts/{}.png'.format(chart_name))
@@ -34,8 +34,7 @@ class BarChart(Chart):
 			print_values_position='top',
 			style=DefaultStyle(
 				background='#fff'))
-		if percentage:
-			self.set_precision()
+		self.set_precision(percentage)
 		if x_labels is not None:
 			self.chart.x_labels = x_labels
 		self.add_data(data)
