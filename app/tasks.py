@@ -98,38 +98,44 @@ def init_list_analysis(list_id, list_name, count,
 	
 	# Generate charts
 	# Export them as pngs to /charts
-	open_rate_chart = BarChart('Average User Unique '
-		'Open Rate vs. Industry Average',
-		{'Your List': [stats['open_rate']],
-		'Average': [avg_stats[0]]})
-	open_rate_chart.render_png(list_id + '_open_rate')
+	list_size_chart = BarChart('List Size vs. Database Average',
+		{'Your List': [stats['subscribers']],
+		'Average': [avg_stats[0]]},
+		percentage=False)
+	list_size_chart.render_png(list_id + '_size')
 
 	list_breakdown_chart = BarChart('List Composition vs. '
-		'Industry Average',
-		{'Subscribed %': [stats['subscribed_pct'], avg_stats[1]],
-		'Unsubscribed %': [stats['unsubscribed_pct'], avg_stats[2]],
-		'Cleaned %': [stats['cleaned_pct'], avg_stats[3]],
-		'Pending %': [stats['pending_pct'], avg_stats[4]]},
+		'Database Average',
+		{'Subscribed %': [stats['subscribed_pct'], avg_stats[2]],
+		'Unsubscribed %': [stats['unsubscribed_pct'], avg_stats[3]],
+		'Cleaned %': [stats['cleaned_pct'], avg_stats[4]],
+		'Pending %': [stats['pending_pct'], avg_stats[5]]},
 		('Your List', 'Average'))
 	list_breakdown_chart.render_png(list_id + '_breakdown')
 
+	open_rate_chart = BarChart('Average User Unique '
+		'Open Rate vs. Database Average',
+		{'Your List': [stats['open_rate']],
+		'Average': [avg_stats[1]]})
+	open_rate_chart.render_png(list_id + '_open_rate')
+
 	high_open_rt_pct_chart = BarChart('Percentage of Subscribers '
-		'with User Unique Open Rate >80% vs. Industry Average',
+		'with User Unique Open Rate >80% vs. Database Average',
 		{'Your List': [stats['high_open_rt_pct']],
-		'Average': [avg_stats[5]]})
+		'Average': [avg_stats[6]]})
 	high_open_rt_pct_chart.render_png(list_id + '_high_open_rt')
 
 	cur_yr_member_pct_chart = BarChart('Percentage of Subscribers '
-		'who Opened in last 365 Days vs. Industry Average',
+		'who Opened in last 365 Days vs. Database Average',
 		{'Your List': [stats['cur_yr_sub_pct']],
-		'Average': [avg_stats[6]]})
+		'Average': [avg_stats[7]]})
 	cur_yr_member_pct_chart.render_png(list_id + '_cur_yr_sub_pct')
 
 	cur_yr_members_open_rt_chart = BarChart('User Unique Open Rate '
 		'among Subscribers who Opened in last 365 Days '
-		'vs. Industry Average',
+		'vs. Database Average',
 		{'Your List': [stats['cur_yr_sub_open_rt']],
-		'Average': [avg_stats[7]]})
+		'Average': [avg_stats[8]]})
 	cur_yr_members_open_rt_chart.render_png(
 		list_id + '_cur_yr_sub_open_rt')
 
