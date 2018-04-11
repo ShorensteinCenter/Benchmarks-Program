@@ -21,6 +21,9 @@ def import_analyze_store_list(list_id, count, open_rate,
 	# Import the subscriber activity as well, and merge
 	mailing_list.import_sub_activity()
 
+	# Remove nested jsons from the dataframe
+	mailing_list.flatten()
+
 	# Do the data science shit
 	mailing_list.calc_list_breakdown()
 	mailing_list.calc_open_rate()
@@ -101,28 +104,28 @@ def init_list_analysis(list_id, list_name, count,
 	# Using OrderedDict (for now) as Pygal occasionally seems to break with
 	# The Python 3.5 dictionary standard which preserves order by default
 	# Export them as pngs to /charts
-	list_size_chart = BarChart('List Size vs. Database Average',
+	list_size_chart = BarChart('List Size vs. Database Average (Mean)',
 		OrderedDict([
 			('Your List', [stats['subscribers']]),
-			('Average', [avg_stats[0]])]),
+			('Average (Mean)', [avg_stats[0]])]),
 		percentage=False)
 	list_size_chart.render_png(list_id + '_size')
 
 	list_breakdown_chart = BarChart('List Composition vs. '
-		'Database Average',
+		'Database Average (Mean)',
 		OrderedDict([
 			('Subscribed %', [stats['subscribed_pct'], avg_stats[2]]),
 			('Unsubscribed %', [stats['unsubscribed_pct'], avg_stats[3]]),
 			('Cleaned %', [stats['cleaned_pct'], avg_stats[4]]),
 			('Pending %', [stats['pending_pct'], avg_stats[5]])]),
-		x_labels=('Your List', 'Average'))
+		x_labels=('Your List', 'Average (Mean)'))
 	list_breakdown_chart.render_png(list_id + '_breakdown')
 
-	open_rate_chart = BarChart('Average User Unique '
-		'Open Rate vs. Database Average',
+	open_rate_chart = BarChart('List Open Rate vs. '
+		'Database Average (Mean)',
 		OrderedDict([
 			('Your List', [stats['open_rate']]),
-			('Average', [avg_stats[1]])]))
+			('Average (Mean)', [avg_stats[1]])]))
 	open_rate_chart.render_png(list_id + '_open_rate')
 
 	high_open_rt_pct_chart = BarChart('Percentage of Subscribers '

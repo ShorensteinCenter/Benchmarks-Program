@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 import iso8601
 from billiard import current_process
 import os
+from scipy.stats import zscore
 
 class MailChimpList(object):
 
@@ -155,18 +156,18 @@ class MailChimpList(object):
 		# We want each worker to control its corresponding proxy process
 		# Note that workers are zero-indexed, proxy procceses are not
 		p = current_process()
-		proxy_process_number = str(p.index + 1)
+		#proxy_process_number = str(p.index + 1)
 		
 		# Use the US Proxies API to get the proxy info
 		proxy_request_uri = 'http://us-proxies.com/api.php'
-		params = (
+		proxy_params = (
 		    ('api', ''),
 		    ('uid', '9557'),
-		    ('pwd', os.environ.get('PROXY_AUTH_PWD')),
+		    ('pwd', '8003475d920448337b0d82e427e8b3e1'),
 		    ('cmd', 'rotate'),
-		    ('process', proxy_process_number),
+		    ('process', '1'),
 		)
-		proxy_response = requests.get(proxy_request_uri, params=params)
+		proxy_response = requests.get(proxy_request_uri, params=proxy_params)
 		proxy_response_vars = proxy_response.text.split(':')
 		self.proxy = ('http://' + proxy_response_vars[1] + 
 			':' + proxy_response_vars[2])
@@ -228,9 +229,30 @@ class MailChimpList(object):
 			self.import_sub_activity_async(subscriber_list)))
 		loop.run_until_complete(future)
 
+	# Removes nested jsons from the dataframe
+	def flatten(self):
+
+		# Extract member stats from nested json
+		# Then store them in a flattened dataframe
+		stats = json_normalize(self.df['stats'].tolist())
+
+		# Merge the dataframes
+		self.df = (self.df[['status', 'timestamp_opt',
+			'timestamp_signup', 'id', 'recent_open']].join(stats))
+
 	# Calculates the open rate
 	def calc_open_rate(self):
 		self.open_rate = self.open_rate / 100
+
+	# Calculates the z-score for subscriber open rate
+	def calc_zscore(self):
+		self.df.loc[self.df['status'] == 'subscribed', 'zscore'] = zscore(
+			self.df.loc[self.df['status'] == 'subscribed', 'avg_open_rate'])
+
+		bins = pd.cut(self.df.loc[self.df['status'] == 'subscribed', 'avg_open_rate'],
+			[-0.001, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.])
+		bin_counts = pd.value_counts(bins, sort=False)
+		bin_counts = bin_counts.apply(lambda x: x / self.subscribers)
 
 	# Calculates the list breakdown
 	def calc_list_breakdown(self):
@@ -251,14 +273,6 @@ class MailChimpList(object):
 	# Calculates the percentage of subscribers
 	# Who open greater than 80% of the time
 	def calc_high_open_rate_pct(self):
-
-		# Extract member stats from nested json
-		# Then store them in a flattened dataframe
-		stats = json_normalize(self.df['stats'].tolist())
-
-		# Merge the dataframes
-		self.df = (self.df[['status', 'timestamp_opt',
-			'timestamp_signup', 'id', 'recent_open']].join(stats))
 
 		# Sum the number of rows where average open rate exceeds 0.8
 		# And the member is a subscriber
