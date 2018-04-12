@@ -156,16 +156,16 @@ class MailChimpList(object):
 		# We want each worker to control its corresponding proxy process
 		# Note that workers are zero-indexed, proxy procceses are not
 		p = current_process()
-		#proxy_process_number = str(p.index + 1)
+		proxy_process_number = str(p.index + 1)
 		
 		# Use the US Proxies API to get the proxy info
 		proxy_request_uri = 'http://us-proxies.com/api.php'
 		proxy_params = (
 		    ('api', ''),
 		    ('uid', '9557'),
-		    ('pwd', '8003475d920448337b0d82e427e8b3e1'),
+		    ('pwd', os.environ.get('PROXY_AUTH_PWD')),
 		    ('cmd', 'rotate'),
-		    ('process', '1'),
+		    ('process', proxy_process_number),
 		)
 		proxy_response = requests.get(proxy_request_uri, params=proxy_params)
 		proxy_response_vars = proxy_response.text.split(':')
@@ -297,6 +297,7 @@ class MailChimpList(object):
 	def get_list_stats(self):
 		stats = {'subscribers': self.subscribers,
 			'open_rate': self.open_rate,
+			'hist_bin_counts': self.hist_bin_counts,
 			'subscribed_pct': self.subscribed_pct,
 			'unsubscribed_pct': self.unsubscribed_pct,
 			'cleaned_pct': self.cleaned_pct,

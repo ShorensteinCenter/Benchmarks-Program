@@ -2,11 +2,12 @@ from flask import render_template
 from app import app, celery, db, mail
 from app.lists import MailChimpList
 from app.models import ListStats, AppUser
-from app.charts import BarChart
+from app.charts import BarChart, Histogram
 from sqlalchemy.sql.functions import func
 from flask_mail import Message
 import requests
 from collections import OrderedDict
+import json
 
 # Does the dirty work of actually pulling in a list
 # And storing the resulting calculations in a database
@@ -27,6 +28,7 @@ def import_analyze_store_list(list_id, count, open_rate,
 	# Do the data science shit
 	mailing_list.calc_list_breakdown()
 	mailing_list.calc_open_rate()
+	mailing_list.calc_histogram()
 	mailing_list.calc_high_open_rate_pct()
 	mailing_list.calc_cur_yr_stats()
 	
@@ -34,12 +36,14 @@ def import_analyze_store_list(list_id, count, open_rate,
 	stats = mailing_list.get_list_stats()
 
 	# Store the stats in database
+	# Serialize the histogram data so it can be stored as String
 	list_stats = ListStats(list_id=list_id,
 		api_key=api_key,
 		data_center=data_center,
 		count=count,
 		subscribers=stats['subscribers'],
 		open_rate=stats['open_rate'],
+		hist_bin_counts=json.dumps(stats['hist_bin_counts']),
 		subscribed_pct=stats['subscribed_pct'],
 		unsubscribed_pct=stats['unsubscribed_pct'],
 		cleaned_pct=stats['cleaned_pct'],
@@ -73,8 +77,10 @@ def init_list_analysis(list_id, list_name, count,
 	else:
 
 		# Get list stats from database results
+		# Deserialize the histogram data
 		stats = {'subscribers': existing_list.subscribers,
 			'open_rate': existing_list.open_rate,
+			'hist_bin_counts': json.loads(existing_list.hist_bin_counts),
 			'subscribed_pct': existing_list.subscribed_pct,
 			'unsubscribed_pct': existing_list.unsubscribed_pct,
 			'cleaned_pct': existing_list.cleaned_pct,
@@ -128,26 +134,32 @@ def init_list_analysis(list_id, list_name, count,
 			('Average (Mean)', [avg_stats[1]])]))
 	open_rate_chart.render_png(list_id + '_open_rate')
 
+	open_rate_hist_chart = Histogram('Distribution of '
+		'User Unique Open Rates',
+		OrderedDict([
+			('Your List', stats['hist_bin_counts'])]))
+	open_rate_hist_chart.render_png(list_id + '_open_rate_histogram')
+
 	high_open_rt_pct_chart = BarChart('Percentage of Subscribers '
-		'with User Unique Open Rate >80% vs. Database Average',
+		'with User Unique Open Rate >80% vs. Database Average (Mean)',
 		OrderedDict([
 			('Your List', [stats['high_open_rt_pct']]),
-			('Average', [avg_stats[6]])]))
+			('Average (Mean)', [avg_stats[6]])]))
 	high_open_rt_pct_chart.render_png(list_id + '_high_open_rt')
 
 	cur_yr_member_pct_chart = BarChart('Percentage of Subscribers '
-		'who Opened in last 365 Days vs. Database Average',
+		'who Opened in last 365 Days vs. Database Average (Mean)',
 		OrderedDict([
 			('Your List', [stats['cur_yr_sub_pct']]),
-			('Average', [avg_stats[7]])]))
+			('Average (Mean)', [avg_stats[7]])]))
 	cur_yr_member_pct_chart.render_png(list_id + '_cur_yr_sub_pct')
 
 	cur_yr_members_open_rt_chart = BarChart('User Unique Open Rate '
 		'among Subscribers who Opened in last 365 Days '
-		'vs. Database Average',
+		'vs. Database Average (Mean)',
 		OrderedDict([
 			('Your List', [stats['cur_yr_sub_open_rt']]),
-			('Average', [avg_stats[8]])]))
+			('Average (Mean)', [avg_stats[8]])]))
 	cur_yr_members_open_rt_chart.render_png(
 		list_id + '_cur_yr_sub_open_rt')
 

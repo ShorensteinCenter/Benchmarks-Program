@@ -8,6 +8,7 @@ class ListStats(db.Model):
 	count = db.Column(db.Integer)
 	subscribers = db.Column(db.Integer)
 	open_rate = db.Column(db.Float)
+	hist_bin_counts = db.Column(db.String(512))
 	subscribed_pct = db.Column(db.Float)
 	unsubscribed_pct = db.Column(db.Float)
 	cleaned_pct = db.Column(db.Float)
