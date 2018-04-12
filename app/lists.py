@@ -10,7 +10,6 @@ from datetime import datetime, timedelta, timezone
 import iso8601
 from billiard import current_process
 import os
-from scipy.stats import zscore
 
 class MailChimpList(object):
 
@@ -244,15 +243,13 @@ class MailChimpList(object):
 	def calc_open_rate(self):
 		self.open_rate = self.open_rate / 100
 
-	# Calculates the z-score for subscriber open rate
-	def calc_zscore(self):
-		self.df.loc[self.df['status'] == 'subscribed', 'zscore'] = zscore(
-			self.df.loc[self.df['status'] == 'subscribed', 'avg_open_rate'])
-
+	# Calculates the distribution for subscriber open rate
+	def calc_histogram(self):
+		bin_boundaries = [-0.001, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.]
 		bins = pd.cut(self.df.loc[self.df['status'] == 'subscribed', 'avg_open_rate'],
-			[-0.001, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.])
-		bin_counts = pd.value_counts(bins, sort=False)
-		bin_counts = bin_counts.apply(lambda x: x / self.subscribers)
+			bin_boundaries)
+		self.hist_bin_counts = (pd.value_counts(bins, sort=False)
+			.apply(lambda x: x / self.subscribers).tolist())
 
 	# Calculates the list breakdown
 	def calc_list_breakdown(self):
