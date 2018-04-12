@@ -14,8 +14,7 @@ class ListStats(db.Model):
 	cleaned_pct = db.Column(db.Float)
 	pending_pct = db.Column(db.Float)
 	high_open_rt_pct = db.Column(db.Float)
-	cur_yr_sub_pct = db.Column(db.Float)
-	cur_yr_sub_open_rt = db.Column(db.Float)
+	cur_yr_inactive_pct = db.Column(db.Float)
 
 	def __repr__(self):
 		return '<ListStats {}>'.format(self.list_id)

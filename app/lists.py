@@ -278,17 +278,15 @@ class MailChimpList(object):
 			for x in self.df[self.df['status'] == 'subscribed']
 			['avg_open_rate']) / self.subscribers)
 
-	# Calculates list size and open rate
-	# Only includes subs who have opened an email in the previous year
+	# Calculates metrics related to activity that occured in the previous year
 	def calc_cur_yr_stats(self):
-		self.cur_yr_sub_pct = (int(self.df['recent_open']
-			.count()) / self.subscribers)
-		self.cur_yr_sub_open_rt = (self.df[self.df['recent_open']
-			.notnull()]['avg_open_rate'].mean())
+		
+		# Total number of subsribers without an open within the last year
+		cur_yr_inactive_subs = (self.subscribers - 
+			int(self.df['recent_open'].count()))
 
-		# Catchall for taking mean of NaN values
-		if self.cur_yr_sub_open_rt is np.NaN:
-			self.cur_yr_sub_open_rt = 0
+		# Percent of such subscribers
+		self.cur_yr_inactive_pct = cur_yr_inactive_subs / self.subscribers
 
 	# Returns list stats as a dictionary
 	def get_list_stats(self):
@@ -300,8 +298,7 @@ class MailChimpList(object):
 			'cleaned_pct': self.cleaned_pct,
 			'pending_pct': self.pending_pct,
 			'high_open_rt_pct': self.high_open_rt_pct,
-			'cur_yr_sub_pct': self.cur_yr_sub_pct,
-			'cur_yr_sub_open_rt': self.cur_yr_sub_open_rt}
+			'cur_yr_inactive_pct': self.cur_yr_inactive_pct}
 		return stats
 
 	# Returns a string buffer containing a CSV of the list data

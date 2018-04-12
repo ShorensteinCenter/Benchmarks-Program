@@ -49,8 +49,7 @@ def import_analyze_store_list(list_id, count, open_rate,
 		cleaned_pct=stats['cleaned_pct'],
 		pending_pct=stats['pending_pct'],
 		high_open_rt_pct=stats['high_open_rt_pct'],
-		cur_yr_sub_pct=stats['cur_yr_sub_pct'],
-		cur_yr_sub_open_rt=stats['cur_yr_sub_open_rt'])
+		cur_yr_inactive_pct=stats['cur_yr_inactive_pct'])
 	db.session.merge(list_stats)
 	db.session.commit()
 
@@ -86,8 +85,7 @@ def init_list_analysis(list_id, list_name, count,
 			'cleaned_pct': existing_list.cleaned_pct,
 			'pending_pct': existing_list.pending_pct,
 			'high_open_rt_pct': existing_list.high_open_rt_pct,
-			'cur_yr_sub_pct': existing_list.cur_yr_sub_pct,
-			'cur_yr_sub_open_rt': existing_list.cur_yr_sub_open_rt}
+			'cur_yr_inactive_pct': existing_list.cur_yr_inactive_pct}
 
 	# Log that the request occured
 	current_user = AppUser(user_email=user_email,
@@ -103,21 +101,21 @@ def init_list_analysis(list_id, list_name, count,
 		func.avg(ListStats.cleaned_pct),
 		func.avg(ListStats.pending_pct),
 		func.avg(ListStats.high_open_rt_pct),
-		func.avg(ListStats.cur_yr_sub_pct),
-		func.avg(ListStats.cur_yr_sub_open_rt)).first()
+		func.avg(ListStats.cur_yr_inactive_pct)).first()
 	
 	# Generate charts
 	# Using OrderedDict (for now) as Pygal occasionally seems to break with
 	# The Python 3.5 dictionary standard which preserves order by default
 	# Export them as pngs to /charts
-	list_size_chart = BarChart('List Size vs. Database Average (Mean)',
+	list_size_chart = BarChart('Chart A: List Size vs. '
+		'Database Average (Mean)',
 		OrderedDict([
 			('Your List', [stats['subscribers']]),
 			('Average (Mean)', [avg_stats[0]])]),
 		percentage=False)
 	list_size_chart.render_png(list_id + '_size')
 
-	list_breakdown_chart = BarChart('List Composition vs. '
+	list_breakdown_chart = BarChart('Chart B: List Composition vs. '
 		'Database Average (Mean)',
 		OrderedDict([
 			('Subscribed %', [stats['subscribed_pct'], avg_stats[2]]),
@@ -127,41 +125,33 @@ def init_list_analysis(list_id, list_name, count,
 		x_labels=('Your List', 'Average (Mean)'))
 	list_breakdown_chart.render_png(list_id + '_breakdown')
 
-	open_rate_chart = BarChart('List Open Rate vs. '
+	open_rate_chart = BarChart('Chart C: List Open Rate vs. '
 		'Database Average (Mean)',
 		OrderedDict([
 			('Your List', [stats['open_rate']]),
 			('Average (Mean)', [avg_stats[1]])]))
 	open_rate_chart.render_png(list_id + '_open_rate')
 
-	open_rate_hist_chart = Histogram('Distribution of '
+	open_rate_hist_chart = Histogram('Chart D: Distribution of '
 		'User Unique Open Rates',
 		OrderedDict([
 			('Your List', stats['hist_bin_counts'])]))
 	open_rate_hist_chart.render_png(list_id + '_open_rate_histogram')
 
-	high_open_rt_pct_chart = BarChart('Percentage of Subscribers '
-		'with User Unique Open Rate >80% vs. Database Average (Mean)',
+	high_open_rt_pct_chart = BarChart('Chart E: Percentage of '
+		'Subscribers with User Unique Open Rate >80% vs. '
+		'Database Average (Mean)',
 		OrderedDict([
 			('Your List', [stats['high_open_rt_pct']]),
 			('Average (Mean)', [avg_stats[6]])]))
 	high_open_rt_pct_chart.render_png(list_id + '_high_open_rt')
 
-	cur_yr_member_pct_chart = BarChart('Percentage of Subscribers '
-		'who Opened in last 365 Days vs. Database Average (Mean)',
+	cur_yr_member_pct_chart = BarChart('Chart F: Percentage of Subscribers '
+		'who did not Open in last 365 Days vs. Database Average (Mean)',
 		OrderedDict([
-			('Your List', [stats['cur_yr_sub_pct']]),
+			('Your List', [stats['cur_yr_inactive_pct']]),
 			('Average (Mean)', [avg_stats[7]])]))
-	cur_yr_member_pct_chart.render_png(list_id + '_cur_yr_sub_pct')
-
-	cur_yr_members_open_rt_chart = BarChart('User Unique Open Rate '
-		'among Subscribers who Opened in last 365 Days '
-		'vs. Database Average (Mean)',
-		OrderedDict([
-			('Your List', [stats['cur_yr_sub_open_rt']]),
-			('Average (Mean)', [avg_stats[8]])]))
-	cur_yr_members_open_rt_chart.render_png(
-		list_id + '_cur_yr_sub_open_rt')
+	cur_yr_member_pct_chart.render_png(list_id + '_cur_yr_inactive_pct')
 
 	# Send charts as an email report
 	# Due to the way Flask-Mail works, reimport app_context first
