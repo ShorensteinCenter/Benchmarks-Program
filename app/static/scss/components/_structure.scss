@@ -7,8 +7,23 @@ nav {
 	padding-bottom: 0.5rem;
 
 	svg {
-		height: 50px;
+		height: 35px;
 	}
+
+	@include media-breakpoint-up(sm) {
+		svg {
+			height: 50px;
+		}
+	}
+}
+
+footer {
+	position: absolute;
+    bottom: 0;
+    min-width: 100%;
+    justify-content: center;
+    margin: 0.66rem auto;
+    font-size: 15px;
 }
 
 .page-wrapper {

@@ -4,14 +4,14 @@
 	<div class="page-wrapper">
 		<div class="container-fluid section-one">
 			<div class="row">
-				<div class="col home-page-title">
-					<h1 class="home-page-title-text">Enter your MailChimp API key.</h1>
+				<div class="col d-flex justify-content-center">
+					<h1 class="title-text">Enter your MailChimp API key.</h1>
 				</div>
 			</div>
-			<div class="row form-justify">
+			<div class="row justify-content-center">
 				<div class="col">
     				<form action="#" class="api-key-form" method="post" autocomplete="off">
-    					<div class="row form-justify">
+    					<div class="row justify-content-center">
 	        				<div class="form-input-wrapper">
 		            			{{ keyForm.key(size=40) }}
 		            			<span class="focus-bg"></span>
@@ -23,6 +23,9 @@
     				</form>
 				</div>
 			</div>
+			<footer class="row">
+				<a href="https://shorensteincenter.org/email-analysis-research-guide">MailChimp research guide</a>&nbsp&bull;&nbsp<a href="/terms">How we use your data</a>
+			</footer>
 		</div>
 		<div class="container-fluid section-two">
 			<div class="row">
@@ -39,17 +42,20 @@
 					</table>
 				</div>
 			</div>
+			<footer class="row">
+				<a href="https://shorensteincenter.org/email-analysis-research-guide">MailChimp research guide</a>&nbsp&bull;&nbsp<a href="/terms">How we use your data</a>
+			</footer>
 		</div>
 		<div class="container-fluid section-three">
 			<div class="row">
-				<div class="col home-page-title">
-					<h1 class="home-page-title-text">Enter your email address.</h1>
+				<div class="col d-flex justify-content-center">
+					<h1 class="title-text">Enter your email address.</h1>
 				</div>
 			</div>
-			<div class="row form-justify">
+			<div class="row justify-content-center">
 				<div class="col">
     				<form action="#" class="email-form" method="post" autocomplete="off">
-    					<div class="row form-justify">
+    					<div class="row justify-content-center">
 	        				<div class="form-input-wrapper">
 		            			{{ emailForm.key(size=40) }}
 		            			<span class="focus-bg"></span>
@@ -61,13 +67,19 @@
     				</form>
 				</div>
 			</div>
+			<footer class="row">
+				<a href="https://shorensteincenter.org/email-analysis-research-guide">MailChimp research guide</a>&nbsp&bull;&nbsp<a href="/terms">How we use your data</a>
+			</footer>
 		</div>
 		<div class="container-fluid section-four">
 			<div class="row">
-				<div class="col home-page-title">
-					<h1 class="home-page-title-text">Thanks!<br>We'll email you shortly.</h1>
+				<div class="col d-flex justify-content-center">
+					<h1 class="title-text">Thanks!<br>We'll email you shortly.</h1>
 				</div>
 			</div>
+			<footer class="row">
+				<a href="https://shorensteincenter.org/email-analysis-research-guide">MailChimp research guide</a>&nbsp&bull;&nbsp<a href="/terms">How we use your data</a>
+			</footer>
 		</div>
 	</div>
 {% endblock %}

@@ -1,18 +1,13 @@
-.home-page-title {
-	display: flex;
-	justify-content: center;
-}
-
-.home-page-title-text {
+.title-text {
 	color: $crimson;
-	font-size: 3rem;
-    margin-bottom: 1.75rem;
+	font-size: $title-text-size;
+    margin-bottom: $title-text-margin-bottom;
     text-align: center;
 }
 
 @include media-breakpoint-up(sm) {
-	.home-page-title-text {
-		font-size: 3.5rem;
-		margin-bottom: 2.25rem
+	.title-text {
+		font-size: $title-text-size-desktop;
+		margin-bottom: $title-text-margin-bottom-desktop;
 	}
 }

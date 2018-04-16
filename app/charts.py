@@ -15,7 +15,7 @@ class Chart(object):
 	BAR_CONFIG.max_scale = 7
 	BAR_CONFIG.print_values = True
 	BAR_CONFIG.print_values_position = 'top'
-	BAR_CONFIG.style = DefaultStyle(background='#fff')
+	BAR_CONFIG.style = DefaultStyle(background='#fff', title_font_size=20)
 
 	# Shared init stuff among all chart types
 	def __init__(self, title):

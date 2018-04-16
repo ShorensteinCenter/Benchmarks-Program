@@ -12,6 +12,11 @@ def index():
 	return render_template('index.html',
 		keyForm=keyForm, emailForm=emailForm)
 
+# Terms Page
+@app.route('/terms')
+def terms():
+	return render_template('terms.html')
+
 # Validates a posted API key
 @app.route('/validateAPIKey', methods=['POST'])
 def validate_key():

@@ -5,7 +5,6 @@ class ListStats(db.Model):
 	list_id = db.Column(db.String(64), primary_key=True)
 	api_key = db.Column(db.String(64))
 	data_center = db.Column(db.String(64))
-	count = db.Column(db.Integer)
 	subscribers = db.Column(db.Integer)
 	open_rate = db.Column(db.Float)
 	hist_bin_counts = db.Column(db.String(512))
