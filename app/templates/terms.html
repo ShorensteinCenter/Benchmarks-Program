@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<div class="container-fluid terms-page">
+		<div class="row">
+			<div class="col-12 col-lg-10 offset-lg-1">
+				<div class="row">
+					<div class="col">
+						<h1 class="title-text">How we use your data.</h1>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col">When you enter your API key, we will use it to access your MailChimp data. We do not request any personally identifying information about your list members (e.g. name, email address, etc.); list members are uniquely identified only by a md5-hashed version of their email address. We store this data only in temporary memory and only as long as it takes us to perform our calculations. When we have concluded our calculations, we store the calculation results in our secure database. Each set of results is associated with the API key you provided and the MailChimp ID of the list you asked us to analyze. We will use your API key to update these results from time to time, and we will use these results to help calculate a "Database Average" for other users of this tool. The data we may access includes, but is not limited to, information about your lists and campaigns (list/campaign statistics, list/campaign creation dates, past list/campaign activity, etc.) and list members (list member subscription status, list member subscription status changes, list member recent activity, etc.).</div>
+				</div>
+			</div>
+		</div>
+		<footer class="row">
+			<a href="https://shorensteincenter.org/email-analysis-research-guide">MailChimp research guide</a>&nbsp&bull;&nbsp<a href="/terms">How we use your data</a>
+		</footer>
+	</div>
+{% endblock %}

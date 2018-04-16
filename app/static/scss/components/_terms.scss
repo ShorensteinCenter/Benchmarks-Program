@@ -1,0 +1,10 @@
+.terms-page {
+	z-index: -1;
+	overflow-y: scroll;
+	padding-top: 2 * $navHeight;
+	padding-bottom: 2 * $navHeight;
+
+	.title-text {
+		text-align: left;
+	}
+}
