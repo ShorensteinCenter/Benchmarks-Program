@@ -1,3 +1,9 @@
+@include media-breakpoint-up(sm) {
+	.api-key-form .form-input-wrapper:after {
+		content: 'We recommend generating a new API key for this tool.';
+	}
+}
+
 .api-key-form .form-input-wrapper.invalid:after {
 	content: 'Please enter a valid MailChimp API key.';
 }

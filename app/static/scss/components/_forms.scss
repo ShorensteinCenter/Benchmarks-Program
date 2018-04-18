@@ -2,7 +2,7 @@
 	padding: $form-input-padding;
 	font-size: $form-font-size;
 	line-height: $form-line-height;
-	transition: $form-transition;
+	transition: color $form-transition, background-color $form-transition;
 	border-radius: 1px;
 	border: 1px solid $medium-grey; 
 	background: transparent;
@@ -17,15 +17,15 @@
 
 .form-input-wrapper:after {
     position: absolute;
+    color: $body-color;
+    font-size: $small-text-size;
     left: 0rem;
     top: 2 * $form-input-top-padding + 
     	$form-font-size * $form-line-height + 0.25rem;
     transition: $form-transition;
-    opacity: 0;
 }
 
 .form-input-wrapper.invalid:after {
-	opacity: 1;
 	color: $form-invalid-msg-color;
 }
 
