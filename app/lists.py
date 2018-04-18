@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 import iso8601
 from billiard import current_process
 import os
+from celery.utils.log import get_task_logger
 
 class MailChimpList(object):
 
@@ -18,7 +19,7 @@ class MailChimpList(object):
 	CHUNK_SIZE = 5000
 
 	# The number of simultaneous connections accepted by the API
-	MAX_CONNECTIONS = 7
+	MAX_CONNECTIONS = 8
 
 	# The number of simultanous connections for the activity import phase
 	# This number is lower than MAX_CONNECTIONS
@@ -34,11 +35,20 @@ class MailChimpList(object):
 		self.count = int(count)
 		self.api_key = api_key
 		self.data_center = data_center
+		self.logger = get_task_logger(__name__)
 
 	# Asynchronously imports list data for CHUNK_SIZE members
 	async def fetch_list_data(self, url, params, session):
-		async with session.get(url, params=params, auth=BasicAuth('shorenstein', self.api_key)) as response:
-			return await response.text()
+		async with session.get(url, 
+			params=params, auth=BasicAuth('shorenstein', 
+			self.api_key), proxy=self.proxy) as response:
+				if response.status != 200:
+					self.logger.error(
+						'Received invalid response code:{} url:{} error:{}'
+						' response:{}'.format(response.status, url, '',
+							response.reason)
+						)
+				return await response.text()
 
 	# Make requests with semaphore
 	# Convert response to dict for processing
@@ -63,6 +73,30 @@ class MailChimpList(object):
 
 		# Semaphore to limit max simultaneous connections to MailChimp API
 		sem = asyncio.Semaphore(self.MAX_CONNECTIONS)
+
+		# We proxy requests using US Proxies to prevent MailChimp blocks
+		# Get the worker number for this Celery worker
+		# We want each worker to control its corresponding proxy process
+		# Note that workers are zero-indexed, proxy procceses are not
+		p = current_process()
+		proxy_process_number = str(p.index + 1)
+		
+		# Use the US Proxies API to get the proxy info
+		proxy_request_uri = 'http://us-proxies.com/api.php'
+		proxy_params = (
+		    ('api', ''),
+		    ('uid', '9557'),
+		    ('pwd', os.environ.get('PROXY_AUTH_PWD')),
+		    ('cmd', 'rotate'),
+		    ('process', proxy_process_number),
+		)
+		proxy_response = requests.get(proxy_request_uri, params=proxy_params)
+		proxy_response_vars = proxy_response.text.split(':')
+		self.proxy = ('http://' + proxy_response_vars[1] + 
+			':' + proxy_response_vars[2])
+
+		# Allow some time for the proxy server to boot up
+		await asyncio.sleep(self.PROXY_BOOT_TIME)
 
 		# Make requests with a single session
 		async with ClientSession() as session:
@@ -121,8 +155,16 @@ class MailChimpList(object):
 
 	# Asynchronously imports subscriber activity for a single sub
 	async def fetch_sub_activity(self, url, params, session):
-		async with session.get(url, params=params, auth=BasicAuth('shorenstein', self.api_key), proxy=self.proxy) as response:
-			return await response.text()
+		async with session.get(url, params=params, 
+			auth=BasicAuth('shorenstein', self.api_key), 
+			proxy=self.proxy) as response:
+				if response.status != 200:
+					self.logger.error(
+						'Received invalid response code:{} url:{} error:{}'
+						' response:{}'.format(response.status, url, '',
+							response.reason)
+						)
+				return await response.text()
 
 	# Make requests with semaphore
 	# Convert response to dict for processing
@@ -149,30 +191,6 @@ class MailChimpList(object):
 
 		# Semaphore to limit max simultaneous connections to MailChimp API
 		sem = asyncio.Semaphore(self.MAX_ACTIVITY_CONNECTIONS)
-
-		# We proxy requests using US Proxies to prevent MailChimp blocks
-		# Get the worker number for this Celery worker
-		# We want each worker to control its corresponding proxy process
-		# Note that workers are zero-indexed, proxy procceses are not
-		p = current_process()
-		proxy_process_number = str(p.index + 1)
-		
-		# Use the US Proxies API to get the proxy info
-		proxy_request_uri = 'http://us-proxies.com/api.php'
-		proxy_params = (
-		    ('api', ''),
-		    ('uid', '9557'),
-		    ('pwd', os.environ.get('PROXY_AUTH_PWD')),
-		    ('cmd', 'rotate'),
-		    ('process', proxy_process_number),
-		)
-		proxy_response = requests.get(proxy_request_uri, params=proxy_params)
-		proxy_response_vars = proxy_response.text.split(':')
-		self.proxy = ('http://' + proxy_response_vars[1] + 
-			':' + proxy_response_vars[2])
-
-		# Allow some time for the proxy server to boot up
-		await asyncio.sleep(self.PROXY_BOOT_TIME)
 
 		# Create a session with which to make requests
 		async with ClientSession() as session:
@@ -246,8 +264,8 @@ class MailChimpList(object):
 	# Calculates the distribution for subscriber open rate
 	def calc_histogram(self):
 		bin_boundaries = [-0.001, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.]
-		bins = pd.cut(self.df.loc[self.df['status'] == 'subscribed', 'avg_open_rate'],
-			bin_boundaries)
+		bins = (pd.cut(self.df.loc[self.df['status'] == 
+			'subscribed', 'avg_open_rate'], bin_boundaries))
 		self.hist_bin_counts = (pd.value_counts(bins, sort=False)
 			.apply(lambda x: x / self.subscribers).tolist())
 
