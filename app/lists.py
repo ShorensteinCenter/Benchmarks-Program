@@ -19,7 +19,7 @@ class MailChimpList(object):
 	CHUNK_SIZE = 5000
 
 	# The number of simultaneous connections accepted by the API
-	MAX_CONNECTIONS = 8
+	MAX_CONNECTIONS = 6
 
 	# The number of simultanous connections for the activity import phase
 	# This number is lower than MAX_CONNECTIONS
