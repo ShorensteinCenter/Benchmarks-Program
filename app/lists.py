@@ -139,7 +139,6 @@ class MailChimpList(object):
 	# Convert response to dict for processing
 	async def fetch_list_data(self, sem, url, params, session):
 		async with sem:
-			print('sending request: {}'.format(url))
 			res = await self.make_async_request(url, params, session)
 			return json.loads(res)['members']
 
