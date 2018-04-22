@@ -1,0 +1,11 @@
+{% extends "email_base.html" %}
+
+{% block content %}
+	<p style="font-family:Montserrat,Verdana,sans-serif;margin-left:auto;margin-right:auto;max-width:1200px;">
+		<strong>Error Details:</strong>
+		{% for k, v in error_details.items() %}
+			<span>{{ k }}: {{ v }}</span><br>
+		{% endfor %}
+	</p>
+	<p style="font-family:Montserrat,Verdana,sans-serif;margin-left:auto;margin-right:auto;max-width:1200px;">Please try your request again. If problems persist, contact the Shorenstein Center.</p>
+{% endblock %}

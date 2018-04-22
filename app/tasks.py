@@ -12,13 +12,13 @@ import json
 # Does the dirty work of actually pulling in a list
 # And storing the resulting calculations in a database
 def import_analyze_store_list(list_id, count, open_rate,
-	api_key, data_center):
+	api_key, data_center, user_email=None):
 	
 	# Create a new list instance and import member data/activity
 	mailing_list = MailChimpList(list_id, open_rate,
-		count, api_key, data_center)
+		count, api_key, data_center, user_email)
 	mailing_list.import_list_data()
-
+	
 	# Import the subscriber activity as well, and merge
 	mailing_list.import_sub_activity()
 
@@ -70,7 +70,7 @@ def init_list_analysis(list_id, list_name, count,
 	if existing_list is None:
 
 		stats = import_analyze_store_list(list_id,
-			count, open_rate, api_key, data_center)
+			count, open_rate, api_key, data_center, user_email)
 
 	else:
 
@@ -158,8 +158,9 @@ def init_list_analysis(list_id, list_name, count,
 		msg = Message('Your Email Benchmarking Report is Ready!',
 			sender='shorensteintesting@gmail.com',
 			recipients=[user_email],
-			html=render_template('email.html',
-				list_name=list_name, list_id=list_id))
+			html=render_template('report_email.html',
+				title='We\'ve analyzed the {} List!'.format(list_name), 
+				list_id=list_id))
 		mail.send(msg)
 
 # Goes through the database and updates all the calculations

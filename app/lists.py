@@ -11,6 +11,9 @@ import iso8601
 from billiard import current_process
 import os
 from celery.utils.log import get_task_logger
+from app import app, mail
+from flask import render_template
+from flask_mail import Message
 
 class MailChimpList(object):
 
@@ -26,37 +29,118 @@ class MailChimpList(object):
 	# The number of simultanous connections for the activity import phase
 	# This number is lower than MAX_CONNECTIONS
 	# Otherwise MailChimp will flag as too many requests
+	# (Each request takes very little time to complete)
 	MAX_ACTIVITY_CONNECTIONS = 2
 
-	# The approximate amount of time (in seconds) it takes to cold boot a proxy
+	# The http status codes we'd like to retry in case of a connection issue
+	HTTP_STATUS_CODES_TO_RETRY = [429, 504]
+
+	# The number of times to retry an http request in case of a timeout
+	MAX_RETRIES = 3
+
+	# The base backoff time in seconds
+	BACKOFF_INTERVAL = 5
+
+	# The approximate amount of seconds it takes to cold boot a proxy
 	PROXY_BOOT_TIME = 30
 
-	def __init__(self, id, open_rate, count, api_key, data_center):
+	def __init__(self, id, open_rate, count, api_key, data_center, user_email):
 		self.id = id
 		self.open_rate = float(open_rate)
 		self.count = int(count)
 		self.api_key = api_key
 		self.data_center = data_center
+		self.user_email = user_email
 		self.logger = get_task_logger(__name__)
 
-	# Asynchronously imports list data for CHUNK_SIZE members
-	async def fetch_list_data(self, url, params, session):
-		async with session.get(url, 
-			params=params, auth=BasicAuth('shorenstein', 
-			self.api_key), proxy=self.proxy) as response:
-				if response.status != 200:
+	# Generic function which can make an async request
+	async def make_async_request(self, url, params, session, retry=0):
+		
+		try:
+			
+			# Make the async request with aiohttp
+			async with session.get(url, params=params, 
+				auth=BasicAuth('shorenstein', self.api_key), 
+				proxy=self.proxy) as response:
+
+				# If we got a 200 OK, return the request response
+				if response.status == 200:
+					return await response.text()
+
+				# If we didn't, try to fail gracefully
+				else:				
+					
+					# Always log the bad response
 					self.logger.error(
-						'Received invalid response code:{} url:{} error:{}'
-						' response:{}'.format(response.status, url, '',
-							response.reason)
+						'Received invalid response code: {} url: {} '
+						'API key: {} response: {}'.format(
+							response.status, url, 
+							self.api_key, response.reason)
 						)
-				return await response.text()
+					
+					# Retry if we got an error
+					# And we haven't already retried a few times
+					if (response.status in self.HTTP_STATUS_CODES_TO_RETRY 
+						and retry < self.MAX_RETRIES):
+
+						# Increment retry count, log, sleep and then retry 
+						retry += 1
+						self.logger.warning('Retrying ({})'.format(retry))
+						await asyncio.sleep(self.BACKOFF_INTERVAL ** retry)
+						return await self.make_async_request(url, 
+							params, session, retry)
+
+					# In any other case, if this was a user request
+					# I.e., not a Celery Beat job
+					# Email the user to say something bad happened
+					elif self.user_email is not None:
+						error_details = {
+							'err_desc': 'An error occurred when '
+								'trying to import your data from MailChimp.',
+							'mailchimp_err_code': response.status,
+							'mailchimp_url': url,
+							'api_key': self.api_key,
+							'mailchimp_err_reason': response.reason}
+						self.send_error_email(error_details)
+					
+					# Always raise an exception (to log the stack trace)
+					raise ConnectionError()
+
+		# Catch potential timeouts from asyncio rather than MailChimp 
+		except asyncio.TimeoutError:
+			
+			# Log what happened
+			self.logger.error('Asyncio request timed out! url: {} '
+				'API key: {}'.format(url, self.api_key))
+
+			# If we haven't already retried a few times
+			# Retry the request
+			if retry < self.MAX_RETRIES:
+
+				# Increment retry count, log, sleep, and then retry 
+				retry += 1
+				self.logger.warning('Retrying ({})'.format(retry))
+				await asyncio.sleep(self.BACKOFF_INTERVAL ** retry)
+				return await self.make_async_request(url, params, session,
+					retry)
+
+			elif self.user_email is not None:
+				error_details = {
+					'err_desc': 'An error occurred when '
+						'trying to import your data from MailChimp.',
+					'application_exception': 'asyncio.TimeoutError',
+					'mailchimp_url': url,
+					'api_key': self.api_key}
+				self.send_error_email(error_details)
+
+			raise
 
 	# Make requests with semaphore
 	# Convert response to dict for processing
-	async def fetch_list_data_sem(self, sem, url, params, session):
+	async def fetch_list_data(self, sem, url, params, session):
 		async with sem:
-			res = await self.fetch_list_data(url, params, session)
+			print('sending request: {}'.format(url))
+			res = await self.make_async_request(url, params, session)
 			return json.loads(res)['members']
 
 	# Asynchronously runs the import of basic member data
@@ -122,7 +206,7 @@ class MailChimpList(object):
 
 				# Add a new import task to the queue for each chunk
 				task = (asyncio.ensure_future(
-					self.fetch_list_data_sem(sem, 
+					self.fetch_list_data(sem, 
 					request_uri, params, session)))
 				tasks.append(task)
 
@@ -155,24 +239,11 @@ class MailChimpList(object):
 	def get_list_ids(self):
 		return self.df[self.df['status'] == 'subscribed']['id'].tolist()
 
-	# Asynchronously imports subscriber activity for a single sub
-	async def fetch_sub_activity(self, url, params, session):
-		async with session.get(url, params=params, 
-			auth=BasicAuth('shorenstein', self.api_key), 
-			proxy=self.proxy) as response:
-				if response.status != 200:
-					self.logger.error(
-						'Received invalid response code:{} url:{} error:{}'
-						' response:{}'.format(response.status, url, '',
-							response.reason)
-						)
-				return await response.text()
-
 	# Make requests with semaphore
 	# Convert response to dict for processing
-	async def fetch_sub_activity_sem(self, sem, url, params, session):
+	async def fetch_sub_activity(self, sem, url, params, session):
 		async with sem:
-			res = await self.fetch_sub_activity(url, params, session)
+			res = await self.make_async_request(url, params, session)
 			return json.loads(res)
 
 	# Asynchronously runs the import of subscriber activity
@@ -200,7 +271,7 @@ class MailChimpList(object):
 
 				# Add a new import task to the queue for each list subscriber
 				task = asyncio.ensure_future(self
-					.fetch_sub_activity_sem(sem,
+					.fetch_sub_activity(sem,
 					request_uri.format(subscriber_id),
 					params, session))
 				tasks.append(task)
@@ -327,3 +398,15 @@ class MailChimpList(object):
 		self.df.to_csv(csv_buffer, index=False)
 		csv_buffer.seek(0)
 		return csv_buffer
+
+	# Sends an error email if something goes wrong
+	def send_error_email(self, error_details):
+		with app.app_context():
+			msg = Message('We Couldn\'t Process Your Email '
+				'Benchmarking Report',
+				sender='shorensteintesting@gmail.com',
+				recipients=[self.user_email],
+				html=render_template('error_email.html',
+					title='Looks like something went wrong ☹',
+					error_details=error_details))
+			mail.send(msg)
