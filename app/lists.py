@@ -14,6 +14,7 @@ from celery.utils.log import get_task_logger
 from app import app, mail
 from flask import render_template
 from flask_mail import Message
+from collections import OrderedDict
 
 class MailChimpList(object):
 
@@ -94,13 +95,13 @@ class MailChimpList(object):
 					# I.e., not a Celery Beat job
 					# Email the user to say something bad happened
 					elif self.user_email is not None:
-						error_details = {
-							'err_desc': 'An error occurred when '
-								'trying to import your data from MailChimp.',
-							'mailchimp_err_code': response.status,
-							'mailchimp_url': url,
-							'api_key': self.api_key,
-							'mailchimp_err_reason': response.reason}
+						error_details = OrderedDict([
+							('err_desc', 'An error occurred when '
+								'trying to import your data from MailChimp.'),
+							('mailchimp_err_code', response.status),
+							('mailchimp_url', url),
+							('api_key', self.api_key),
+							('mailchimp_err_reason', response.reason)])
 						self.send_error_email(error_details)
 					
 					# Always raise an exception (to log the stack trace)
@@ -124,15 +125,19 @@ class MailChimpList(object):
 				return await self.make_async_request(url, params, session,
 					retry)
 
+			# In any other case, if this was a user request
+			# I.e., not a Celery Beat job
+			# Email the user to say something bad happened
 			elif self.user_email is not None:
-				error_details = {
-					'err_desc': 'An error occurred when '
-						'trying to import your data from MailChimp.',
-					'application_exception': 'asyncio.TimeoutError',
-					'mailchimp_url': url,
-					'api_key': self.api_key}
+				error_details = OrderedDict([
+					('err_desc', 'An error occurred when '
+						'trying to import your data from MailChimp.'),
+					('application_exception', 'asyncio.TimeoutError'),
+					('mailchimp_url', url),
+					('api_key', self.api_key)])
 				self.send_error_email(error_details)
 
+			# Reraise the exception (to log the stack trace)
 			raise
 
 	# Make requests with semaphore
