@@ -182,7 +182,12 @@ class MailChimpList(object):
 		)
 		proxy_response = requests.get(proxy_request_uri, params=proxy_params)
 		proxy_response_vars = proxy_response.text.split(':')
-		self.proxy = ('http://' + proxy_response_vars[1] + 
+
+		# Set the proxy for requests from this worker
+		# Use the server's IP as a backup
+		# Only if we have an issue with the proxy provider
+		self.proxy = (None if proxy_response_vars[0] == 'ERROR' 
+			else 'http://' + proxy_response_vars[1] + 
 			':' + proxy_response_vars[2])
 
 		# Allow some time for the proxy server to boot up
