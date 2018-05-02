@@ -79,7 +79,7 @@ Description=Gunicorn instance to serve app
 After=network.target
 
 [Service]
-User=
+User=app_user
 Group=www-data
 WorkingDirectory=/path/to/app
 Environment="PATH=/path/to/app/email-benchmarks/bin"

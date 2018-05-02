@@ -8,3 +8,4 @@ migrations/__pycache__
 app.db
 *.log
 celerybeat-schedule.*
+package-lock.json
