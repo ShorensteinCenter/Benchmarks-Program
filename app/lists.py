@@ -114,8 +114,7 @@ class MailChimpList(object):
 			self.logger.error('Asyncio request timed out! url: {} '
 				'API key: {}'.format(url, self.api_key))
 
-			# If we haven't already retried a few times
-			# Retry the request
+			# Retry if we haven't already retried a few times
 			if retry < self.MAX_RETRIES:
 
 				# Increment retry count, log, sleep, and then retry 
@@ -191,7 +190,9 @@ class MailChimpList(object):
 			':' + proxy_response_vars[2])
 
 		# Allow some time for the proxy server to boot up
-		await asyncio.sleep(self.PROXY_BOOT_TIME)
+		# We don't need to wait if we're not using a proxy
+		if self.proxy:
+			await asyncio.sleep(self.PROXY_BOOT_TIME)
 
 		# Make requests with a single session
 		async with ClientSession() as session:
