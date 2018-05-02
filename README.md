@@ -111,4 +111,4 @@ Sample init scripts for Celery can be found in the [Celery repo](https://github.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
