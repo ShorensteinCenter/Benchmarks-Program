@@ -33,7 +33,6 @@ Upgrade the database:
 
 ```
 export FLASK_APP=app.py
-flask db migrate
 flask db upgrade
 ```
 
