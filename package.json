@@ -20,6 +20,7 @@
     "gulp-util": "^3.0.8"
   },
   "dependencies": {
-    "gulp-cli": "^2.0.0"
+    "gulp-cli": "^2.0.0",
+    "hoek": "^4.2.1"
   }
 }
