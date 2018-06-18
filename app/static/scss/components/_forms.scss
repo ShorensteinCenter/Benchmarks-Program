@@ -1,6 +1,6 @@
 %form-elt {
-	padding: $form-input-padding;
-	font-size: $form-font-size;
+	padding: $form-input-padding-xl;
+	font-size: $form-font-size-xl;
 	line-height: $form-line-height;
 	transition: color $form-transition, background-color $form-transition;
 	border-radius: 1px;
@@ -12,7 +12,7 @@
 .form-input-wrapper {
 	position: relative;
 	padding: 0;
-	margin: $form-elt-margin;
+	margin: $form-elt-margin-xl;
 }
 
 .form-input-wrapper:after {
@@ -20,8 +20,8 @@
     color: $body-color;
     font-size: $small-text-size;
     left: 0rem;
-    top: 2 * $form-input-top-padding + 
-    	$form-font-size * $form-line-height + 0.25rem;
+    top: 2 * $form-input-top-padding-xl + 
+    	$form-font-size-xl * $form-line-height + 0.25rem;
     transition: $form-transition;
 }
 

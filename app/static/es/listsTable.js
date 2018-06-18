@@ -76,7 +76,7 @@ const setupListsTable = response => {
 		analyzeLinks[i].addEventListener('click', listener);
 		listeners[i] = listener;
 	}
-	slideLeft('-100vw');
+	slideLeft();
 }
 
 /* Selects a list for processing */
@@ -90,6 +90,6 @@ const analyzeList = (id, name, total, openPct) => {
 		listName = name;
 		totalCount = total;
 		openRate = openPct;
-		slideLeft('-200vw');
+		slideLeft();
 	}
 }

@@ -36,7 +36,7 @@ const submitEmail = async event => {
 		try {
 			const response = await fetch(request);
 			if (response.ok)
-				slideLeft('-300vw');
+				slideLeft();
 			else
 				throw new Error(response.statusText);
 		}

@@ -1,5 +1,11 @@
 nav {
+	opacity: 0;
 	background-color: white;
+	transition: $form-transition;
+
+	&.nav-visible {
+		opacity: 1;
+	}
 }
 
 .navbar-brand {
@@ -60,4 +66,12 @@ footer {
 
 .section-four {
 	left: 300vw;
+}
+
+.section-five {
+	left: 400vw;
+}
+
+.section-six {
+	left: 500vw;
 }

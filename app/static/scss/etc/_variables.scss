@@ -15,10 +15,11 @@ $title-text-margin-bottom-desktop: 2.25rem;
 
 $small-text-size: 0.9rem;
 
-$form-elt-margin: 0rem .75rem 2.25rem .75rem;
-$form-input-top-padding: .67rem;
-$form-input-padding: $form-input-top-padding 1.33rem;
-$form-font-size: 1.6rem;
+$form-elt-margin-xl: 0rem .75rem 2.25rem .75rem;
+$form-input-top-padding-xl: .67rem;
+$form-input-padding-xl: $form-input-top-padding-xl 1.33rem;
+$form-font-size-xl: 1.6rem;
+
 $form-line-height: 1.5;
 $form-transition: 0.5s ease;
 
@@ -26,3 +27,11 @@ $form-invalid-input-color: rgba(238, 95, 91, .25);
 $form-invalid-msg-color: rgb(238, 95, 91);
 $form-valid-input-color: rgba(98, 196, 98, .25);
 $form-valid-msg-color: rgb(98, 196, 98);
+
+$checkbox-label-text-size: 1.3rem;
+$checkbox-line-height: 1.5;
+$checkbox-dim: 1.5rem;
+$checkbox-top: ($checkbox-label-text-size * $checkbox-line-height - 
+	$checkbox-dim) / 2;
+
+

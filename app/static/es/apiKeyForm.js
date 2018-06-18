@@ -101,11 +101,4 @@ const getLists = async () => {
 	}
 }
 
-/* Transition from one section of the form to the next */
-const slideLeft = amt => {
-	const slides = document.querySelectorAll('.container-fluid');
-	for (let i = 0; i < slides.length; ++i)
-		slides[i].style.transform = 'translateX(' + amt + ')';
-}
-
 apiForm.addEventListener('submit', submitApiKey);
