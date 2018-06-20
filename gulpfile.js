@@ -23,9 +23,8 @@ const js = {
 	in: [static + 'es/helpers.js',
 		static + 'es/sectionOne.js',
 		static + 'es/sectionTwo.js',
-		static + 'es/sectionThree.js', 
-		static + 'es/listsTable.js',
-		static + 'es/emailForm.js'],
+		static + 'es/sectionThree.js',
+		static + 'es/sectionFour.js'],
 	out: static + 'js/'
 };
 

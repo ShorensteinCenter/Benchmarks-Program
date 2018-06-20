@@ -7,4 +7,14 @@
 		font-size: $title-text-size-desktop;
 		margin-bottom: $title-text-margin-bottom-desktop;
 	}
+
+	@include media-breakpoint-up(xxl) {
+		font-size: $title-text-size-xxl;
+		margin-bottom: $title-text-margin-bottom-xxl;
+	}
+}
+
+.disabled-elt {
+	opacity: 0.5;
+	pointer-events: none;
 }

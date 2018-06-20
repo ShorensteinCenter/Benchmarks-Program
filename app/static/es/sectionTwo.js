@@ -4,9 +4,9 @@ const basicInfoForm = document.querySelector('.basic-info-form');
 const submitBasicInfo = async event => {
 	event.preventDefault();
 	basicInfoForm.removeEventListener('submit', submitBasicInfo);
-	disableForm(basicInfoForm);
+	disableForm(basicInfoForm.querySelectorAll('input'));
 	if (!clientSideValidateForm(basicInfoForm)) {
-		enableForm(basicInfoForm);
+		enableForm(basicInfoForm.querySelectorAll('input'));
 		basicInfoForm.addEventListener('submit', submitBasicInfo);
 		return;
 	}
@@ -30,7 +30,7 @@ const submitBasicInfo = async event => {
 				for (const [k, _] of Object.entries(errors)) {
 					tagField(document.querySelector('#' + k));
 				}
-				enableForm(basicInfoForm);
+				enableForm(basicInfoForm.querySelectorAll('input'));
 				basicInfoForm.addEventListener('submit', submitBasicInfo);
 			}
 			else

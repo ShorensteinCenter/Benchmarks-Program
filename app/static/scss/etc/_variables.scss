@@ -10,11 +10,14 @@ $link-hover-decoration: none;
 $navHeight: 60px;
 
 $title-text-size: 2rem;
-$title-text-size-desktop: 3rem;
+$title-text-size-desktop: 2.3rem;
+$title-text-size-xxl: 3rem;
 $title-text-margin-bottom: 1.5rem;
-$title-text-margin-bottom-desktop: 2.25rem;
+$title-text-margin-bottom-desktop: 1.875rem;
+$title-text-margin-bottom-xxl: 2.25rem;
 
-$small-text-size: 0.9rem;
+$small-text-size: 0.8rem;
+$small-text-size-xxl: 0.9rem;
 
 $form-line-height: 1.5;
 $form-transition: 0.5s ease;
@@ -24,8 +27,11 @@ $form-input-width: 90%;
 $form-input-top-padding: .5rem;
 $form-input-padding: $form-input-top-padding 0.8rem;
 
-$form-font-size-desktop: 1.25rem;
-$form-input-padding-desktop: $form-input-top-padding 1.1rem;
+$form-font-size-desktop: 1rem;
+$form-input-padding-desktop: $form-input-top-padding 0.9rem;
+
+$form-font-size-xxl: 1.25rem;
+$form-input-padding-xxl: $form-input-top-padding 1.1rem;
 
 $form-invalid-input-color: rgba(238, 95, 91, .25);
 $form-invalid-msg-color: rgb(238, 95, 91);

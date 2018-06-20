@@ -20,10 +20,12 @@ class ListStats(db.Model):
 
 class AppUser(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	timestamp = db.Column(db.DateTime, index=True,
-		default=datetime.utcnow)
-	user_email = db.Column(db.String(64), index=True)
-	list_id = db.Column(db.String(64))
+	timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+	user_name = db.Column(db.String(64))
+	user_newsroom = db.Column(db.String(64))
+	user_email = db.Column(db.String(64))
+	list_id = db.Column(db.String(64), index=True)
+	list_name = db.Column(db.String(256))
 
 	def __repr__(self):
 		return '<AppUser {}>'.format(self.user_email)

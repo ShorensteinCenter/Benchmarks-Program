@@ -31,9 +31,6 @@ class ApiKeyForm(FlaskForm):
 	key = StringField('API Key', validators=[DataRequired()])
 	submit = SubmitField('Submit')
 
-	def __init__(self, *args, **kwargs):
-		FlaskForm.__init__(self, *args, **kwargs)
-
 	# Validate API key submission 
 	def validate(self):
 		
@@ -77,8 +74,3 @@ class ApiKeyForm(FlaskForm):
 		session['num_lists'] = response.json().get('total_items')
 
 		return True
-
-class EmailForm(FlaskForm):
-	key = (StringField('Email Address',
-		validators=[DataRequired(), Email()]))
-	submit = SubmitField('Submit')

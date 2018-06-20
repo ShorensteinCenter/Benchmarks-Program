@@ -13,6 +13,11 @@
 		padding: $form-input-padding-desktop;
 		font-size: $form-font-size-desktop;
 	}
+
+	@include media-breakpoint-up(xxl) {
+		padding: $form-input-padding-xxl;
+		font-size: $form-font-size-xxl;
+	}
 }
 
 label {
@@ -37,6 +42,12 @@ label {
     @include media-breakpoint-up(sm) {
     	top: 2 * $form-input-top-padding + 
     		$form-font-size-desktop * $form-line-height + 0.25rem;
+    }
+
+    @include media-breakpoint-up(xxl) {
+    	font-size: $small-text-size-xxl;
+    	top: 2 * $form-input-top-padding + 
+    		$form-font-size-xxl * $form-line-height + 0.25rem;
     }
 }
 
@@ -94,11 +105,6 @@ label {
 input:-webkit-autofill {
     -webkit-animation-name: autofill;
     -webkit-animation-fill-mode: both;
-}
-
-input.disabled {
-	opacity: 0.5;
-	pointer-events: none;
 }
 
 #submit {

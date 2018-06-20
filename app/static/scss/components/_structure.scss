@@ -69,26 +69,30 @@ nav {
 	left: 400vw;
 }
 
-.section-six {
-	left: 500vw;
+.d-flex.flex-column {
+	min-height: 100vh;
 }
 
-.has-content-margin {
-	margin-top: 2 * $navHeight;
-	margin-bottom: 2 * $navHeight;
+.top-row {
+	margin-top: auto;
+	padding-top: 2 * $navHeight;
+}
+
+.bottom-row {
+	padding-bottom: $navHeight;
+
+	@include media-breakpoint-up(sm) {
+		padding-bottom: 2 * $navHeight;
+	}
 }
 
 footer {
-	position: absolute;
-    bottom: 0;
-    min-width: 100%;
-    justify-content: center;
-    margin: 0.66rem auto;
-    font-size: $small-text-size;
+	margin-top: auto;
+    font-size: $small-text-size-xxl;
 }
 
 footer .col {
-    padding-right: 30px;
     text-align: center;
-
+    padding-top: 20px;
+    padding-bottom: 20px;
 }

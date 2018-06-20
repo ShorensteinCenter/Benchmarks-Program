@@ -9,6 +9,17 @@ import requests
 from collections import OrderedDict
 import json
 
+# Stores information abot whoever is currently using the app
+@celery.task
+def store_current_user(user_name, user_newsroom, user_email, 
+	list_id, list_name):
+	
+	current_user = AppUser(user_name=user_name, 
+		user_newsroom=user_newsroom, user_email=user_email,
+		list_id=list_id, list_name=list_name)
+	db.session.add(current_user)
+	db.session.commit()
+
 # Does the dirty work of actually pulling in a list
 # And storing the resulting calculations in a database
 def import_analyze_store_list(list_id, count, open_rate,
@@ -85,12 +96,6 @@ def init_list_analysis(list_id, list_name, count,
 			'pending_pct': existing_list.pending_pct,
 			'high_open_rt_pct': existing_list.high_open_rt_pct,
 			'cur_yr_inactive_pct': existing_list.cur_yr_inactive_pct}
-
-	# Log that the request occured
-	current_user = AppUser(user_email=user_email,
-		list_id=list_id)
-	db.session.add(current_user)
-	db.session.commit()
 
 	# Generate averages
 	avg_stats = db.session.query(func.avg(ListStats.subscribers),

@@ -67,18 +67,16 @@ for (let i = 0; i < formElts.length; ++i) {
 	elt.addEventListener('keyup', e => clientSideValidateField(e.currentTarget));
 }
 
-/* Disables a form */
-const disableForm = formElt => {
-	const inputs = formElt.querySelectorAll('input');
-	for (let i = 0; i < inputs.length; ++i)
-		inputs[i].classList.add('disabled');
+/* Disables a nodelist of elts */
+const disableForm = elts => {
+	for (let i = 0; i < elts.length; ++i)
+		elts[i].classList.add('disabled-elt');
 }
 
-/* Enables a form */
-const enableForm = formElt => {
-	const inputs = formElt.querySelectorAll('input');
-	for (let i = 0; i < inputs.length; ++i)
-		inputs[i].classList.remove('disabled');
+/* Enables a nodelist of elts */
+const enableForm = elts => {
+	for (let i = 0; i < elts.length; ++i)
+		elts[i].classList.remove('disabled-elt');
 }
 
 /* Value of csrf token to protect against cross-site forgery attacks */

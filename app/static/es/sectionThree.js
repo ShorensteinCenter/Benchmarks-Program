@@ -4,9 +4,9 @@ const apiForm = document.querySelector('.api-key-form');
 const submitApiKey = async event => {
 	event.preventDefault();
 	apiForm.removeEventListener('submit', submitApiKey);
-	disableForm(apiForm);
+	disableForm(apiForm.querySelectorAll('input'));
 	if (!clientSideValidateForm(apiForm)) {
-		enableForm(apiForm);
+		enableForm(apiForm.querySelectorAll('input'));
 		apiForm.addEventListener('submit', submitApiKey);
 		return;
 	}
@@ -33,7 +33,7 @@ const submitApiKey = async event => {
 				for (const [k, _] of Object.entries(errors)) {
 					tagField(document.querySelector('#' + k));
 				}
-				enableForm(apiForm);
+				enableForm(apiForm.querySelectorAll('input'));
 				apiForm.addEventListener('submit', submitApiKey);
 			}
 			else

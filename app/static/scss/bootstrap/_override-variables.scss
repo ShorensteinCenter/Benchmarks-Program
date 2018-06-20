@@ -4,3 +4,12 @@ $font-family-sans-serif: "Montserrat";
 
 $table-cell-padding: 1.33rem;
 
+$grid-breakpoints: (
+  xs: 0,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+  xxl: 1475px
+);
+

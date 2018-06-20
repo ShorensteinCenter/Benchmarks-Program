@@ -15,8 +15,10 @@
 	}
 }
 
-.section-one-content {
-	padding: 0.8 * $navHeight 0 2 * $navHeight 0;
+.section-one .top-row {
+	@include media-breakpoint-down(sm) {
+		padding-top: 0.8 * $navHeight;
+	}
 }
 
 .checkbox-container {

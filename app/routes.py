@@ -1,17 +1,16 @@
 from flask import render_template, jsonify, session, request
 from app import app, csrf
-from app.forms import BasicInfoForm, ApiKeyForm, EmailForm
+from app.forms import BasicInfoForm, ApiKeyForm
 import requests
-from app.tasks import init_list_analysis
+from app.tasks import store_current_user, init_list_analysis
 
 # Home Page
 @app.route('/')
 def index():
 	infoForm = BasicInfoForm()
 	keyForm = ApiKeyForm()
-	emailForm = EmailForm()
 	return render_template('index.html', infoForm=infoForm,
-		keyForm=keyForm, emailForm=emailForm)
+		keyForm=keyForm)
 
 # Terms Page
 @app.route('/terms')
@@ -54,18 +53,21 @@ def get_lists():
 		auth=('shorenstein', session['key'])))
 	return jsonify(response.json())
 
-# Handles email address submission
-@app.route('/submitEmail', methods=['POST'])
-def submit_email():
-	form = EmailForm()
-	if form.validate_on_submit():
-		init_list_analysis.delay(request.form['listId'],
-			request.form['listName'],
-			request.form['totalCount'],
-			request.form['openRate'],
-			session['key'],
-			session['data_center'],
-			form.key.data)
-		return jsonify(True)
-	else:
-		return jsonify(form.errors), 400
+# Handles list submission
+# Uses celery to queue jobs
+@app.route('/analyzeList', methods=['POST'])
+def analyze_list():
+	content = request.get_json()
+	store_current_user.delay(session['name'],
+		session['newsroom'],
+		session['email'],
+		content['listId'],
+		content['listName'])
+	init_list_analysis.delay(content['listId'],
+		content['listName'],
+		content['totalCount'],
+		content['openRate'],
+		session['key'],
+		session['data_center'],
+		session['email'])
+	return jsonify(True)
