@@ -1,10 +1,6 @@
 .terms-page {
-	z-index: -1;
+	@extend %section-content-margin;
 	overflow-y: scroll;
-	padding-top: 2 * $navHeight;
-	padding-bottom: 2 * $navHeight;
-
-	.title-text {
-		text-align: left;
-	}
+	overflow-x: hidden;
+	z-index: -1;
 }

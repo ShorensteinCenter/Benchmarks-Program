@@ -1,6 +1,5 @@
 const
-	apiForm = document.querySelector('.api-key-form'),
-	csrfToken = document.querySelector('meta[name=csrf-token]').content;
+	apiForm = document.querySelector('.api-key-form');
 
 /* Validate an API Key Submitted via the form */
 const submitApiKey = async event => {

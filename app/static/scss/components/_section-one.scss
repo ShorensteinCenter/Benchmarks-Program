@@ -1,0 +1,77 @@
+.section-one svg {
+	max-width: 75%;
+	margin-bottom: 2.25rem;
+}
+
+@include media-breakpoint-up(sm) {
+	.section-one svg {
+		max-width: 45%;
+	}
+}
+
+@include media-breakpoint-up(xl) {
+	.section-one svg {
+		max-width: 35%;
+	}
+}
+
+.section-one-content {
+	padding: 0.8 * $navHeight 0 2 * $navHeight 0;
+}
+
+.checkbox-container {
+	display: inline-block;
+	position: relative;
+	padding-left: calc(#{$checkbox-dim} + 10px);
+	margin-top: 1.25rem;
+	margin-bottom: 12px;
+	cursor: pointer;
+	font-size: $checkbox-label-text-size;
+	line-height: $checkbox-line-height;
+	user-select: none;
+}
+
+.checkbox-container input {
+	position: absolute;
+	opacity: 0;
+	cursor: pointer;
+}
+
+.checkmark {
+	position: absolute;
+	top: $checkbox-top;
+	left: 0;
+	height: $checkbox-dim;
+	width: $checkbox-dim;
+	background-color: transparent;
+	border: 1px solid $medium-grey;
+	transition: $form-transition;
+}
+
+.checkbox-container:hover input ~ .checkmark {
+	background-color: $light-grey;
+}
+
+.checkbox-container input:checked ~ .checkmark {
+	background-color: rgba(98, 196, 98, .5);
+}
+
+.checkmark:after {
+	content: '';
+	position: absolute;
+	display: none;
+}
+
+.checkbox-container input:checked ~ .checkmark:after {
+	display: block;
+}
+
+.checkbox-container .checkmark:after {
+	left: 9px;
+	top: 5px;
+	width: 5px;
+	height: 10px;
+	border: solid white;
+	border-width: 0 3px 3px 0;
+	transform: rotate(45deg);
+}

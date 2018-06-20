@@ -1,21 +1,31 @@
 from flask import render_template, jsonify, session, request
 from app import app, csrf
-from app.forms import ApiKeyForm, EmailForm
+from app.forms import BasicInfoForm, ApiKeyForm, EmailForm
 import requests
 from app.tasks import init_list_analysis
 
 # Home Page
 @app.route('/')
 def index():
+	infoForm = BasicInfoForm()
 	keyForm = ApiKeyForm()
 	emailForm = EmailForm()
-	return render_template('index.html',
+	return render_template('index.html', infoForm=infoForm,
 		keyForm=keyForm, emailForm=emailForm)
 
 # Terms Page
 @app.route('/terms')
 def terms():
 	return render_template('terms.html')
+
+# Validates posted basic info
+@app.route('/validateBasicInfo', methods=['POST'])
+def validate_basic_info():
+	form = BasicInfoForm()
+	if form.validate_on_submit():
+		return jsonify(True)
+	else:
+		return jsonify(form.errors), 400
 
 # Validates a posted API key
 @app.route('/validateAPIKey', methods=['POST'])

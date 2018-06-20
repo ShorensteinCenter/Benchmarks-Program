@@ -1,6 +1,7 @@
 nav {
 	opacity: 0;
 	background-color: white;
+	cursor: default;
 	transition: $form-transition;
 
 	&.nav-visible {
@@ -11,6 +12,7 @@ nav {
 .navbar-brand {
 	padding-top: 0.5rem;
 	padding-bottom: 0.5rem;
+	cursor: default;
 
 	svg {
 		height: 35px;
@@ -23,13 +25,8 @@ nav {
 	}
 }
 
-footer {
-	position: absolute;
-    bottom: 0;
-    min-width: 100%;
-    justify-content: center;
-    margin: 0.66rem auto;
-    font-size: $small-text-size;
+.nav-visible .navbar-brand {
+	cursor: pointer;
 }
 
 .page-wrapper {
@@ -74,4 +71,24 @@ footer {
 
 .section-six {
 	left: 500vw;
+}
+
+%section-content-margin {
+	padding-top: 2 * $navHeight;
+	padding-bottom: 2 * $navHeight;
+}
+
+footer {
+	position: absolute;
+    bottom: 0;
+    min-width: 100%;
+    justify-content: center;
+    margin: 0.66rem auto;
+    font-size: $small-text-size;
+}
+
+footer .col {
+    padding-right: 30px;
+    text-align: center;
+
 }

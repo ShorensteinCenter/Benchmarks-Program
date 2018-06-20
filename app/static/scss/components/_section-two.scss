@@ -1,0 +1,15 @@
+.section-two-content {
+	@extend %section-content-margin;
+}
+
+#name-input-wrapper.invalid:after {
+	content: 'Please enter a valid name.';
+}
+
+#newsroom-input-wrapper.invalid:after {
+	content: 'Please enter a valid newsroom.';
+}
+
+#email-input-wrapper.invalid:after {
+	content: 'Please enter a valid email address.';
+}

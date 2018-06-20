@@ -1,18 +1,28 @@
 %form-elt {
-	padding: $form-input-padding-xl;
-	font-size: $form-font-size-xl;
+	max-width: $form-input-width;
+	padding: $form-input-padding;
+	font-size: $form-font-size;
 	line-height: $form-line-height;
 	transition: color $form-transition, background-color $form-transition;
 	border-radius: 1px;
 	border: 1px solid $medium-grey; 
 	background: transparent;
 	color: $body-color;
-} 
+
+	@include media-breakpoint-up(sm) {
+		padding: $form-input-padding-desktop;
+		font-size: $form-font-size-desktop;
+	}
+}
+
+label {
+	margin-bottom: .2rem;
+}
 
 .form-input-wrapper {
 	position: relative;
 	padding: 0;
-	margin: $form-elt-margin-xl;
+	margin: $form-elt-margin;
 }
 
 .form-input-wrapper:after {
@@ -20,9 +30,14 @@
     color: $body-color;
     font-size: $small-text-size;
     left: 0rem;
-    top: 2 * $form-input-top-padding-xl + 
-    	$form-font-size-xl * $form-line-height + 0.25rem;
+    top: 2 * $form-input-top-padding + 
+    	$form-font-size * $form-line-height + 0.25rem;
     transition: $form-transition;
+
+    @include media-breakpoint-up(sm) {
+    	top: 2 * $form-input-top-padding + 
+    		$form-font-size-desktop * $form-line-height + 0.25rem;
+    }
 }
 
 .form-input-wrapper.invalid:after {
@@ -34,16 +49,16 @@
 	color: $form-valid-msg-color;
 }
 
-#key {
+.form-input-wrapper input {
 	@extend %form-elt;
 	position: relative;
 	width: 100%;
-    
+
     & ~ .focus-bg {
 		position: absolute; 
 		left: 0; 
 		top: 0; 
-		width: 100%; 
+		width: $form-input-width;
 		height: 100%; 
 		background-color: $light-grey;
 		opacity: 0; 
@@ -60,18 +75,30 @@
     }
 }
 
-#key.invalid ~ .focus-bg {
+.form-input-wrapper input.invalid ~ .focus-bg {
 	background-color: $form-invalid-input-color;
 	opacity: 1;
 }
 
-#key.valid ~ .focus-bg {
+.form-input-wrapper input.valid ~ .focus-bg {
 	background-color: $form-valid-input-color;
 	opacity: 1;
 }
 
-.form-submit-wrapper.inactive {
-	cursor: not-allowed;
+@-webkit-keyframes autofill {
+    to {
+        background: transparent;
+    }
+}
+
+input:-webkit-autofill {
+    -webkit-animation-name: autofill;
+    -webkit-animation-fill-mode: both;
+}
+
+input.disabled {
+	opacity: 0.5;
+	pointer-events: none;
 }
 
 #submit {
@@ -85,9 +112,4 @@
 	&:focus {
 		outline: 0;
 	}
-}
-
-#submit.inactive {
-	background-color: $light-grey;
-	pointer-events: none;
 }

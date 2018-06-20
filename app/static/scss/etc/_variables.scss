@@ -1,5 +1,6 @@
 $crimson: #a71930;
 $dark-grey: #555;
+$medium-dark-grey: #aaa;
 $medium-grey: #ccc;
 $light-grey: #ededed;
 
@@ -8,20 +9,23 @@ $link-hover-decoration: none;
 
 $navHeight: 60px;
 
-$title-text-size: 2.5rem;
-$title-text-size-desktop: 3.5rem;
+$title-text-size: 2rem;
+$title-text-size-desktop: 3rem;
 $title-text-margin-bottom: 1.5rem;
 $title-text-margin-bottom-desktop: 2.25rem;
 
 $small-text-size: 0.9rem;
 
-$form-elt-margin-xl: 0rem .75rem 2.25rem .75rem;
-$form-input-top-padding-xl: .67rem;
-$form-input-padding-xl: $form-input-top-padding-xl 1.33rem;
-$form-font-size-xl: 1.6rem;
-
 $form-line-height: 1.5;
 $form-transition: 0.5s ease;
+$form-font-size: 1rem;
+$form-elt-margin: 0rem 0rem 2.25rem 0rem;
+$form-input-width: 90%;
+$form-input-top-padding: .5rem;
+$form-input-padding: $form-input-top-padding 0.8rem;
+
+$form-font-size-desktop: 1.25rem;
+$form-input-padding-desktop: $form-input-top-padding 1.1rem;
 
 $form-invalid-input-color: rgba(238, 95, 91, .25);
 $form-invalid-msg-color: rgb(238, 95, 91);

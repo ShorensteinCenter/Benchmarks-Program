@@ -4,6 +4,29 @@ from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired, Email
 import requests
 
+class BasicInfoForm(FlaskForm):
+	name = StringField('Name', validators=[DataRequired()])
+	newsroom = StringField('Newsroom', validators=[DataRequired()])
+	email = (StringField('Email Address', validators=
+		[DataRequired(), Email()]))
+	submit = SubmitField('Submit')
+
+	# Validate basic info submission
+	def validate(self):
+		
+		# Default validation (if any), e.g. required fields
+		rv = FlaskForm.validate(self)
+		if not rv:
+			return False
+
+		# Store name, newsroom, and email in session
+		session['name'] = self.name.data
+		session['newsroom'] = self.newsroom.data
+		session['email'] = self.email.data
+
+		return True
+
+
 class ApiKeyForm(FlaskForm):
 	key = StringField('API Key', validators=[DataRequired()])
 	submit = SubmitField('Submit')
@@ -11,7 +34,7 @@ class ApiKeyForm(FlaskForm):
 	def __init__(self, *args, **kwargs):
 		FlaskForm.__init__(self, *args, **kwargs)
 
-	# Validate API Key Submission 
+	# Validate API key submission 
 	def validate(self):
 		
 		# Default validation (if any), e.g. required fields

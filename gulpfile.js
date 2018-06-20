@@ -22,6 +22,7 @@ const bootstrap = {
 const js = {
 	in: [static + 'es/helpers.js',
 		static + 'es/sectionOne.js',
+		static + 'es/sectionTwo.js',
 		static + 'es/apiKeyForm.js', 
 		static + 'es/listsTable.js',
 		static + 'es/emailForm.js'],

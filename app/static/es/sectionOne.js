@@ -1,14 +1,14 @@
-const checkbox = document.querySelector('.checkmark');
+const checkbox = document.querySelector('.checkbox-container');
 
-agreeToTermsEvt = event => {
-	checkbox.removeEventListener('transitionend', agreeToTermsEvt);
+/* slideLeft and fade in the nav, once, upon checkbox animation end */
+const agreeToTermsEvt = () => {
 	slideLeft();
 	document.querySelector('nav').classList.add('nav-visible');
 }
 
-agreeToTerms = event => {
-	checkbox.removeEventListener('click', agreeToTerms);
-	checkbox.addEventListener('transitionend', agreeToTermsEvt)
+const agreeToTerms = () => {
+	checkbox.removeEventListener('mousedown', agreeToTerms);
+	setTimeout(agreeToTermsEvt, 500);
 }
 
-checkbox.addEventListener('click', agreeToTerms)
+checkbox.addEventListener('mousedown', agreeToTerms)

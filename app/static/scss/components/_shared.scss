@@ -1,0 +1,10 @@
+.title-text {
+	color: $crimson;
+	font-size: $title-text-size;
+    margin-bottom: $title-text-margin-bottom;
+
+    @include media-breakpoint-up(sm) {
+		font-size: $title-text-size-desktop;
+		margin-bottom: $title-text-margin-bottom-desktop;
+	}
+}
