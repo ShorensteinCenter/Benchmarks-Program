@@ -73,9 +73,9 @@ nav {
 	left: 500vw;
 }
 
-%section-content-margin {
-	padding-top: 2 * $navHeight;
-	padding-bottom: 2 * $navHeight;
+.has-content-margin {
+	margin-top: 2 * $navHeight;
+	margin-bottom: 2 * $navHeight;
 }
 
 footer {

@@ -3,7 +3,7 @@
 {% block content %}
 	<div class="page-wrapper">
 		<div class="container-fluid section-one">
-			<div class="row section-one-content">
+			<div class="row has-content-margin">
 				<div class="col-12 col-lg-10 offset-lg-1 col-xl-8 offset-xl-2">
 					<div class="row">
 						<div class="col">
@@ -17,8 +17,8 @@
 					<div class="row">
 						<div class="col">
 							<label class="checkbox-container">I accept
-							 	<input type="checkbox">
-							 	<span class="checkmark"></span>
+								<input type="checkbox">
+								<span class="checkmark"></span>
 							</label>
 						</div>
 					</div>
@@ -31,7 +31,7 @@
 			</footer>
 		</div>
 		<div class="container-fluid section-two">
-			<div class="row section-two-content">
+			<div class="row has-content-margin">
 				<div class="col-12 col-lg-8 offset-lg-2 col-xl-6 offset-xl-3">
 					<div class="row">
 						<div class="col">
@@ -41,24 +41,24 @@
 					<div class="row">
 						<div class="col">
 							<form action="#" class="basic-info-form" method="post" autocomplete="off">
-									<label for="name">Name</label>
-									<div id="name-input-wrapper" class="form-input-wrapper">
-										{{ infoForm.name() }}
-										<span class="focus-bg"></span>
-									</div>
-									<label for="newsroom">Newsroom</label>
-									<div id="newsroom-input-wrapper" class="form-input-wrapper">
-										{{ infoForm.newsroom() }}
-										<span class="focus-bg"></span>
-									</div>
-									<label for="email">Email Address</label>
-									<div id="email-input-wrapper" class="form-input-wrapper">
-										{{ infoForm.email(customType="email") }}
-										<span class="focus-bg"></span>
-									</div>
-									<div class="form-submit-wrapper">
-	        							{{ infoForm.submit() }}
-	        						</div>
+								<label for="name">Name</label>
+								<div id="name-input-wrapper" class="form-input-wrapper">
+									{{ infoForm.name() }}
+									<span class="focus-bg"></span>
+								</div>
+								<label for="newsroom">Newsroom</label>
+								<div id="newsroom-input-wrapper" class="form-input-wrapper">
+									{{ infoForm.newsroom() }}
+									<span class="focus-bg"></span>
+								</div>
+								<label for="email">Email Address</label>
+								<div id="email-input-wrapper" class="form-input-wrapper">
+									{{ infoForm.email(customType="email") }}
+									<span class="focus-bg"></span>
+								</div>
+								<div class="form-submit-wrapper">
+									{{ infoForm.submit() }}
+								</div>
 							</form>
 						</div>
 					</div>
@@ -71,41 +71,45 @@
 			</footer>
 		</div>
 		<div class="container-fluid section-three">
-			<div class="row">
-				<div class="col">
-					<h1 class="title-text">Enter your MailChimp API key.</h1>
-				</div>
-			</div>
-			<div class="row">
-				<div class="col">
-    				<form action="#" class="api-key-form" method="post" autocomplete="off">
-    					<div class="row justify-content-center">
-	        				<div class="form-input-wrapper">
-		            			{{ keyForm.key(size=40) }}
-		            			<span class="focus-bg"></span>
-		            		</div>
-		            		<div class="form-submit-wrapper">
-	        					{{ keyForm.submit() }}
-	        				</div>
-        				</div>
-    				</form>
+			<div class="row has-content-margin">
+				<div class="col-12 col-lg-8 offset-lg-2 col-xl-6 offset-xl-3">
+					<div class="row">
+						<div class="col">
+							<h1 class="title-text">Enter your MailChimp API key.</h1>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col">
+							<form action="#" class="api-key-form" method="post" autocomplete="off">
+								<div class="form-input-wrapper">
+									{{ keyForm.key(customType="key") }}
+									<span class="focus-bg"></span>
+								</div>
+								<div class="form-submit-wrapper">
+									{{ keyForm.submit() }}
+								</div>
+							</form>
+						</div>
+					</div>
 				</div>
 			</div>
 			<footer class="row">
-				<a href="https://shorensteincenter.org/email-analysis-research-guide">MailChimp research guide</a>&nbsp&bull;&nbsp<a href="/terms">How we use your data</a>
+				<div class="col">
+					<a href="https://shorensteincenter.org/email-analysis-research-guide">MailChimp research guide</a>&nbsp&bull;&nbsp<a href="/terms">How we use your data</a>
+				</div>
 			</footer>
 		</div>
 		<div class="container-fluid section-four">
-			<div class="row">
+			<div class="row has-content-margin">
 				<div class="col-12 col-lg-10 offset-lg-1 col-xl-8 offset-xl-2">
 					<table class="table">
 					  <thead>
-					    <tr>
-					      <th scope="col">List</th>
-					      <th scope="col" class="d-none d-md-table-cell">Subscribers</th>
-					      <th scope="col" class="d-none d-md-table-cell">Analysis Time</th>
-					      <th scope="col"></th>
-					    </tr>
+						<tr>
+						  <th scope="col">List</th>
+						  <th scope="col" class="d-none d-md-table-cell">Subscribers</th>
+						  <th scope="col" class="d-none d-md-table-cell">Analysis Time</th>
+						  <th scope="col"></th>
+						</tr>
 					  </thead>
 					</table>
 				</div>
@@ -122,17 +126,17 @@
 			</div>
 			<div class="row">
 				<div class="col">
-    				<form action="#" class="email-form" method="post" autocomplete="off">
-    					<div class="row justify-content-center">
-	        				<div class="form-input-wrapper">
-		            			{{ emailForm.key(size=40) }}
-		            			<span class="focus-bg"></span>
-		            		</div>
-		            		<div class="form-submit-wrapper">
-	        					{{ emailForm.submit() }}
-	        				</div>
-        				</div>
-    				</form>
+					<form action="#" class="email-form" method="post" autocomplete="off">
+						<div class="row justify-content-center">
+							<div class="form-input-wrapper">
+								{{ emailForm.key(size=40) }}
+								<span class="focus-bg"></span>
+							</div>
+							<div class="form-submit-wrapper">
+								{{ emailForm.submit() }}
+							</div>
+						</div>
+					</form>
 				</div>
 			</div>
 			<footer class="row">

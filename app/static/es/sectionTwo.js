@@ -5,8 +5,7 @@ const submitBasicInfo = async event => {
 	event.preventDefault();
 	basicInfoForm.removeEventListener('submit', submitBasicInfo);
 	disableForm(basicInfoForm);
-	const clientsideValid = clientSlideValidateMultiple(basicInfoForm);
-	if (!clientsideValid) {
+	if (!clientSideValidateForm(basicInfoForm)) {
 		enableForm(basicInfoForm);
 		basicInfoForm.addEventListener('submit', submitBasicInfo);
 		return;
@@ -28,7 +27,7 @@ const submitBasicInfo = async event => {
 		else {
 			if (response.status == 400) {
 				const errors = await response.json();
-				for (const [k, v] of Object.entries(errors)) {
+				for (const [k, _] of Object.entries(errors)) {
 					tagField(document.querySelector('#' + k));
 				}
 				enableForm(basicInfoForm);
@@ -41,7 +40,6 @@ const submitBasicInfo = async event => {
 	catch(e) {
 		console.error(e);
 	}
-
 }
 
 basicInfoForm.addEventListener('submit', submitBasicInfo);

@@ -28,7 +28,7 @@ const tagField = (elt, valid) => {
 
 /* Validate a form element on the client side
 	Has the side-effect of applying valid/invalid classes */
-const clientSideValidate = elt => {
+const clientSideValidateField = elt => {
 	const 
 		type = elt.getAttribute('customType'),
 		value = elt.value;
@@ -48,11 +48,11 @@ const clientSideValidate = elt => {
 /* Validates a form elements on the client side
 	slightly inefficiently written so that the whole loop will execute
 	and tag each input as valid or invalid as a side effect */
-const clientSlideValidateMultiple = form => {
+const clientSideValidateForm = form => {
 	elts = form.querySelectorAll('input');
 	let valid = true;
 	for (let i = 0; i < elts.length; ++i) {
-		validity = clientSideValidate(elts[i])
+		validity = clientSideValidateField(elts[i])
 		if (!validity)
 			valid = false;
 	}
@@ -64,7 +64,7 @@ const clientSlideValidateMultiple = form => {
 const formElts = document.querySelectorAll('.form-input-wrapper input');
 for (let i = 0; i < formElts.length; ++i) {
 	const elt = formElts[i];
-	elt.addEventListener('keyup', e => clientSideValidate(e.currentTarget));
+	elt.addEventListener('keyup', e => clientSideValidateField(e.currentTarget));
 }
 
 /* Disables a form */
