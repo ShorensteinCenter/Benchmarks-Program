@@ -1,10 +1,10 @@
 node_modules/
 ngrok.exe
 app/static/charts/*.png
-__pycache__
-app/__pycache__
-migrations/__pycache__
+__pycache__/
 *.pyc
 app.db
 *.log
 celerybeat-schedule.*
+.elasticbeanstalk/
+*.zip
