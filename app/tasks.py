@@ -175,7 +175,7 @@ def update_stored_data():
 
 	# Grab what we have in the database
 	lists_stats = ListStats.query.with_entities(
-		ListStats.list_id,ListStats.api_key,ListStats.data_center).all()
+		ListStats.list_id, ListStats.api_key, ListStats.data_center).all()
 
 	# Update each list's calculations in sequence 
 	for list_stats in lists_stats:
