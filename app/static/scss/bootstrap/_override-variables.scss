@@ -1,8 +1,13 @@
 $body-color: $dark-grey;
 
-$font-family-sans-serif: "Montserrat";
+$font-family-sans-serif: "Montserrat", "Verdana", "sans-serif";
 
 $table-cell-padding: 1.33rem;
+
+$link-color: $crimson;
+$link-hover-decoration: none;
+$navbar-light-color: $link-color;
+$navbar-light-hover-color: darken($link-color, 15%);
 
 $grid-breakpoints: (
   xs: 0,
@@ -13,3 +18,10 @@ $grid-breakpoints: (
   xxl: 1475px
 );
 
+$container-max-widths: (
+  sm: 540px,
+  md: 720px,
+  lg: 960px,
+  xl: 1140px,
+  xxl: 1450px
+);

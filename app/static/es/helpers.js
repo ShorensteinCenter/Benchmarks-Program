@@ -1,15 +1,3 @@
-/* Transition from one section of the home page to the next */
-const slideLeft = () => {
-	const 
-		slides = document.querySelectorAll('.container-fluid'),
-		slide = slides[0],
-		slideTransform = slide.style.transform,
-		transformVal = slideTransform == null ? -100 :
-			+slideTransform.replace(/[^-?\d.]/g, '') - 100;
-	for (let i = 0; i < slides.length; ++i)
-		slides[i].style.transform = 'translateX(' + transformVal + 'vw)';
-}
-
 /* Tag a form field as valid or invalid */
 const tagField = (elt, valid) => {
 	if (valid) {
@@ -49,10 +37,10 @@ const clientSideValidateField = elt => {
 	slightly inefficiently written so that the whole loop will execute
 	and tag each input as valid or invalid as a side effect */
 const clientSideValidateForm = form => {
-	elts = form.querySelectorAll('input');
+	const elts = form.querySelectorAll('input');
 	let valid = true;
 	for (let i = 0; i < elts.length; ++i) {
-		validity = clientSideValidateField(elts[i])
+		const validity = clientSideValidateField(elts[i])
 		if (!validity)
 			valid = false;
 	}
@@ -67,16 +55,24 @@ for (let i = 0; i < formElts.length; ++i) {
 	elt.addEventListener('keyup', e => clientSideValidateField(e.currentTarget));
 }
 
-/* Disables a nodelist of elts */
-const disableForm = elts => {
-	for (let i = 0; i < elts.length; ++i)
-		elts[i].classList.add('disabled-elt');
+/* Disables an elt or a nodelist of elts */
+const disable = elts => {
+	if (NodeList.prototype.isPrototypeOf(elts)) {
+		for (let i = 0; i < elts.length; ++i)
+			elts[i].classList.add('disabled-elt');
+	}
+	else
+		elts.classList.add('disabled-elt');
 }
 
-/* Enables a nodelist of elts */
-const enableForm = elts => {
-	for (let i = 0; i < elts.length; ++i)
-		elts[i].classList.remove('disabled-elt');
+/* Enables an elt or a nodelist of elts */
+const enable = elts => {
+	if (NodeList.prototype.isPrototypeOf(elts)) {
+		for (let i = 0; i < elts.length; ++i)
+			elts[i].classList.remove('disabled-elt');
+	}
+	else
+		elts.classList.remove('disabled-elt');
 }
 
 /* Value of csrf token to protect against cross-site forgery attacks */

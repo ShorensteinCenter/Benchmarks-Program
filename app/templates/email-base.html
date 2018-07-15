@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<style>@import url('https://fonts.googleapis.com/css?family=Montserrat:400,500,700')</style>
+	</head>
+	<body>
+		<p style="text-align:left;margin-bottom:2em">
+			<img style="width:175px;" alt="logo" src="{{ url_for('static', filename='img/logo.png', _external=True) }}">
+		</p>
+		<p style="color:#a71930;text-align:center;font-weight:400;font-size:3rem;font-family:Montserrat,Verdana,sans-serif;margin-bottom:1.7rem">{{ title }}</p>
+		{% block content %}{% endblock %}
+	</body>
+</html>

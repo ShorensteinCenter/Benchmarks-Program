@@ -7,14 +7,18 @@ $light-grey: #ededed;
 $link-color: $crimson;
 $link-hover-decoration: none;
 
-$navHeight: 60px;
+$h1-size: 2rem;
+$h1-size-sm: 2.3rem;
+$h1-size-xxl: 3rem;
 
-$title-text-size: 2rem;
-$title-text-size-desktop: 2.3rem;
-$title-text-size-xxl: 3rem;
-$title-text-margin-bottom: 1.5rem;
-$title-text-margin-bottom-desktop: 1.875rem;
-$title-text-margin-bottom-xxl: 2.25rem;
+$h2-size: 1.25rem;
+$h2-size-sm: 1.4rem;
+$h2-size-xxl: 1.9rem;
+
+$std-bottom-margin: 1.7rem;
+$content-block-margin-bottom: 5.5rem;
+
+$index-svg-height: 4rem;
 
 $small-text-size: 0.8rem;
 $small-text-size-xxl: 0.9rem;
@@ -23,7 +27,6 @@ $form-line-height: 1.5;
 $form-transition: 0.5s ease;
 $form-font-size: 1rem;
 $form-elt-margin: 0rem 0rem 2.25rem 0rem;
-$form-input-width: 90%;
 $form-input-top-padding: .5rem;
 $form-input-padding: $form-input-top-padding 0.8rem;
 
@@ -37,11 +40,3 @@ $form-invalid-input-color: rgba(238, 95, 91, .25);
 $form-invalid-msg-color: rgb(238, 95, 91);
 $form-valid-input-color: rgba(98, 196, 98, .25);
 $form-valid-msg-color: rgb(98, 196, 98);
-
-$checkbox-label-text-size: 1.3rem;
-$checkbox-line-height: 1.5;
-$checkbox-dim: 1.5rem;
-$checkbox-top: ($checkbox-label-text-size * $checkbox-line-height - 
-	$checkbox-dim) / 2;
-
-

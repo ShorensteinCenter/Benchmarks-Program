@@ -4,21 +4,61 @@ from app.lists import MailChimpList
 from app.models import ListStats, AppUser
 from app.charts import BarChart, Histogram
 from sqlalchemy.sql.functions import func
+from sqlalchemy.exc import IntegrityError
 from flask_mail import Message
 import requests
 from collections import OrderedDict
 import json
 
-# Stores information abot whoever is currently using the app
+# Updates information about an app user
+def update_user(user_info):
+	AppUser.query.filter_by(email=user_info['email']).update(user_info)
+	try:
+		db.session.commit()
+	except:
+		db.session.rollback()
+		raise
+
+# Stores information about whoever is currently using the app
 @celery.task
-def store_current_user(user_name, user_newsroom, user_email, 
-	list_id, list_name):
+def store_user(news_org, contact_person, email, email_hash, newsletters):
+	user_info = {'news_org': news_org,
+			'contact_person': contact_person,
+			'email': email,
+			'email_hash': email_hash,
+			'newsletters': newsletters}
 	
-	current_user = AppUser(user_name=user_name, 
-		user_newsroom=user_newsroom, user_email=user_email,
-		list_id=list_id, list_name=list_name)
-	db.session.add(current_user)
-	db.session.commit()
+	# The new user isn't approved for access by default
+	user = AppUser(**user_info, approved=False)
+
+	# Do a bootleg upsert (due to lack of ORM support)
+	db.session.add(user)
+	try:
+		db.session.commit()
+	except IntegrityError:
+		db.session.rollback()
+		update_user(user_info)
+	except:
+		db.session.rollback()
+		raise
+
+# Sends an email telling a user that they've been authorized
+@celery.task
+def send_activated_email(user_id):
+	
+	# Request the user's email and email hash from the database
+	result = AppUser.query.with_entities(AppUser.email,
+		AppUser.email_hash).filter_by(id=user_id).first()
+
+	# Send an email with a unique link
+	with app.app_context():
+		msg = Message('You\'re all set to access our benchmarks!',
+			sender='shorensteintesting@gmail.com',
+			recipients=[result.email],
+			html=render_template('activated-email.html',
+				title='You\'re all set to access our benchmarks!', 
+				email_hash=result.email_hash))
+		mail.send(msg)
 
 # Does the dirty work of actually pulling in a list
 # And storing the resulting calculations in a database
@@ -158,7 +198,6 @@ def init_list_analysis(list_id, list_name, count,
 	cur_yr_member_pct_chart.render_png(list_id + '_cur_yr_inactive_pct')
 
 	# Send charts as an email report
-	# Due to the way Flask-Mail works, reimport app_context first
 	with app.app_context():
 		msg = Message('Your Email Benchmarking Report is Ready!',
 			sender='shorensteintesting@gmail.com',

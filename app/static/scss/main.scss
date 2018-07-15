@@ -1,16 +1,18 @@
 @import "etc/fonts";
 @import "etc/variables";
-
 @import "bootstrap/override-variables";
+
 @import "bootstrap/bootstrap-components";
+@import "bootstrap/custom-modal";
+@import "bootstrap/custom-toggle";
+
+@import "components/nav";
+@import "components/footer";
 
 @import "components/structure";
 @import "components/forms";
+@import "components/tables";
 @import "components/shared";
 
-@import "components/section-one";
-@import "components/section-two";
-@import "components/section-three";
-@import "components/section-four";
-
-@import "components/terms";
+@import "pages/index";
+@import "pages/basic-form";

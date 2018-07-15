@@ -1,98 +1,21 @@
-nav {
-	opacity: 0;
-	background-color: white;
-	cursor: default;
-	transition: $form-transition;
-
-	&.nav-visible {
-		opacity: 1;
-	}
+html, body {
+	height: 100%;
 }
 
-.navbar-brand {
-	padding-top: 0.5rem;
-	padding-bottom: 0.5rem;
-	cursor: default;
-
-	svg {
-		height: 35px;
-	}
-
-	@include media-breakpoint-up(sm) {
-		svg {
-			height: 50px;
-		}
-	}
+body {
+  	display: flex;
+  	flex-direction: column;
 }
 
-.nav-visible .navbar-brand {
-	cursor: pointer;
+.has-bottom-margin {
+	margin-bottom: $std-bottom-margin;
 }
 
-.page-wrapper {
-	position: absolute;
-    top: 0;
-    min-height: 100%;
-    min-width: 100%;
-    z-index: -1;
-    overflow-x: hidden;
+.content-block {
+	margin-bottom: $content-block-margin-bottom;
 }
 
-.container-fluid {
-	position: absolute;
-    top: 0;
-    width: 100vw;
-    min-height: 100%;
-	transition: $form-transition transform;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-}
-
-.section-one {
-	left: 0;
-}
-
-.section-two {
-	left: 100vw;
-}
-
-.section-three {
-	left: 200vw;
-}
-
-.section-four {
-	left: 300vw;
-}
-
-.section-five {
-	left: 400vw;
-}
-
-.d-flex.flex-column {
-	min-height: 100vh;
-}
-
-.top-row {
-	margin-top: auto;
-	padding-top: 2 * $navHeight;
-}
-
-.bottom-row {
-	padding-bottom: $navHeight;
-
-	@include media-breakpoint-up(sm) {
-		padding-bottom: 2 * $navHeight;
-	}
-}
-
-footer {
-	margin-top: auto;
-    font-size: $small-text-size-xxl;
-}
-
-footer .col {
-    text-align: center;
-    padding-top: 20px;
-    padding-bottom: 20px;
+.bordered {
+	padding: 2.5rem;
+    border: 0.5px solid $medium-dark-grey;
 }

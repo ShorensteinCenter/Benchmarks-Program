@@ -21,10 +21,8 @@ const bootstrap = {
 // js
 const js = {
 	in: [static + 'es/helpers.js',
-		static + 'es/sectionOne.js',
-		static + 'es/sectionTwo.js',
-		static + 'es/sectionThree.js',
-		static + 'es/sectionFour.js'],
+		 static + 'es/basicForm.js',
+		 static + 'es/admin.js'],
 	out: static + 'js/'
 };
 

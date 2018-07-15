@@ -1,17 +1,17 @@
-const basicInfoForm = document.querySelector('.basic-info-form');
+const basicInfoForm = document.querySelector('#basic-info-form');
 
 /* Validate basic information submitted via form */
 const submitBasicInfo = async event => {
 	event.preventDefault();
 	basicInfoForm.removeEventListener('submit', submitBasicInfo);
-	disableForm(basicInfoForm.querySelectorAll('input'));
+	disable(basicInfoForm.querySelectorAll('input'));
 	if (!clientSideValidateForm(basicInfoForm)) {
-		enableForm(basicInfoForm.querySelectorAll('input'));
+		enable(basicInfoForm.querySelectorAll('input'));
 		basicInfoForm.addEventListener('submit', submitBasicInfo);
 		return;
 	}
 	const
-		headers = new Headers({"X-CSRFToken": csrfToken}),
+		headers = new Headers({'X-CSRFToken': csrfToken}),
 		formData = new FormData(basicInfoForm),
 		payload = {
 			method: 'POST',
@@ -19,18 +19,18 @@ const submitBasicInfo = async event => {
 			headers: headers,
 			body: formData
 		},
-		request = new Request('/validateBasicInfo', payload);
+		request = new Request('/validate-basic-info', payload);
 	try {
 		const response = await fetch(request);
 		if (response.ok)
-			slideLeft();
+			window.location.href = '/info-validated';
 		else {
 			if (response.status == 400) {
 				const errors = await response.json();
 				for (const [k, _] of Object.entries(errors)) {
 					tagField(document.querySelector('#' + k));
 				}
-				enableForm(basicInfoForm.querySelectorAll('input'));
+				enable(basicInfoForm.querySelectorAll('input'));
 				basicInfoForm.addEventListener('submit', submitBasicInfo);
 			}
 			else
@@ -42,4 +42,5 @@ const submitBasicInfo = async event => {
 	}
 }
 
-basicInfoForm.addEventListener('submit', submitBasicInfo);
+if (basicInfoForm)
+	basicInfoForm.addEventListener('submit', submitBasicInfo);

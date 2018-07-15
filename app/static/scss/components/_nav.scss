@@ -1,0 +1,74 @@
+.navbar-light {
+	background-color: white;
+	min-height: calc(55px + 0.313rem + 0.5rem);
+	@include media-breakpoint-up(sm) {
+		min-height: calc(80px + 0.313rem + 0.5rem);
+	}
+
+	.navbar-toggler {
+		cursor: pointer;
+		border: none;
+
+		&:focus {
+			outline: none;
+		}
+	}
+
+	.navbar-toggler-icon {
+    	background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgb(85,85,85)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+	}
+}
+
+.navbar-brand {
+	padding-top: 0.5rem;
+
+	svg {
+		height: 35px;
+
+		@include media-breakpoint-up(sm) {
+			height: 60px;
+		}
+	}
+}
+
+.link-divider {
+	padding-top: 0.5rem;
+	padding-bottom: 0.5rem;
+	color: $medium-dark-grey;
+}
+
+.navbar-collapse {
+	justify-content: flex-end;
+	padding-right: 0.75rem;
+
+	&.collapse {
+		display: none;
+	}
+}
+
+.close {
+	position: absolute;
+    top: 17.5px;
+    left: -40px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    -webkit-appearance: none;
+
+    span {
+    	font-size: 3.25rem;
+  		font-weight: 400;
+	    line-height: 1;
+	    text-shadow: none;
+	    cursor: pointer;
+	    color: $dark-grey;
+    }
+
+    &:focus, span:focus {
+    	outline: none;
+    }
+}
+
+#nav-drawer .modal-content > a:nth-child(2) {
+	margin-top: 22px;
+}

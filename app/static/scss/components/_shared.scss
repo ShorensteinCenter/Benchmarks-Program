@@ -1,16 +1,27 @@
-.title-text {
+h1 {
 	color: $crimson;
-	font-size: $title-text-size;
-    margin-bottom: $title-text-margin-bottom;
+	font-size: $h1-size;
+	text-align: center;
 
     @include media-breakpoint-up(sm) {
-		font-size: $title-text-size-desktop;
-		margin-bottom: $title-text-margin-bottom-desktop;
+		font-size: $h1-size-sm;
 	}
 
 	@include media-breakpoint-up(xxl) {
-		font-size: $title-text-size-xxl;
-		margin-bottom: $title-text-margin-bottom-xxl;
+		font-size: $h1-size-xxl;
+	}
+}
+
+h2 {
+	color: $crimson;
+	font-size: $h2-size;
+
+    @include media-breakpoint-up(sm) {
+		font-size: $h2-size-sm;
+	}
+
+	@include media-breakpoint-up(xxl) {
+		font-size: $h2-size-xxl;
 	}
 }
 

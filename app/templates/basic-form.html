@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container content-block" id="basic-form">
+	<div class="row">
+		<div class="col-12 col-lg-7 d-flex flex-column content-block">
+			<h1 class="has-bottom-margin">Request access to the email benchmarking tool</h1>
+			<form action="#" id="basic-info-form" method="post" autocomplete="off">
+				<label for="news_org">News Organization</label>
+				<div id="newsorg-input-wrapper" class="form-input-wrapper">
+					{{ infoForm.news_org() }}
+					<span class="focus-bg"></span>
+				</div>
+				<label for="contact_person">Contact Person</label>
+				<div id="contact-input-wrapper" class="form-input-wrapper">
+					{{ infoForm.contact_person() }}
+					<span class="focus-bg"></span>
+				</div>
+				<label for="email">Email Address</label>
+				<div id="email-input-wrapper" class="form-input-wrapper">
+					{{ infoForm.email(customType="email") }}
+					<span class="focus-bg"></span>
+				</div>
+				<label for="newsletters">Newsletter(s)</label>
+				<div id="newsletters-input-wrapper" class="form-input-wrapper">
+					{{ infoForm.newsletters() }}
+					<span class="focus-bg"></span>
+				</div>
+				<div class="form-submit-wrapper">
+					{{ infoForm.submit() }}
+				</div>
+			</form>
+		</div>
+		<div class="col-12 col-lg-4 offset-lg-1">
+			<div class="bordered has-bottom-margin">
+				<h2 class="has-bottom-margin">Features and benefits</h2>
+				<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
