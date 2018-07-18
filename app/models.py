@@ -17,6 +17,7 @@ class ListStats(db.Model):
 	pending_pct = db.Column(db.Float)
 	high_open_rt_pct = db.Column(db.Float)
 	cur_yr_inactive_pct = db.Column(db.Float)
+	store_aggregates = db.Column(db.Boolean)
 	monthly_updates = db.Column(db.Boolean)
 
 	def __repr__(self):

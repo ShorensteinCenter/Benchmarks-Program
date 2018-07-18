@@ -4,6 +4,7 @@ from pandas.io.json import json_normalize
 import asyncio
 from aiohttp import ClientSession, BasicAuth
 import requests
+from requests.exceptions import ConnectionError as ConnError
 import json
 import io
 from datetime import datetime, timedelta, timezone
@@ -187,15 +188,23 @@ class MailChimpList(object):
 		    ('cmd', 'rotate'),
 		    ('process', proxy_process_number),
 		)
-		proxy_response = requests.get(proxy_request_uri, params=proxy_params)
-		proxy_response_vars = proxy_response.text.split(':')
+		
+		try:
+			proxy_response = requests.get(proxy_request_uri,
+				params=proxy_params)
+			proxy_response_vars = proxy_response.text.split(':')
 
-		# Set the proxy for requests from this worker
-		# Use the server's IP as a backup
-		# Only if we have an issue with the proxy provider
-		self.proxy = (None if proxy_response_vars[0] == 'ERROR' 
-			else 'http://' + proxy_response_vars[1] + 
-			':' + proxy_response_vars[2])
+			# Set the proxy for requests from this worker
+			# Use the server's IP as a backup
+			# Only if we have an issue with the proxy provider
+			self.proxy = (None if proxy_response_vars[0] == 'ERROR' 
+				else 'http://' + proxy_response_vars[1] + 
+				':' + proxy_response_vars[2])
+
+		# If proxy provider is unreachable, don't use a proxy
+		except ConnError:
+			self.proxy = None
+			proxy_response_vars = None
 
 		# Allow some time for the proxy server to boot up
 		# We don't need to wait if we're not using a proxy
@@ -203,7 +212,8 @@ class MailChimpList(object):
 			await asyncio.sleep(self.PROXY_BOOT_TIME)
 		else:
 			self.logger.warning('Not using a proxy. Reason: {}'.format(
-				proxy_response_vars[0]))
+				proxy_response_vars[0] if proxy_response_vars else
+				'ConnectionError: proxy provider down'))
 
 		# Make requests with a single session
 		async with ClientSession() as session:

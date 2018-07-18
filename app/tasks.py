@@ -90,7 +90,7 @@ def import_analyze_store_list(list_id, list_name, count, open_rate,
 
 	# Store the stats in database if we have permission
 	# Serialize the histogram data so it can be stored as String
-	if user_session['monthly_updates']:
+	if user_session['monthly_updates'] or user_session['store_aggregates']:
 		list_stats = ListStats(list_id=list_id,
 			list_name=list_name,
 			user_id=user_session['id'],
@@ -105,6 +105,7 @@ def import_analyze_store_list(list_id, list_name, count, open_rate,
 			pending_pct=stats['pending_pct'],
 			high_open_rt_pct=stats['high_open_rt_pct'],
 			cur_yr_inactive_pct=stats['cur_yr_inactive_pct'],
+			store_aggregates=user_session['store_aggregates'],
 			monthly_updates=user_session['monthly_updates'])
 		db.session.merge(list_stats)
 		try:
@@ -117,7 +118,9 @@ def import_analyze_store_list(list_id, list_name, count, open_rate,
 
 # Generate charts, include them in an report to user
 def send_report(stats, list_id, list_name, user_email):
+	
 	# Generate averages
+	# Only include lists where we have permission
 	avg_stats = db.session.query(func.avg(ListStats.subscribers),
 		func.avg(ListStats.open_rate),
 		func.avg(ListStats.subscribed_pct),
@@ -125,7 +128,8 @@ def send_report(stats, list_id, list_name, user_email):
 		func.avg(ListStats.cleaned_pct),
 		func.avg(ListStats.pending_pct),
 		func.avg(ListStats.high_open_rt_pct),
-		func.avg(ListStats.cur_yr_inactive_pct)).first()
+		func.avg(ListStats.cur_yr_inactive_pct)).filter_by(
+		store_aggregates=True).first()
 
 	# Make sure we have no 'None' values
 	avg_stats = [avg if avg else 0 for avg in avg_stats]
@@ -232,7 +236,8 @@ def update_stored_data():
 	# Grab what we have in the database
 	lists_stats = ListStats.query.with_entities(
 		ListStats.list_id, ListStats.list_name, ListStats.user_id,
-		ListStats.api_key, ListStats.data_center, ListStats.monthly_updates,
+		ListStats.api_key, ListStats.data_center,
+		ListStats.store_aggregates, ListStats.monthly_updates,
 		AppUser.email).join(AppUser).all()
 
 	# Update each list's calculations in sequence 
@@ -265,6 +270,7 @@ def update_stored_data():
 			'email': list_stats.email,
 			'key': list_stats.api_key,
 			'data_center': list_stats.data_center,
+			'store_aggregates': list_stats.store_aggregates,
 			'monthly_updates': list_stats.monthly_updates}
 
 		# Then re-run the calculations and update the database
