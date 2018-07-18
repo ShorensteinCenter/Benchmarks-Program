@@ -62,12 +62,13 @@ def send_activated_email(user_id):
 
 # Does the dirty work of actually pulling in a list
 # And storing the resulting calculations in a database
-def import_analyze_store_list(list_id, count, open_rate,
-	api_key, data_center, user_email=None):
+def import_analyze_store_list(list_id, list_name, count, open_rate,
+	user_session):
 	
 	# Create a new list instance and import member data/activity
 	mailing_list = MailChimpList(list_id, open_rate,
-		count, api_key, data_center, user_email)
+		count, user_session['key'], user_session['data_center'],
+		user_session['email'])
 	mailing_list.import_list_data()
 	
 	# Import the subscriber activity as well, and merge
@@ -86,57 +87,35 @@ def import_analyze_store_list(list_id, count, open_rate,
 	# Get list stats
 	stats = mailing_list.get_list_stats()
 
-	# Store the stats in database
+	# Store the stats in database if we have permission
 	# Serialize the histogram data so it can be stored as String
-	list_stats = ListStats(list_id=list_id,
-		api_key=api_key,
-		data_center=data_center,
-		subscribers=stats['subscribers'],
-		open_rate=stats['open_rate'],
-		hist_bin_counts=json.dumps(stats['hist_bin_counts']),
-		subscribed_pct=stats['subscribed_pct'],
-		unsubscribed_pct=stats['unsubscribed_pct'],
-		cleaned_pct=stats['cleaned_pct'],
-		pending_pct=stats['pending_pct'],
-		high_open_rt_pct=stats['high_open_rt_pct'],
-		cur_yr_inactive_pct=stats['cur_yr_inactive_pct'])
-	db.session.merge(list_stats)
-	db.session.commit()
+	if user_session['monthly_updates']:
+		list_stats = ListStats(list_id=list_id,
+			list_name=list_name,
+			user_id=user_session['id'],
+			api_key=user_session['key'],
+			data_center=user_session['data_center'],
+			subscribers=stats['subscribers'],
+			open_rate=stats['open_rate'],
+			hist_bin_counts=json.dumps(stats['hist_bin_counts']),
+			subscribed_pct=stats['subscribed_pct'],
+			unsubscribed_pct=stats['unsubscribed_pct'],
+			cleaned_pct=stats['cleaned_pct'],
+			pending_pct=stats['pending_pct'],
+			high_open_rt_pct=stats['high_open_rt_pct'],
+			cur_yr_inactive_pct=stats['cur_yr_inactive_pct'],
+			monthly_updates=user_session['monthly_updates'])
+		db.session.merge(list_stats)
+		try:
+			db.session.commit()
+		except:
+			db.session.rollback()
+			raise
 
 	return stats
 
-# Pull in list data, perform calculations, store results
-# Generate charts, email charts to user
-@celery.task
-def init_list_analysis(list_id, list_name, count,
-	open_rate, api_key, data_center, user_email):
-
-	# Try to pull the list stats from database
-	existing_list = (ListStats.query.
-		filter_by(list_id=list_id).first())
-
-	# Placeholder for list stats
-	stats = None
-
-	if existing_list is None:
-
-		stats = import_analyze_store_list(list_id,
-			count, open_rate, api_key, data_center, user_email)
-
-	else:
-
-		# Get list stats from database results
-		# Deserialize the histogram data
-		stats = {'subscribers': existing_list.subscribers,
-			'open_rate': existing_list.open_rate,
-			'hist_bin_counts': json.loads(existing_list.hist_bin_counts),
-			'subscribed_pct': existing_list.subscribed_pct,
-			'unsubscribed_pct': existing_list.unsubscribed_pct,
-			'cleaned_pct': existing_list.cleaned_pct,
-			'pending_pct': existing_list.pending_pct,
-			'high_open_rt_pct': existing_list.high_open_rt_pct,
-			'cur_yr_inactive_pct': existing_list.cur_yr_inactive_pct}
-
+# Generate charts, include them in an report to user
+def send_report(stats, list_id, list_name, user_email):
 	# Generate averages
 	avg_stats = db.session.query(func.avg(ListStats.subscribers),
 		func.avg(ListStats.open_rate),
@@ -146,6 +125,9 @@ def init_list_analysis(list_id, list_name, count,
 		func.avg(ListStats.pending_pct),
 		func.avg(ListStats.high_open_rt_pct),
 		func.avg(ListStats.cur_yr_inactive_pct)).first()
+
+	# Make sure we have no 'None' values
+	avg_stats = [avg if avg else 0 for avg in avg_stats]
 	
 	# Generate charts
 	# Using OrderedDict (for now) as Pygal occasionally seems to break with
@@ -202,10 +184,44 @@ def init_list_analysis(list_id, list_name, count,
 		msg = Message('Your Email Benchmarking Report is Ready!',
 			sender='shorensteintesting@gmail.com',
 			recipients=[user_email],
-			html=render_template('report_email.html',
+			html=render_template('report-email.html',
 				title='We\'ve analyzed the {} List!'.format(list_name), 
 				list_id=list_id))
 		mail.send(msg)
+
+# Pull in list data, perform calculations, store results
+# Send benchmarking report to user
+@celery.task
+def init_list_analysis(user_session, list_id, list_name, count,
+	open_rate):
+
+	# Try to pull the list stats from database
+	existing_list = (ListStats.query.
+		filter_by(list_id=list_id).first())
+
+	# Placeholder for list stats
+	stats = None
+
+	if existing_list is None:
+
+		stats = import_analyze_store_list(list_id, list_name,
+			count, open_rate, user_session)
+
+	else:
+
+		# Get list stats from database results
+		# Deserialize the histogram data
+		stats = {'subscribers': existing_list.subscribers,
+			'open_rate': existing_list.open_rate,
+			'hist_bin_counts': json.loads(existing_list.hist_bin_counts),
+			'subscribed_pct': existing_list.subscribed_pct,
+			'unsubscribed_pct': existing_list.unsubscribed_pct,
+			'cleaned_pct': existing_list.cleaned_pct,
+			'pending_pct': existing_list.pending_pct,
+			'high_open_rt_pct': existing_list.high_open_rt_pct,
+			'cur_yr_inactive_pct': existing_list.cur_yr_inactive_pct}
+
+	send_report(stats, list_id, list_name, user_session['email'])
 
 # Goes through the database and updates all the calculations
 # This task is run by Celery Beat
@@ -214,7 +230,9 @@ def update_stored_data():
 
 	# Grab what we have in the database
 	lists_stats = ListStats.query.with_entities(
-		ListStats.list_id, ListStats.api_key, ListStats.data_center).all()
+		ListStats.list_id, ListStats.list_name, ListStats.user_id,
+		ListStats.api_key, ListStats.data_center, ListStats.monthly_updates,
+		AppUser.email).join(AppUser).all()
 
 	# Update each list's calculations in sequence 
 	for list_stats in lists_stats:
@@ -238,6 +256,21 @@ def update_stored_data():
 			response_stats['cleaned_count'])
 		open_rate = response_stats['open_rate']
 
+
+		# Create a 'simulated session', i.e.
+		# A dict similar to what the session would look like
+		# If the user were active
+		simulated_session = {'id': list_stats.user_id,
+			'email': list_stats.email,
+			'key': list_stats.api_key,
+			'data_center': list_stats.data_center,
+			'monthly_updates': list_stats.monthly_updates}
+
 		# Then re-run the calculations and update the database
-		import_analyze_store_list(list_stats.list_id, 
-			count, open_rate, list_stats.api_key, list_stats.data_center)
+		stats = import_analyze_store_list(list_stats.list_id,
+			list_stats.list_name, count, open_rate, simulated_session)
+
+		# If the user asked for monthly updates, send new report
+		if list_stats.monthly_updates:
+			send_report(stats, list_stats.list_id, list_name,
+				user_session['email'])

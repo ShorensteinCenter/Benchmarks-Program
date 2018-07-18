@@ -1,6 +1,6 @@
 const toggles = document.querySelectorAll('span.switch');
 
-changeActivationStatus = async e => {
+const changeActivationStatus = async e => {
 	const toggle = e.currentTarget;
 	toggle.removeEventListener('change', changeActivationStatus);
 	disable(toggle);

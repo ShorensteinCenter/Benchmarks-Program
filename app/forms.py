@@ -1,6 +1,6 @@
 from flask import session
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
+from wtforms import StringField, SubmitField, BooleanField
 from wtforms.validators import DataRequired, Email
 import requests
 
@@ -14,6 +14,8 @@ class BasicInfoForm(FlaskForm):
 
 class ApiKeyForm(FlaskForm):
 	key = StringField('API Key', validators=[DataRequired()])
+	store_aggregates = BooleanField('Use my aggregate MailChimp data for benchmarking')
+	monthly_updates = BooleanField('I would like to receive monthly benchmarking updates')
 	submit = SubmitField('Submit')
 
 	# Validate API key submission 
@@ -31,7 +33,7 @@ class ApiKeyForm(FlaskForm):
 			self.key.errors.append('Key missing data center')
 			return False
 
-		data_center = key.split('-')[1]
+		data_center = key.rsplit('-', 1)[1]
 
 		# Get total number of lists
 		# If connection refused by server or request fails, bad API key
@@ -57,5 +59,7 @@ class ApiKeyForm(FlaskForm):
 		session['key'] = key
 		session['data_center'] = data_center
 		session['num_lists'] = response.json().get('total_items')
+		session['store_aggregates'] = self.store_aggregates.data
+		session['monthly_updates'] = self.monthly_updates.data
 
 		return True

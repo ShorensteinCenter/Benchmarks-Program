@@ -1,3 +1,5 @@
+const listsTable = document.querySelector('.lists-table');
+
 /* References to event listeners attached using closures */
 let listeners = [];
 
@@ -22,20 +24,20 @@ const secondsToHm = d => {
 	return hm ? "~" + hm : "<1 minute";
 }
 
-/* Fill lists table with details */ 
+/* Fill lists table with details */
 const setupListsTable = data => {
-	let tableHTML = "<tbody>";
+	let listsTableBody = "<tbody>";
+
 	for (let i = 0; i < data.length; ++i) {
-		tableHTML += "<tr>";
-		tableHTML += "<td>" + data[i].name + "</td>";
-		tableHTML += "<td class='d-none d-md-table-cell'>" + 
+		listsTableBody += "<tr>";
+		listsTableBody += "<td>" + data[i].name + "</td>";
+		listsTableBody += "<td class='d-none d-md-table-cell'>" + 
 			data[i].stats.member_count.toLocaleString() + "</td>";
-		const calcTime = 
-			secondsToHm(data[i].stats.member_count  * analysisTime);
-		tableHTML += "<td class='d-none d-md-table-cell'>" + 
+		const calcTime = secondsToHm(data[i].stats.member_count  * analysisTime);
+		listsTableBody += "<td class='d-none d-md-table-cell'>" + 
 			calcTime + "</td>";
 		if (data[i].stats.member_count > 0) {
-			tableHTML += "<td class='analyze-link-column'>" +
+			listsTableBody += "<td class='analyze-link-column'>" +
 				"<a class='analyze-link' list-id='" + 
 				data[i].id + "' list-name='" + 
 				data[i].name  + "' total-count='" + 
@@ -51,12 +53,12 @@ const setupListsTable = data => {
 				"<path d='M12 30 L24 16 12 2'></path></svg></a></td>";
 		}
 		else
-			tableHTML += "<td></td>"
-		tableHTML += "</tr>";
+			listsTableBody += "<td></td>"
+		listsTableBody += "</tr>";
 	}
-	tableHTML += "</tbody>";
+	listsTableBody += "</tbody>";
 	document.querySelector('thead')
-		.insertAdjacentHTML('afterend', tableHTML);
+		.insertAdjacentHTML('afterend', listsTableBody);
 	
 	const analyzeLinks = document.querySelectorAll('.analyze-link');
 	for (let i = 0; i < analyzeLinks.length; ++i) {
@@ -79,17 +81,17 @@ const analyzeList = (listId, listName, totalCount, openRate) => {
 		const analyzeLinks = document.querySelectorAll('.analyze-link');
 		for (let i = 0; i < analyzeLinks.length; ++i)
 			analyzeLinks[i].removeEventListener('click', listeners[i]);
-		disable(document.querySelectorAll('table'));
+		disable(document.querySelectorAll('.lists-table'));
 		const 
 			headers = new Headers({
 				"X-CSRFToken": csrfToken,
 				"content-type": "application/json"
 			}),
 			requestBody = {
-				"listId": listId,
-				"listName": listName,
-				"totalCount": totalCount,
-				"openRate": openRate
+				"list_id": listId,
+				"list_name": listName,
+				"total_count": totalCount,
+				"open_rate": openRate
 			},
 			payload = {
 				method: 'POST',
@@ -101,9 +103,9 @@ const analyzeList = (listId, listName, totalCount, openRate) => {
 		try {
 			const response = await fetch(request);
 			if (response.ok)
-				slideLeft();
+				console.error('ok');
 			else {
-				enable(document.querySelectorAll('table'));
+				enable(document.querySelectorAll('.lists-table'));
 				for (let i = 0; i < analyzeLinks.length; ++i)
 					analyzeLinks[i].addEventListener('click', listeners[i]);
 				throw new Error(e.statusText);
@@ -114,3 +116,29 @@ const analyzeList = (listId, listName, totalCount, openRate) => {
 		}
 	}
 }
+
+
+/* Get data about lists from the server */
+const getListData = async () => {
+	const
+		payload = {
+			credentials: 'same-origin'
+		},
+		request = new Request('/get-list-data', payload);
+	try {
+		const response = await fetch(request);
+		if (response.ok) {
+			const responseData = await response.json();
+			setupListsTable(responseData);
+		}
+		else
+			throw new Error(response.statusText);
+	}
+	catch(e) {
+		console.error(e);
+	}
+
+}
+
+if (listsTable)
+	getListData();

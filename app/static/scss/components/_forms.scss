@@ -1,3 +1,5 @@
+/* Regular inputs */
+
 %form-elt {
 	padding: $form-input-padding;
 	font-size: $form-font-size;
@@ -118,6 +120,18 @@ input:-webkit-autofill {
 		outline: 0;
 	}
 }
+
+/* Checkboxes */
+
+.custom-control {
+  margin: $form-elt-margin;
+}
+
+.custom-control-label:before {
+  border: 1px solid $medium-grey;
+}
+
+/* Toggle switches */
 
 .switch {
   font-size: $font-size-base;

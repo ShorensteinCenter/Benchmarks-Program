@@ -25,3 +25,12 @@ $container-max-widths: (
   xl: 1140px,
   xxl: 1450px
 );
+
+$custom-control-gutter: 1.9rem;
+$custom-control-indicator-bg: #fff;
+$custom-control-indicator-size: 1.2rem;
+$custom-control-indicator-checked-color: $crimson;
+$custom-control-indicator-checked-bg: #fff;
+$custom-control-indicator-active-bg: #fff;
+$custom-checkbox-indicator-border-radius: 1px;
+$custom-control-indicator-focus-box-shadow: none;

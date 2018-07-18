@@ -1,14 +1,17 @@
 h1 {
 	color: $crimson;
 	font-size: $h1-size;
+	padding-bottom: $h1-extra-padding;
 	text-align: center;
 
     @include media-breakpoint-up(sm) {
 		font-size: $h1-size-sm;
+		padding-bottom: $h1-extra-padding-sm;
 	}
 
 	@include media-breakpoint-up(xxl) {
 		font-size: $h1-size-xxl;
+		padding-bottom: $h1-extra-padding-xxl;
 	}
 }
 

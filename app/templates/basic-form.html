@@ -1,33 +1,33 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container content-block" id="basic-form">
+<div class="container content-block">
 	<div class="row">
 		<div class="col-12 col-lg-7 d-flex flex-column content-block">
 			<h1 class="has-bottom-margin">Request access to the email benchmarking tool</h1>
 			<form action="#" id="basic-info-form" method="post" autocomplete="off">
 				<label for="news_org">News Organization</label>
 				<div id="newsorg-input-wrapper" class="form-input-wrapper">
-					{{ infoForm.news_org() }}
+					{{ info_form.news_org() }}
 					<span class="focus-bg"></span>
 				</div>
 				<label for="contact_person">Contact Person</label>
 				<div id="contact-input-wrapper" class="form-input-wrapper">
-					{{ infoForm.contact_person() }}
+					{{ info_form.contact_person() }}
 					<span class="focus-bg"></span>
 				</div>
 				<label for="email">Email Address</label>
 				<div id="email-input-wrapper" class="form-input-wrapper">
-					{{ infoForm.email(customType="email") }}
+					{{ info_form.email(customType="email") }}
 					<span class="focus-bg"></span>
 				</div>
 				<label for="newsletters">Newsletter(s)</label>
 				<div id="newsletters-input-wrapper" class="form-input-wrapper">
-					{{ infoForm.newsletters() }}
+					{{ info_form.newsletters() }}
 					<span class="focus-bg"></span>
 				</div>
 				<div class="form-submit-wrapper">
-					{{ infoForm.submit() }}
+					{{ info_form.submit() }}
 				</div>
 			</form>
 		</div>

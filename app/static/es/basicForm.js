@@ -1,8 +1,8 @@
 const basicInfoForm = document.querySelector('#basic-info-form');
 
 /* Validate basic information submitted via form */
-const submitBasicInfo = async event => {
-	event.preventDefault();
+const submitBasicInfo = async e => {
+	e.preventDefault();
 	basicInfoForm.removeEventListener('submit', submitBasicInfo);
 	disable(basicInfoForm.querySelectorAll('input'));
 	if (!clientSideValidateForm(basicInfoForm)) {
@@ -27,9 +27,8 @@ const submitBasicInfo = async event => {
 		else {
 			if (response.status == 400) {
 				const errors = await response.json();
-				for (const [k, _] of Object.entries(errors)) {
+				for (const [k, _] of Object.entries(errors))
 					tagField(document.querySelector('#' + k));
-				}
 				enable(basicInfoForm.querySelectorAll('input'));
 				basicInfoForm.addEventListener('submit', submitBasicInfo);
 			}

@@ -45,7 +45,9 @@ class MailChimpList(object):
 	# The approximate amount of seconds it takes to cold boot a proxy
 	PROXY_BOOT_TIME = 30
 
-	def __init__(self, id, open_rate, count, api_key, data_center, user_email):
+	def __init__(self, id, open_rate, count, api_key, data_center,
+		user_email):
+		
 		self.id = id
 		self.open_rate = float(open_rate)
 		self.count = int(count)
@@ -168,7 +170,13 @@ class MailChimpList(object):
 		# We want each worker to control its corresponding proxy process
 		# Note that workers are zero-indexed, proxy procceses are not
 		p = current_process()
-		proxy_process_number = str(p.index + 1)
+
+		# Fall back to proxy #1 if we can't ascertain the worker index
+		# E.g. in development with only one Celery worker
+		try:
+			proxy_process_number = str(p.index + 1)
+		except AttributeError:
+			proxy_process_number = 1
 		
 		# Use the US Proxies API to get the proxy info
 		proxy_request_uri = 'http://us-proxies.com/api.php'
@@ -193,6 +201,9 @@ class MailChimpList(object):
 		# We don't need to wait if we're not using a proxy
 		if self.proxy:
 			await asyncio.sleep(self.PROXY_BOOT_TIME)
+		else:
+			self.logger.warning('Not using a proxy. Reason: {}'.format(
+				proxy_response_vars[0]))
 
 		# Make requests with a single session
 		async with ClientSession() as session:
@@ -416,7 +427,7 @@ class MailChimpList(object):
 				'Benchmarking Report',
 				sender='shorensteintesting@gmail.com',
 				recipients=[self.user_email],
-				html=render_template('error_email.html',
+				html=render_template('error-email.html',
 					title='Looks like something went wrong ☹',
 					error_details=error_details))
 			mail.send(msg)

@@ -18,7 +18,7 @@ const tagField = (elt, valid) => {
 	Has the side-effect of applying valid/invalid classes */
 const clientSideValidateField = elt => {
 	const 
-		type = elt.getAttribute('customType'),
+		type = elt.getAttribute('custom_type'),
 		value = elt.value;
 	let valid = true;
 	if (type == "key")
@@ -49,10 +49,10 @@ const clientSideValidateForm = form => {
 
 /* Monitors form elements and automatically performs client-side validation
 	whenever a user stops typing */
-const formElts = document.querySelectorAll('.form-input-wrapper input');
-for (let i = 0; i < formElts.length; ++i) {
-	const elt = formElts[i];
-	elt.addEventListener('keyup', e => clientSideValidateField(e.currentTarget));
+const inputs = document.querySelectorAll('.form-input-wrapper input');
+for (let i = 0; i < inputs.length; ++i) {
+	const input = inputs[i];
+	input.addEventListener('keyup', e => clientSideValidateField(e.currentTarget));
 }
 
 /* Disables an elt or a nodelist of elts */
