@@ -9,6 +9,7 @@ from flask_mail import Message
 import requests
 from collections import OrderedDict
 import json
+from celery.utils.log import get_task_logger
 
 # Updates information about an app user
 def update_user(user_info):
@@ -272,5 +273,5 @@ def update_stored_data():
 
 		# If the user asked for monthly updates, send new report
 		if list_stats.monthly_updates:
-			send_report(stats, list_stats.list_id, list_name,
-				user_session['email'])
+			send_report(stats, list_stats.list_id, list_stats.list_name,
+				simulated_session['email'])

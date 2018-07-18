@@ -102,8 +102,15 @@ const analyzeList = (listId, listName, totalCount, openRate) => {
 			request = new Request('/analyze-list', payload);
 		try {
 			const response = await fetch(request);
-			if (response.ok)
-				console.error('ok');
+			if (response.ok) {
+				const 
+					title = 'Sit Tight!',
+					body = 'We\'re currently analyzing your MailChimp ' +
+						'list. Once we\'ve finished, we\'ll email you ' +
+						'your report!';
+				window.location.href = '/confirmation?title=' + title +
+					'&body=' + body;
+			}
 			else {
 				enable(document.querySelectorAll('.lists-table'));
 				for (let i = 0; i < analyzeLinks.length; ++i)

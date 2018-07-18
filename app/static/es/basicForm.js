@@ -22,8 +22,15 @@ const submitBasicInfo = async e => {
 		request = new Request('/validate-basic-info', payload);
 	try {
 		const response = await fetch(request);
-		if (response.ok)
-			window.location.href = '/info-validated';
+		if (response.ok) {
+			const 
+				title = 'Thanks!',
+				body = 'We\'ve received your details. Once our team has ' +
+					'reviewed your submission, we\'ll email you with ' +
+					'instructions for accessing our benchmarking tool.';
+			window.location.href = '/confirmation?title=' + title +
+				'&body=' + body;
+		}
 		else {
 			if (response.status == 400) {
 				const errors = await response.json();

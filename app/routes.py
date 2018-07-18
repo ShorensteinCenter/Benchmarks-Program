@@ -34,44 +34,18 @@ def validate_basic_info():
 	else:
 		return jsonify(info_form.errors), 400
 
-# Post basic-information confirmation page
-@app.route('/info-validated', methods=['GET'])
-def info_validated():
-	return render_template('info-validated.html')
-
-# Admin dashboard to approve users
-@app.route('/admin', methods=['GET'])
-def admin():
-	cols = AppUser.__table__.columns.keys()
-	users = [[(col, getattr(user_row, col)) for col in cols] 
-		for user_row in AppUser.query.all()]
-	return render_template('admin.html', users=users, cols=cols)
-
-# Admin dashboard request to approve a user
-@app.route('/activate-user', methods=['GET'])
-def activate_user():
-	user_id = request.args.get('user')
-	result = AppUser.query.filter_by(id=user_id).with_entities(
-		AppUser.approved).first()
-	new_status = not result.approved
-	AppUser.query.filter_by(id=user_id).update({'approved': new_status})
-	try:
-		db.session.commit()
-	except:
-		db.session.rollback()
-		raise
-	if new_status:
-		send_activated_email.delay(user_id)
-	return jsonify(True)
+# A generic confirmation page
+@app.route('/confirmation', methods=['GET'])
+def confirmation():
+	title = request.args.get('title')
+	body = request.args.get('body')
+	return render_template('confirmation.html', title=title, body=body)
 
 # Secret page for activated users to get started with benchmarking
-@app.route('/benchmarks', methods=['GET'])
-def benchmarks():
-	user_email_hash = request.args.get('user')
-	if user_email_hash is None:
-		abort(403)
+@app.route('/benchmarks/<string:user>', methods=['GET'])
+def benchmarks(user):
 	result = AppUser.query.with_entities(AppUser.id, AppUser.news_org,
-		AppUser.email).filter_by(email_hash=user_email_hash,
+		AppUser.email).filter_by(email_hash=user,
 		approved=True).first()
 	if result is None:
 		abort(403)
@@ -129,4 +103,29 @@ def analyze_list():
 		content['list_name'],
 		content['total_count'],
 		content['open_rate'])
+	return jsonify(True)
+
+# Admin dashboard to approve users
+@app.route('/admin', methods=['GET'])
+def admin():
+	cols = AppUser.__table__.columns.keys()
+	users = [[(col, getattr(user_row, col)) for col in cols] 
+		for user_row in AppUser.query.all()]
+	return render_template('admin.html', users=users, cols=cols)
+
+# Admin dashboard request to approve a user
+@app.route('/activate-user', methods=['GET'])
+def activate_user():
+	user_id = request.args.get('user')
+	result = AppUser.query.filter_by(id=user_id).with_entities(
+		AppUser.approved).first()
+	new_status = not result.approved
+	AppUser.query.filter_by(id=user_id).update({'approved': new_status})
+	try:
+		db.session.commit()
+	except:
+		db.session.rollback()
+		raise
+	if new_status:
+		send_activated_email.delay(user_id)
 	return jsonify(True)
