@@ -1,7 +1,0 @@
-.api-key-form .form-input-wrapper.invalid:after {
-	content: 'Please enter a valid MailChimp API key.';
-}
-
-.api-key-form .form-input-wrapper.fetching:after {
-	content: 'Fetching MailChimp lists...';
-}

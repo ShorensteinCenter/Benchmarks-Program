@@ -72,10 +72,11 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
                 e.g. 'us2'. Used in MailChimp api calls.
             user_email: the list user's email address.
 
+        Other variables:
             proxy: the proxy to use for making MailChimp API requests.
-            df: the dataframe to perform calculations on.
+            df: the pandas dataframe to perform calculations on.
             subscribers: the number of active subscribers.
-            hist_bin_counts: a list containing the number of subscribers
+            hist_bin_counts: a list containing the percentage of subscribers
                 with open rates in each decile.
             subscribed_pct: the percentage of list members who are subscribers.
             unsubscribed_pct: the percentage of list  members who unsubscibed.
@@ -162,13 +163,13 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
             self.logger.warning('Not using a proxy. Reason: %s',
                                 proxy_response_vars[0] if
                                 proxy_response_vars else
-                                'ConnectionError: proxy provider down')
+                                'ConnectionError: proxy provider down.')
 
     async def make_async_request(self, url, params, session, retry=0):
         """Makes an async request using aiohttp.
 
         Makes a get request.
-        If successful, returns the response text.
+        If successful, returns the response text future.
         If the request times out, or returns a status code
         that we want to retry, recursively retry the request
         up to MAX_RETRIES times using exponential backoff.
@@ -221,8 +222,6 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
                     return await self.make_async_request(
                         url, params, session, retry)
 
-                # In any other case, if this was a user request
-                # I.e., not a Celery Beat job where the user didn't
                 # Email the user to say something bad happened
                 error_details = OrderedDict([
                     ('err_desc', 'An error occurred when '
