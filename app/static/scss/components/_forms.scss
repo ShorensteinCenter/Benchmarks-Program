@@ -5,7 +5,7 @@
 	font-size: $form-font-size;
 	line-height: $form-line-height;
 	transition: color $form-transition, background-color $form-transition;
-	border-radius: 1px;
+	border-radius: $border-radius;
 	border: 1px solid $medium-grey; 
 	background: transparent;
 	color: $body-color;
