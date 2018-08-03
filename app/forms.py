@@ -39,7 +39,6 @@ class ApiKeyForm(FlaskForm):
                                    'benchmarking updates')
     submit = SubmitField('Submit')
 
-    # Validate API key submission
     def validate(self):
         """A custom validation function.
 

@@ -22,6 +22,7 @@ Flask==1.0.2
 Flask-Mail==0.9.1
 Flask-Migrate==2.1.1
 Flask-SQLAlchemy==2.3.2
+flask-talisman==0.5.1
 Flask-WTF==0.14.2
 gunicorn==19.7.1
 idna==2.6

@@ -89,7 +89,6 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
             cur_yr_active_pct: the percentage of list members who registered
                 an 'open' event in the past 365 days.
         """
-
         self.id = id # pylint: disable=invalid-name
         self.open_rate = float(open_rate)
         self.count = int(count)
@@ -161,7 +160,7 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
             await asyncio.sleep(self.PROXY_BOOT_TIME)
         else:
             self.logger.warning('Not using a proxy. Reason: %s',
-                                proxy_response_vars[0] if
+                                proxy_response_vars[2] if
                                 proxy_response_vars else
                                 'ConnectionError: proxy provider down.')
 
@@ -527,11 +526,16 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
 
     def send_error_email(self, error_details):
         """Sends an error email if something goes wrong."""
+
+        # Get the admin email
+        admin_email = os.environ.get('ADMIN_EMAIL') or None
+
+        # Send the message
         with app.app_context():
             msg = Message(
                 'We Couldn\'t Process Your Email Benchmarking Report',
                 sender='shorensteintesting@gmail.com',
-                recipients=[self.user_email],
+                recipients=[self.user_email, admin_email],
                 html=render_template(
                     'error-email.html',
                     title='Looks like something went wrong ☹',
