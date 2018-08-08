@@ -1,28 +1,51 @@
 $crimson: #a71930;
 $dark-grey: #555;
+$medium-dark-grey: #aaa;
 $medium-grey: #ccc;
 $light-grey: #ededed;
 
 $link-color: $crimson;
 $link-hover-decoration: none;
 
-$navHeight: 60px;
+$border-radius: 2px;
 
-$title-text-size: 2.5rem;
-$title-text-size-desktop: 3.5rem;
-$title-text-margin-bottom: 1.5rem;
-$title-text-margin-bottom-desktop: 2.25rem;
+$h1-size: 2rem;
+$h1-size-sm: 2.3rem;
+$h1-size-xxl: 3rem;
+$h1-extra-padding: .33rem;
+$h1-extra-padding-sm: .67rem;
+$h1-extra-padding-xxl: 1rem;
 
-$small-text-size: 0.9rem;
+$h2-size: 1.25rem;
+$h2-size-sm: 1.4rem;
+$h2-size-xxl: 1.9rem;
 
-$form-elt-margin: 0rem .75rem 2.25rem .75rem;
-$form-input-top-padding: .67rem;
-$form-input-padding: $form-input-top-padding 1.33rem;
-$form-font-size: 1.6rem;
+$std-bottom-margin: 1.7rem;
+$content-block-margin-bottom: 5.5rem;
+
+$index-svg-height: 4rem;
+
+$small-text-size: 0.8rem;
+$small-text-size-xxl: 0.9rem;
+
 $form-line-height: 1.5;
 $form-transition: 0.5s ease;
+$form-font-size: 1rem;
+$form-elt-margin: 0rem 0rem 2.25rem 0rem;
+$form-input-top-padding: .5rem;
+$form-input-padding: $form-input-top-padding 0.8rem;
+
+$form-font-size-desktop: 1rem;
+$form-input-padding-desktop: $form-input-top-padding 0.9rem;
+
+$form-font-size-xxl: 1.25rem;
+$form-input-padding-xxl: $form-input-top-padding 1.1rem;
 
 $form-invalid-input-color: rgba(238, 95, 91, .25);
 $form-invalid-msg-color: rgb(238, 95, 91);
 $form-valid-input-color: rgba(98, 196, 98, .25);
 $form-valid-msg-color: rgb(98, 196, 98);
+
+$modal-drawer-width:          16rem;
+$modal-drawer-header-height:  4.25rem;
+$modal-drawer-footer-height:  4.25rem;

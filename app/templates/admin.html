@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<table class="table">
+	<thead>
+		<tr>
+		{% for col in cols %}
+			<th scope="col">{{ col }}</th>
+		{% endfor %}
+		</tr>
+	</thead>
+	<tbody>
+		{% for user in users %}
+		<tr>
+			{% set ns = namespace(id=1) %}
+			{% for attr in user %}
+				{% if attr[0] == 'id' %}
+					{% set ns.id = attr[1] %}
+				{% endif %}
+				{% if attr[0] ==  'approved' %}
+				<td>
+					<span class="switch" switch-id={{ ns.id }}>
+    					<input type="checkbox" class="switch" id="switch-{{ ns.id }}" {% if attr[1] %}checked{% endif %}>
+    					<label for="switch-{{ ns.id }}"></label>
+  					</span>
+				</td>
+				{% else %}
+				<td>{{ attr[1] }}</td>
+				{% endif %}
+			{% endfor %}
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+{% endblock %}

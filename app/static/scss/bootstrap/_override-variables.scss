@@ -1,6 +1,36 @@
 $body-color: $dark-grey;
 
-$font-family-sans-serif: "Montserrat";
+$font-family-sans-serif: "Montserrat", sans-serif;
 
 $table-cell-padding: 1.33rem;
 
+$link-color: $crimson;
+$link-hover-decoration: none;
+$navbar-light-color: $link-color;
+$navbar-light-hover-color: darken($link-color, 15%);
+
+$grid-breakpoints: (
+  xs: 0,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+  xxl: 1475px
+);
+
+$container-max-widths: (
+  sm: 540px,
+  md: 720px,
+  lg: 960px,
+  xl: 1140px,
+  xxl: 1450px
+);
+
+$custom-control-gutter: 1.9rem;
+$custom-control-indicator-bg: #fff;
+$custom-control-indicator-size: 1.2rem;
+$custom-control-indicator-checked-color: $crimson;
+$custom-control-indicator-checked-bg: #fff;
+$custom-control-indicator-active-bg: #fff;
+$custom-checkbox-indicator-border-radius: 1px;
+$custom-control-indicator-focus-box-shadow: none;

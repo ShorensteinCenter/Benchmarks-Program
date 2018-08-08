@@ -1,13 +1,20 @@
 @import "etc/fonts";
 @import "etc/variables";
-
 @import "bootstrap/override-variables";
+
 @import "bootstrap/bootstrap-components";
+@import "bootstrap/custom-modal";
+@import "bootstrap/custom-toggle";
+
+@import "components/nav";
+@import "components/footer";
 
 @import "components/structure";
-@import "components/home-page";
 @import "components/forms";
-@import "components/api-key-form";
-@import "components/lists-table";
-@import "components/email-form";
-@import "components/terms";
+@import "components/tables";
+@import "components/shared";
+
+@import "pages/index";
+@import "pages/basic-form";
+@import "pages/api-key-form";
+@import "pages/get-lists";

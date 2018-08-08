@@ -1,0 +1,30 @@
+#index {
+	#submit {
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	.flow-overview {
+		margin-left: 1.5rem;
+		margin-right: 1.5rem;
+		text-align: center;
+
+		@include media-breakpoint-up(sm) {
+			margin-left: calc(1.5rem + 4.1665%)
+		}
+	}
+
+	.index-icon {
+		height: $index-svg-height;
+		fill: $crimson
+	}
+
+	.col-md-1 {
+		height: $index-svg-height;
+	}
+
+	.arrow {
+		fill: $medium-dark-grey;
+	}
+}
+

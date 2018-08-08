@@ -1,63 +1,22 @@
-nav {
-	background-color: white;
+html, body {
+	height: 100%;
 }
 
-.navbar-brand {
-	padding-top: 0.5rem;
-	padding-bottom: 0.5rem;
-
-	svg {
-		height: 35px;
-	}
-
-	@include media-breakpoint-up(sm) {
-		svg {
-			height: 50px;
-		}
-	}
+body {
+  	display: flex;
+  	flex-direction: column;
 }
 
-footer {
-	position: absolute;
-    bottom: 0;
-    min-width: 100%;
-    justify-content: center;
-    margin: 0.66rem auto;
-    font-size: $small-text-size;
+.has-bottom-margin {
+	margin-bottom: $std-bottom-margin;
 }
 
-.page-wrapper {
-	position: absolute;
-    top: 0;
-    min-height: 100%;
-    min-width: 100%;
-    z-index: -1;
-    overflow-x: hidden;
+.content-block {
+	margin-bottom: $content-block-margin-bottom;
 }
 
-.container-fluid {
-	position: absolute;
-    top: 0;
-    width: 100vw;
-    min-height: 100%;
-	transition: $form-transition transform;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-}
-
-.section-one {
-	left: 0;
-}
-
-.section-two {
-	left: 100vw;
-}
-
-.section-three {
-	left: 200vw;
-}
-
-.section-four {
-	left: 300vw;
+.bordered {
+	padding: 2.5rem;
+    border: 0.5px solid $medium-dark-grey;
+    border-radius: $border-radius;
 }

@@ -9,14 +9,14 @@ class Config(object):
 	CELERYBEAT_SCHEDULE = {
 		'update_stored_data': {
 			'task': 'app.tasks.update_stored_data',
-			'schedule': crontab(minute='0', hour='0', day_of_week='0'),
+			'schedule': crontab(minute='0', hour='0', day_of_month='1'),
 			'args': ()
 		}
 	}
 	SQLALCHEMY_DATABASE_URI = ('sqlite:///' + 
 		os.path.join(basedir, 'app.db'))
 	SQLALCHEMY_TRACK_MODIFICATIONS = False
-	SERVER_NAME = 'emailbenchmarking.com'
+	#SERVER_NAME = '54.245.215.80'
 	MAIL_SERVER = 'smtp.gmail.com'
 	MAIL_PORT = 465
 	MAIL_USE_SSL = True

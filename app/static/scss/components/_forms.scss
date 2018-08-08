@@ -1,13 +1,29 @@
+/* Regular inputs */
+
 %form-elt {
 	padding: $form-input-padding;
 	font-size: $form-font-size;
 	line-height: $form-line-height;
 	transition: color $form-transition, background-color $form-transition;
-	border-radius: 1px;
+	border-radius: $border-radius;
 	border: 1px solid $medium-grey; 
 	background: transparent;
 	color: $body-color;
-} 
+
+	@include media-breakpoint-up(sm) {
+		padding: $form-input-padding-desktop;
+		font-size: $form-font-size-desktop;
+	}
+
+	@include media-breakpoint-up(xxl) {
+		padding: $form-input-padding-xxl;
+		font-size: $form-font-size-xxl;
+	}
+}
+
+label {
+	margin-bottom: .2rem;
+}
 
 .form-input-wrapper {
 	position: relative;
@@ -23,6 +39,17 @@
     top: 2 * $form-input-top-padding + 
     	$form-font-size * $form-line-height + 0.25rem;
     transition: $form-transition;
+
+    @include media-breakpoint-up(sm) {
+    	top: 2 * $form-input-top-padding + 
+    		$form-font-size-desktop * $form-line-height + 0.25rem;
+    }
+
+    @include media-breakpoint-up(xxl) {
+    	font-size: $small-text-size-xxl;
+    	top: 2 * $form-input-top-padding + 
+    		$form-font-size-xxl * $form-line-height + 0.25rem;
+    }
 }
 
 .form-input-wrapper.invalid:after {
@@ -34,16 +61,16 @@
 	color: $form-valid-msg-color;
 }
 
-#key {
+.form-input-wrapper input {
 	@extend %form-elt;
 	position: relative;
 	width: 100%;
-    
+
     & ~ .focus-bg {
 		position: absolute; 
 		left: 0; 
 		top: 0; 
-		width: 100%; 
+		width: 100%;
 		height: 100%; 
 		background-color: $light-grey;
 		opacity: 0; 
@@ -60,18 +87,25 @@
     }
 }
 
-#key.invalid ~ .focus-bg {
+.form-input-wrapper input.invalid ~ .focus-bg {
 	background-color: $form-invalid-input-color;
 	opacity: 1;
 }
 
-#key.valid ~ .focus-bg {
+.form-input-wrapper input.valid ~ .focus-bg {
 	background-color: $form-valid-input-color;
 	opacity: 1;
 }
 
-.form-submit-wrapper.inactive {
-	cursor: not-allowed;
+@-webkit-keyframes autofill {
+    to {
+        background: transparent;
+    }
+}
+
+input:-webkit-autofill {
+    -webkit-animation-name: autofill;
+    -webkit-animation-fill-mode: both;
 }
 
 #submit {
@@ -87,7 +121,87 @@
 	}
 }
 
-#submit.inactive {
-	background-color: $light-grey;
-	pointer-events: none;
+/* Checkboxes */
+
+.custom-control {
+  margin: $form-elt-margin;
+}
+
+.custom-control-label:before {
+  border: 1px solid $medium-grey;
+}
+
+/* Toggle switches */
+
+.switch {
+  font-size: $font-size-base;
+  position: relative;
+  display: inline-block;
+  height: $switch-height;
+
+  input {
+    position: absolute;
+    height: 1px;
+    width: 1px;
+    background: none;
+    border: 0;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    overflow: hidden;
+    padding: 0;
+
+    + label {
+      position: relative;
+      min-width: calc(#{$switch-height} * 2);
+      border-radius: $switch-border-radius;
+      height: $switch-height;
+      line-height: $switch-height;
+      display: inline-block;
+      cursor: pointer;
+      outline: none;
+      user-select: none;
+      vertical-align: middle;
+      text-indent: calc(calc(#{$switch-height} * 2) + .5rem);
+    }
+
+    + label::before,
+    + label::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: calc(#{$switch-height} * 2);
+      bottom: 0;
+      display: block;
+    }
+
+    + label::before {
+      right: 0;
+      background-color: $switch-bg;
+      border-radius: $switch-border-radius;
+      transition: $switch-transition;
+    }
+
+    + label::after {
+      top: $switch-thumb-padding;
+      left: $switch-thumb-padding;
+      width: calc(#{$switch-height} - calc(#{$switch-thumb-padding} * 2));
+      height: calc(#{$switch-height} - calc(#{$switch-thumb-padding} * 2));
+      border-radius: $switch-thumb-border-radius;
+      background-color: $switch-thumb-bg;
+      transition: $switch-transition;
+    }
+
+    &:checked + label::before {
+      background-color: $switch-checked-bg;
+    }
+
+    &:checked + label::after {
+      margin-left: $switch-height;
+    }
+  }
+
+  + .switch {
+    margin-left: 1rem;
+  }
 }
