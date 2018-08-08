@@ -28,6 +28,10 @@ h2 {
 	}
 }
 
+strong {
+	color: $crimson;
+}
+
 .disabled-elt {
 	opacity: 0.5;
 	pointer-events: none;
