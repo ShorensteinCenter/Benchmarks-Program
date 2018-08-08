@@ -1,9 +1,9 @@
 node_modules/
-ngrok.exe
-app/static/charts/*.png
+*.exe
+*.png
 __pycache__/
 *.pyc
-app.db
+*.db
 *.log
 celerybeat-schedule.*
 .elasticbeanstalk/
