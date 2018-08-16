@@ -1,5 +1,6 @@
+import os
 import logging
-from logging.handlers import RotatingFileHandler
+from logging.handlers import RotatingFileHandler, SMTPHandler
 from flask import Flask
 from flask_wtf.csrf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
@@ -12,18 +13,10 @@ from celery_app import make_celery
 app = Flask(__name__)
 app.config.from_object(Config)
 
+from app import logs
+
 # Set up logging
-formatter = logging.Formatter("[%(asctime)s] "
-    "{%(pathname)s:%(lineno)d} %(levelname)s - %(message)s")
-handler = RotatingFileHandler(
-    'benchmarks-log.log', maxBytes=10000000, backupCount=5)
-handler.setLevel(logging.INFO)
-handler.setFormatter(formatter)
-app.logger.addHandler(handler)
-app.logger.setLevel(logging.INFO)
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.INFO)
-log.addHandler(handler)
+logs.setup_logging()
 
 # Set up flask-talisman to prevent xss and other attacks
 csp = {
