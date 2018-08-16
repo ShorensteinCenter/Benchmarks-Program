@@ -1,4 +1,7 @@
+import os
 from celery import Celery
+from flask import render_template
+from flask_mail import Message
 
 def make_celery(app):
     celery = Celery(
@@ -14,6 +17,23 @@ def make_celery(app):
         def __call__(self, *args, **kwargs):
             with app.app_context():
                 return TaskBase.__call__(self, *args, **kwargs)
+
+        def on_failure(self, exc, task_id, args, kwargs, einfo):
+            from app import mail
+            with app.app_context():
+                error_details = {'Exception': exc,
+                                 'Task ID': task_id,
+                                 'Args': args,
+                                 'Kwargs': kwargs,
+                                 'Trace': einfo}
+                msg = Message('Application Error (Celery Task)',
+                    sender='shorensteintesting@gmail.com',
+                    recipients=[os.environ.get('ADMIN_EMAIL')],
+                    html=render_template(
+                        'error-email-internal.html',
+                        error_details=error_details))
+                mail.send(msg)
+
     celery.Task = ContextTask
 
     return celery
