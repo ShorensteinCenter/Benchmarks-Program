@@ -1,6 +1,5 @@
-from celery.schedules import crontab
 import os
-basedir = os.path.abspath(os.path.dirname(__file__))
+from celery.schedules import crontab
 
 class Config(object):
 	SECRET_KEY = os.environ.get('SECRET_KEY')
@@ -9,12 +8,17 @@ class Config(object):
 	CELERYBEAT_SCHEDULE = {
 		'update_stored_data': {
 			'task': 'app.tasks.update_stored_data',
+			'schedule': crontab(minute='0', hour='0', day_of_month='*'),
+			'args': ()
+		},
+		'send_monthly_reports': {
+			'task': 'app.tasks.send_monthly_reports',
 			'schedule': crontab(minute='0', hour='0', day_of_month='1'),
 			'args': ()
 		}
 	}
 	SQLALCHEMY_DATABASE_URI = ('sqlite:///' + 
-		os.path.join(basedir, 'app.db'))
+		os.path.join(os.path.abspath(os.path.dirname(__file__)), 'app.db'))
 	SQLALCHEMY_TRACK_MODIFICATIONS = False
 	SERVER_NAME = 'emailbenchmarking.com'
 	MAIL_SERVER = 'smtp.gmail.com'

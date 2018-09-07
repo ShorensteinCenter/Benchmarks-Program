@@ -5,5 +5,5 @@ source benchmarks-env/bin/activate
 pip install -r requirements.txt
 deactivate
 sudo systemctl restart app
-sudo /etc/init.d/celeryd restart
-sudo /etc/init.d/celerybeat restart
+sudo systemctl restart celeryd
+sudo systemctl restart celerybeat

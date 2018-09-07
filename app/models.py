@@ -35,7 +35,7 @@ class AppUser(db.Model): # pylint: disable=too-few-public-methods
     email_hash = db.Column(db.String(64), index=True, unique=True)
     newsletters = db.Column(db.String(512))
     approved = db.Column(db.Boolean)
-    lists = db.relationship(ListStats)
+    lists = db.relationship(ListStats, backref='user')
 
     def __repr__(self):
         return '<AppUser {}>'.format(self.id)

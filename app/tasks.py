@@ -1,13 +1,16 @@
 """This module contains Celery tasks and functions associated with them."""
+import os
 import json
+import random
 from collections import OrderedDict
 import requests
 from flask import render_template
 from flask_mail import Message
 from sqlalchemy.sql.functions import func
 from sqlalchemy.exc import IntegrityError
+from celery.utils.log import get_task_logger
 from app import app, celery, db, mail
-from app.lists import MailChimpList, do_async_import
+from app.lists import MailChimpList, MailChimpImportError, do_async_import
 from app.models import ListStats, AppUser
 from app.charts import BarChart, Histogram, render_png
 
@@ -68,16 +71,14 @@ def send_activated_email(user_id):
     result = AppUser.query.with_entities(
         AppUser.email, AppUser.email_hash).filter_by(id=user_id).first()
 
-    # Send an email with a unique link
-    with app.app_context():
-        msg = Message('You\'re all set to access our benchmarks!',
-                      sender='shorensteintesting@gmail.com',
-                      recipients=[result.email],
-                      html=render_template('activated-email.html',
-                                           title='You\'re all set to '
-                                           'access our benchmarks!',
-                                           email_hash=result.email_hash))
-        mail.send(msg)
+    # Send an email with the unique link
+    send_email('You\'re all set to access our benchmarks!',
+               'shorensteintesting@gmail.com',
+               [result.email],
+               render_template('activated-email.html',
+                               title='You\'re all set to access our '
+                               'benchmarks!',
+                               email_hash=result.email_hash))
 
 def import_analyze_store_list(list_id, list_name, count, open_rate,
                               user_session):
@@ -88,18 +89,35 @@ def import_analyze_store_list(list_id, list_name, count, open_rate,
 
     Returns:
         A dictionary containing analysis results for the list.
+
+    Throws:
+        MailChimpImportError: an error resulting from a
+            MailChimp API problem.
     """
 
     # Create a new list instance and import member data/activity
     mailing_list = MailChimpList(
         list_id, open_rate, count, user_session['key'],
-        user_session['data_center'], user_session['email'])
+        user_session['data_center'])
 
-    # Import basic list data
-    do_async_import(mailing_list.import_list_members())
+    try:
 
-    # Import the subscriber activity as well, and merge
-    do_async_import(mailing_list.import_sub_activity())
+        # Import basic list data
+        do_async_import(mailing_list.import_list_members())
+
+        # Import the subscriber activity as well, and merge
+        do_async_import(mailing_list.import_sub_activity())
+
+    except MailChimpImportError as e: # pylint: disable=invalid-name
+        if 'email' in user_session:
+            send_email(
+                'We Couldn\'t Process Your Email Benchmarking Report',
+                'shorensteintesting@gmail.com',
+                [user_session['email'], os.environ.get('ADMIN_EMAIL') or None],
+                render_template('error-email.html',
+                                title='Looks like something went wrong ☹',
+                                error_details=e.error_details))
+        raise
 
     # Remove nested jsons from the dataframe
     mailing_list.flatten()
@@ -221,18 +239,28 @@ def send_report(stats, list_id, list_name, user_email):
     render_png(cur_yr_member_pct_chart, list_id + '_cur_yr_inactive_pct')
 
     # Send charts as an email report
+    send_email('Your Email Benchmarking Report is Ready!',
+               'shorensteintesting@gmail.com',
+               [user_email],
+               render_template(
+                   'report-email.html',
+                   title='We\'ve analyzed the {} list!'.format(list_name),
+                   list_id=list_id))
+
+def send_email(subject, sender, recipients, html):
+    """Sends an email using Flask-Mail according to the args provided.
+
+    Args:
+        subject: the email subject line.
+        sender: sender's email address.
+        recipients: list of recipient email addresses.
+        html: html body of the email.
+    """
     with app.app_context():
-        msg = Message('Your Email Benchmarking Report is Ready!',
-                      sender='shorensteintesting@gmail.com',
-                      recipients=[user_email],
-                      html=render_template('report-email.html',
-                                           title='We\'ve analyzed the '
-                                           '{} List!'.format(list_name),
-                                           list_id=list_id))
+        msg = Message(subject, sender=sender, recipients=recipients,
+                      html=html)
         mail.send(msg)
 
-# Pull in list data, perform calculations, store results
-# Send benchmarking report to user
 @celery.task
 def init_list_analysis(user_session, list_id, list_name, count,
                        open_rate):
@@ -281,20 +309,36 @@ def init_list_analysis(user_session, list_id, list_name, count,
 @celery.task
 def update_stored_data():
     """Celery task which goes through the database
-    and updates all calculations using the most recent data.
+    and updates calculations using the most recent data.
 
-    This task is called by Celery Beat.
+    This task is called by Celery Beat, see the schedule in config.py.
     """
+
+    # Get the logger
+    logger = get_task_logger(__name__)
 
     # Grab what we have in the database
     lists_stats = ListStats.query.with_entities(
         ListStats.list_id, ListStats.list_name, ListStats.user_id,
         ListStats.api_key, ListStats.data_center,
-        ListStats.store_aggregates, ListStats.monthly_updates,
-        AppUser.email).join(AppUser).all()
+        ListStats.store_aggregates, ListStats.monthly_updates).all()
+
+    if not lists_stats:
+        logger.info('No lists to update!')
+        return
+
+    # Placeholder for lists which failed during the update process
+    failed_updates = []
+
+    # Update 1/30th of the lists in the database (such that every list
+    # is updated about once per month, on average).
+    lists_to_update = random.sample(
+        lists_stats, len(lists_stats) // 31 if len(lists_stats) // 31 else 1)
 
     # Update each list's calculations in sequence
-    for list_stats in lists_stats:
+    for list_stats in lists_to_update:
+
+        logger.info('Updating list %s!', list_stats.list_id)
 
         # First repull the number of list members
         # And the list overall open rate
@@ -321,19 +365,56 @@ def update_stored_data():
         # A dict similar to what the session would look like
         # If the user were active
         simulated_session = {'id': list_stats.user_id,
-                             'email': list_stats.email,
                              'key': list_stats.api_key,
                              'data_center': list_stats.data_center,
                              'store_aggregates': list_stats.store_aggregates,
                              'monthly_updates': list_stats.monthly_updates}
 
         # Then re-run the calculations and update the database
-        stats = import_analyze_store_list(
-            list_stats.list_id, list_stats.list_name, count,
-            open_rate, simulated_session)
+        try:
+            import_analyze_store_list(
+                list_stats.list_id, list_stats.list_name, count,
+                open_rate, simulated_session)
+        except MailChimpImportError:
+            logger.error('Error updating list %s.', list_stats.list_id)
+            failed_updates.append(list_stats.list_id)
 
-        # If the user asked for monthly updates, send new report
-        if list_stats.monthly_updates:
-            send_report(
-                stats, list_stats.list_id, list_stats.list_name,
-                simulated_session['email'])
+    # If any updates failed, raise an exception to send an error email
+    if failed_updates:
+        raise MailChimpImportError(
+            'Some lists failed to update: {}'.format(failed_updates),
+            failed_updates)
+
+@celery.task
+def send_monthly_reports():
+    """Celery task which sends monthly benchmarking reports
+    to each user who requested one.
+
+    This task is called by Celery Beat, see the schedule in config.py.
+    """
+    logger = get_task_logger(__name__)
+
+    # Grab info from the database
+    monthly_report_lists = ListStats.query.filter_by(
+        monthly_updates=True).join(AppUser).all()
+
+    # Send an email report for each list
+    for monthly_report_list in monthly_report_lists:
+        logger.info('Emailing %s an updated report. List: %s (%s).',
+                    monthly_report_list.user.email,
+                    monthly_report_list.list_name,
+                    monthly_report_list.list_id)
+        stats = {'subscribers': monthly_report_list.subscribers,
+                 'open_rate': monthly_report_list.open_rate,
+                 'hist_bin_counts': json.loads(
+                     monthly_report_list.hist_bin_counts),
+                 'subscribed_pct': monthly_report_list.subscribed_pct,
+                 'unsubscribed_pct': monthly_report_list.unsubscribed_pct,
+                 'cleaned_pct': monthly_report_list.cleaned_pct,
+                 'pending_pct': monthly_report_list.pending_pct,
+                 'high_open_rt_pct': monthly_report_list.high_open_rt_pct,
+                 'cur_yr_inactive_pct': monthly_report_list.cur_yr_inactive_pct}
+
+        send_report(stats, monthly_report_list.list_id,
+                    monthly_report_list.list_name,
+                    monthly_report_list.user.email)

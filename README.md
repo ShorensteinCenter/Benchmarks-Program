@@ -27,7 +27,7 @@ pip install -r requirements.txt
 
 Modify ```config.py```, paying particular attention to the ```SQLALCHEMY_DATABASE_URI```, ```SERVER_NAME```, and all of the Flask-Mail configuration variables. Note that while ```SERVER_NAME``` can be excluded (or set to localhost), Flask-Mail will fail to generate a url adapter and the application will crash when it attempts to send an email.
 
-We use proxies to distribute our MailChimp requests across IP addresses. You will need to modify the ```import_list_async``` function in ```app/lists.py``` or remove the proxy functionality. 
+We use proxies to distribute our MailChimp requests across IP addresses. You will need to modify the ```enable_proxy``` function in ```app/lists.py``` or set the ```NO_PROXY``` environment variable.
 
 Upgrade the database:
 
@@ -65,6 +65,14 @@ gulp
 ```
 
 The ```.eslintrc``` file defines Javascript rules.
+
+## Linting
+
+Run pylint:
+
+```
+pylint app
+```
 
 ## Deployment
 
