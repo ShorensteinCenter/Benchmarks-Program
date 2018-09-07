@@ -1,3 +1,9 @@
 {% for k, v in error_details.items() %}
-	<span>{{ k }}: {{ v }}</span><br>
+	{% if k == 'Stack Trace' %}
+		{% for item in v %}
+			<span>{{ item }}</span><br>
+		{% endfor %}
+	{% else %}
+		<span>{{ k }}: {{ v }}</span><br>
+	{% endif %}
 {% endfor %}

@@ -12,14 +12,12 @@ import pandas as pd
 from pandas.io.json import json_normalize
 import numpy as np
 from aiohttp import ClientSession, BasicAuth
+from aiohttp.client_exceptions import ClientHttpProxyError
 import iso8601
 from celery.utils.log import get_task_logger
-from flask import render_template
-from flask_mail import Message
-from app import app, mail
 
 def do_async_import(coroutine):
-    """Generic function to run async imports.
+    """Generic wrapper function to run async imports.
 
     Args:
         coroutine: the coroutine to be run asynchronously
@@ -27,6 +25,12 @@ def do_async_import(coroutine):
     loop = asyncio.get_event_loop()
     future = asyncio.ensure_future(coroutine)
     loop.run_until_complete(future)
+
+class MailChimpImportError(ConnectionError):
+    """A custom exception raised when async imports fail."""
+    def __init__(self, message, error_details):
+        super().__init__(message)
+        self.error_details = error_details
 
 class MailChimpList(): # pylint: disable=too-many-instance-attributes
     """A class representing a MailChimp list."""
@@ -58,8 +62,7 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
     # The approximate amount of seconds it takes to cold boot a proxy
     PROXY_BOOT_TIME = 30
 
-    def __init__(self, id, open_rate, count, api_key, data_center, # pylint: disable=redefined-builtin, too-many-arguments
-                 user_email):
+    def __init__(self, id, open_rate, count, api_key, data_center): # pylint: disable=redefined-builtin, too-many-arguments
         """Initializes a MailCimp list.
 
         Args:
@@ -70,9 +73,8 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
             api_key: a MailChimp api key associated with the list.
             data_center: the data center where the list is stored,
                 e.g. 'us2'. Used in MailChimp api calls.
-            user_email: the list user's email address.
 
-        Other variables:
+        Other class variables:
             proxy: the proxy to use for making MailChimp API requests.
             df: the pandas dataframe to perform calculations on.
             subscribers: the number of active subscribers.
@@ -94,7 +96,6 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
         self.count = int(count)
         self.api_key = api_key
         self.data_center = data_center
-        self.user_email = user_email
         self.logger = get_task_logger(__name__)
 
         self.proxy = None
@@ -116,13 +117,19 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
         does not violate MailChimp's Terms of Service.
         """
 
+        # Don't use a proxy if environment variable is set, e.g. in development
+        if os.environ.get('NO_PROXY'):
+            self.logger.info(
+                'NO_PROXY environment variable set. Not using a proxy.')
+            return
+
         # Get the worker number for this Celery worker
         # We want each worker to control its corresponding proxy process
         # Note that workers are zero-indexed, proxy procceses are not
         process = current_process()
 
         # Fall back to proxy #1 if we can't ascertain the worker index
-        # E.g. in development with only one Celery worker
+        # e.g. anyone hacking with this app on windows
         try:
             proxy_process_number = str(process.index + 1)
         except AttributeError:
@@ -157,6 +164,7 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
         # Allow some time for the proxy server to boot up
         # We don't need to wait if we're not using a proxy
         if self.proxy:
+            self.logger.info('Using proxy: %s', self.proxy)
             await asyncio.sleep(self.PROXY_BOOT_TIME)
         else:
             self.logger.warning('Not using a proxy. Reason: %s',
@@ -177,18 +185,16 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
             url: The url to make the request to.
             params: The HTTP GET parameters.
             session: The aiohttp ClientSession to make requests with.
-            retry: Number of previous attempts at this individual
+            retry: The number of previous attempts at this individual
                 request.
 
         Returns:
-            An asyncio future, which, when resolved,
+            An asyncio future, which, when awaited,
             contains the request response.
 
         Throws:
-            ConnectionError: The request keeps returning a bad
-                HTTP status code.
-            asyncio.TimeoutError: The request keeps timing out
-                with no response.
+            MailChimpImportError: The request keeps returning a bad HTTP status
+                code and/or timing out with no response.
         """
         try:
 
@@ -203,11 +209,11 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
                     return await response.text()
 
                 # Always log the bad response
-                self.logger.error('Received invalid response code: '
-                                  '%s. URL: %s. API key: %s. '
-                                  'Response: %s.', response.status,
-                                  url, self.api_key,
-                                  response.reason)
+                self.logger.warning('Received invalid response code: '
+                                    '%s. URL: %s. API key: %s. '
+                                    'Response: %s.', response.status,
+                                    url, self.api_key,
+                                    response.reason)
 
                 # Retry if we got an error
                 # And we haven't already retried a few times
@@ -216,12 +222,12 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
 
                     # Increment retry count, log, sleep and then retry
                     retry += 1
-                    self.logger.warning('Retrying (%s)', retry)
+                    self.logger.info('Retrying (%s)', retry)
                     await asyncio.sleep(self.BACKOFF_INTERVAL ** retry)
                     return await self.make_async_request(
                         url, params, session, retry)
 
-                # Email the user to say something bad happened
+                # Prepare some details for the user
                 error_details = OrderedDict([
                     ('err_desc', 'An error occurred when '
                                  'trying to import your data '
@@ -230,39 +236,50 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
                     ('mailchimp_url', url),
                     ('api_key', self.api_key),
                     ('mailchimp_err_reason', response.reason)])
-                self.send_error_email(error_details)
 
-                # Always raise an exception (to log the stack trace)
-                raise ConnectionError()
+                # Log the error and raise an exception
+                self.logger.exception('Invalid response code from MailChimp')
+                raise MailChimpImportError(
+                    'Invalid response code from MailChimp',
+                    error_details)
 
-        # Catch potential timeouts from asyncio rather than MailChimp
-        except asyncio.TimeoutError:
+        # Catch proxy problems as well as potential asyncio timeouts
+        except (asyncio.TimeoutError, ClientHttpProxyError) as e: # pylint: disable=invalid-name
 
-            # Log what happened
-            self.logger.error('Asyncio request timed out! URL: %s. '
-                              'API key: %s.', url, self.api_key)
+            exception_type = type(e).__name__
+
+            if exception_type == 'ClientHttpProxyError':
+                self.logger.warning('Failed to connect to proxy! Proxy: %s',
+                                    self.proxy)
+            else:
+                self.logger.warning('Asyncio request timed out! URL: %s. '
+                                    'API key: %s.', url, self.api_key)
 
             # Retry if we haven't already retried a few times
             if retry < self.MAX_RETRIES:
 
                 # Increment retry count, log, sleep, and then retry
                 retry += 1
-                self.logger.warning('Retrying (%s)', retry)
+                self.logger.info('Retrying (%s)', retry)
                 await asyncio.sleep(self.BACKOFF_INTERVAL ** retry)
                 return await self.make_async_request(
                     url, params, session, retry)
 
-            # Else email the user to say something bad happened
+            # Prepare some details for the user
             error_details = OrderedDict([
                 ('err_desc', 'An error occurred when '
                              'trying to import your data from MailChimp.'),
-                ('application_exception', 'asyncio.TimeoutError'),
+                ('application_exception', exception_type),
                 ('mailchimp_url', url),
                 ('api_key', self.api_key)])
-            self.send_error_email(error_details)
 
-            # Reraise the exception (to log the stack trace)
-            raise
+            # Log the error and raise an exception
+            self.logger.exception('Error in async request to MailChimp (%s)',
+                                  exception_type)
+            raise MailChimpImportError(
+                'Error in async request to MailChimp ({})'.format(
+                    exception_type),
+                error_details)
 
     async def make_async_requests(self, sem, url, params, session):
         """Makes a number of async requests using a semaphore.
@@ -523,21 +540,3 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
         self.df.to_csv(csv_buffer, index=False)
         csv_buffer.seek(0)
         return csv_buffer
-
-    def send_error_email(self, error_details):
-        """Sends an error email if something goes wrong."""
-
-        # Get the admin email
-        admin_email = os.environ.get('ADMIN_EMAIL') or None
-
-        # Send the message
-        with app.app_context():
-            msg = Message(
-                'We Couldn\'t Process Your Email Benchmarking Report',
-                sender='shorensteintesting@gmail.com',
-                recipients=[self.user_email, admin_email],
-                html=render_template(
-                    'error-email.html',
-                    title='Looks like something went wrong ☹',
-                    error_details=error_details))
-            mail.send(msg)
