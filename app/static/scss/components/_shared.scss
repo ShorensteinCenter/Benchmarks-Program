@@ -36,3 +36,11 @@ strong {
 	opacity: 0.5;
 	pointer-events: none;
 }
+
+.small {
+	font-size: $small-text-size;
+
+	@include media-breakpoint-up(xxl) {
+		font-size: $small-text-size-xxl;
+	}
+}

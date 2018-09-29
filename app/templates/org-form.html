@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container content-block">
+	<div class="row">
+		<div class="col-12 col-lg-7 d-flex flex-column content-block">
+			<h1 class="has-bottom-margin">Tell us about your organization</h1>
+			<form action="#" id="org-form" method="post" autocomplete="off" novalidate>
+				<label class="disabled-elt" for="news_org">News Organization</label>
+				<div id="newsorg-input-wrapper" class="form-input-wrapper">
+					<input id="news_org" type="text" value="{{ org }}" class="disabled-elt">
+				</div>
+				<label class="d-block" for="financial_classification">Financial Classification</label>
+				<div class="inline-wrapper" id="financial-classification-wrapper">
+					{% for subfield in org_form.financial_classification %}
+						<div class="custom-control custom-radio custom-control-inline">
+							{{ subfield(class="custom-control-input") }}
+							{{ subfield.label(class="custom-control-label") }}
+						</div>
+					{% endfor %}
+				</div>
+				<label class="d-block" for="coverage_scope">Coverage Scope</label>
+				<div class="inline-wrapper" id="coverage-scope-wrapper">
+					{% for subfield in org_form.coverage_scope %}
+						<div class="custom-control custom-radio custom-control-inline">
+							{{ subfield(class="custom-control-input") }}
+							{{ subfield.label(class="custom-control-label") }}
+						</div>
+					{% endfor %}
+				</div>
+				<label class="d-block" for="coverage_focus">Coverage Focus</label>
+				<div class="inline-wrapper" id="coverage-focus-wrapper">
+					{% for subfield in org_form.coverage_focus %}
+						<div class="custom-control custom-radio custom-control-inline">
+							{{ subfield(class="custom-control-input") }}
+							{{ subfield.label(class="custom-control-label") }}
+						</div>
+					{% endfor %}
+				</div>
+				<label class="d-block" for="platform">Publishing Platform</label>
+				<div class="inline-wrapper" id="platform-wrapper">
+					{% for subfield in org_form.platform %}
+						<div class="custom-control custom-radio custom-control-inline">
+							{{ subfield(class="custom-control-input") }}
+							{{ subfield.label(class="custom-control-label") }}
+						</div>
+					{% endfor %}
+				</div>
+				<label class="d-block" for="employee_range">Number of Full-Time Employees</label>
+				<div class="inline-wrapper" id="employee-range-wrapper">
+					{% for subfield in org_form.employee_range %}
+						<div class="custom-control custom-radio custom-control-inline">
+							{{ subfield(class="custom-control-input") }}
+							{{ subfield.label(class="custom-control-label") }}
+						</div>
+					{% endfor %}
+				</div>
+				<label class="d-block" for="budget">Annual Budget</label>
+				<div class="inline-wrapper" id="budget-wrapper">
+					{% for subfield in org_form.budget %}
+						<div class="custom-control custom-radio custom-control-inline">
+							{{ subfield(class="custom-control-input") }}
+							{{ subfield.label(class="custom-control-label") }}
+						</div>
+					{% endfor %}
+				</div>
+				<label class="d-block" for="affiliation">Affiliation</label>
+				<div class="inline-wrapper" id="affiliation-wrapper">
+					<div class="custom-control custom-checkbox custom-control-inline">
+						{{ org_form.news_revenue_hub(type="checkbox", class="custom-control-input") }}
+  						<label class="custom-control-label" for="news_revenue_hub">News Revenue Hub</label>
+					</div>
+					<div class="custom-control custom-checkbox custom-control-inline">
+						{{ org_form.institute_for_nonprofit_news(type="checkbox", class="custom-control-input") }}
+  						<label class="custom-control-label" for="institute_for_nonprofit_news">Institute for Nonprofit News</label>
+					</div>
+					<div class="custom-control custom-checkbox custom-control-inline">
+						{{ org_form.lion_publishers(type="checkbox", class="custom-control-input") }}
+  						<label class="custom-control-label" for="lion_publishers">LION Publishers</label>
+					</div>
+				</div>
+				<div class="form-submit-wrapper">
+					{{ org_form.submit() }}
+				</div>
+			</form>
+		</div>
+		<div class="col-12 col-lg-4 offset-lg-1">
+			<div class="bordered has-bottom-margin">
+				<h2 class="has-bottom-margin">How de we use your data?</h2>
+				<p>We will use your API key to access MailChimp and request list data. We perform a number of calculations on this raw data, and use the calculation results to generate the email report we send to you. We do not store any raw data, nor do we request any personally-idenitifying information about your list members. You may choose how we store your API key and the calculation results:
+				<p>If you check either box, we will securely store your API key. You will be able to generate new, up-to-date reports instantly.</p>
+				<p>You can choose to contribute your data to a "Database Average" or to receive an up-to-date email report every month.</p>
+				<p>If you uncheck both boxes, we will send you a report and then discard your list data. New reports will not be instantly generated.</p>
+				<p>For more information about how we use your data, see our <a href="/privacy">Privacy Policy</a>.</p>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

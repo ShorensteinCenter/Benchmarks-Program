@@ -35,9 +35,12 @@ const clientSideValidateField = elt => {
 
 /* Validates a form elements on the client side
 	slightly inefficiently written so that the whole loop will execute
-	and tag each input as valid or invalid as a side effect */
+	and tag each input as valid or invalid as a side effect.
+	Client-side validation is not performed for radio buttons and
+	checkboxes due to limitations around Bootstrap's custom styling
+	implementation. */
 const clientSideValidateForm = form => {
-	const elts = form.querySelectorAll('input');
+	const elts = form.querySelectorAll('input, select');
 	let valid = true;
 	for (let i = 0; i < elts.length; ++i) {
 		const validity = clientSideValidateField(elts[i])
@@ -49,10 +52,18 @@ const clientSideValidateForm = form => {
 
 /* Monitors form elements and automatically performs client-side validation
 	whenever a user stops typing */
-const inputs = document.querySelectorAll('.form-input-wrapper input');
+const inputs = document.querySelectorAll(
+	'.form-input-wrapper input, .form-input-wrapper select');
 for (let i = 0; i < inputs.length; ++i) {
 	const input = inputs[i];
-	input.addEventListener('keyup', e => clientSideValidateField(e.currentTarget));
+	if (input.tagName == 'INPUT') {
+		input.addEventListener(
+			'keyup', e => clientSideValidateField(e.currentTarget));
+	}
+	else {
+		input.addEventListener(
+			'change', e => clientSideValidateField(e.currentTarget))
+	}
 }
 
 /* Disables an elt or a nodelist of elts */

@@ -1,3 +1,7 @@
+#newsorg-input-wrapper.invalid:after {
+	content: 'Please select a news organization.'
+}
+
 #api-key-input-wrapper.invalid:after {
 	content: 'Please enter a valid API key.';
 }

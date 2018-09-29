@@ -62,12 +62,11 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
     # The approximate amount of seconds it takes to cold boot a proxy
     PROXY_BOOT_TIME = 30
 
-    def __init__(self, id, open_rate, count, api_key, data_center): # pylint: disable=redefined-builtin, too-many-arguments
+    def __init__(self, id, count, api_key, data_center): # pylint: disable=redefined-builtin
         """Initializes a MailCimp list.
 
         Args:
             id: the list's unique MailChimp id.
-            open_rate: the list's open rate.
             count: the total size of the list, including subscribed,
                 unsubscribed, pending, and cleaned.
             api_key: a MailChimp api key associated with the list.
@@ -77,7 +76,9 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
         Other class variables:
             proxy: the proxy to use for making MailChimp API requests.
             df: the pandas dataframe to perform calculations on.
+            frequency: how often a campaign is sent on average.
             subscribers: the number of active subscribers.
+            open_rate: the list's open rate.
             hist_bin_counts: a list containing the percentage of subscribers
                 with open rates in each decile.
             subscribed_pct: the percentage of list members who are subscribers.
@@ -92,7 +93,6 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
                 an 'open' event in the past 365 days.
         """
         self.id = id # pylint: disable=invalid-name
-        self.open_rate = float(open_rate)
         self.count = int(count)
         self.api_key = api_key
         self.data_center = data_center
@@ -100,7 +100,9 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
 
         self.proxy = None
         self.df = None # pylint: disable=invalid-name
+        self.frequency = None
         self.subscribers = None
+        self.open_rate = None
         self.hist_bin_counts = None
         self.subscribed_pct = None
         self.unsubscribed_pct = None
@@ -467,19 +469,6 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
         self.df = (self.df[['status', 'timestamp_opt', 'timestamp_signup',
                             'id', 'recent_open']].join(stats))
 
-    def calc_open_rate(self):
-        """Calculates the open rate as a decimal."""
-        self.open_rate = self.open_rate / 100
-
-    def calc_histogram(self):
-        """Calculates the distribution for subscriber open rate."""
-        bin_boundaries = [-0.001, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.]
-        bins = (pd.cut(
-            self.df.loc[self.df['status'] == 'subscribed', 'avg_open_rate'],
-            bin_boundaries))
-        self.hist_bin_counts = (pd.value_counts(bins, sort=False).apply(
-            lambda x: x / self.subscribers).tolist())
-
     def calc_list_breakdown(self):
         """Calculates the list breakdown."""
         statuses = self.df.status.unique()
@@ -499,6 +488,31 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
             0 if 'pending' not in statuses
             else self.df.status.value_counts()['pending'] /
             self.count)
+
+    def calc_open_rate(self, open_rate):
+        """Calculates the open rate as a decimal."""
+        self.open_rate = float(open_rate) / 100
+
+    def calc_frequency(self, date_created, campaign_count):
+        """Calculates the average number of days per campaign sent. Automatically
+        zero if fewer than 10 campaigns have been sent total."""
+        campaign_count = int(campaign_count)
+        if campaign_count < 10:
+            self.frequency = 0
+        else:
+            now = datetime.now(timezone.utc)
+            created = iso8601.parse_date(date_created)
+            list_age = now - created
+            self.frequency = list_age.days / campaign_count
+
+    def calc_histogram(self):
+        """Calculates the distribution for subscriber open rate."""
+        bin_boundaries = [-0.001, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.]
+        bins = (pd.cut(
+            self.df.loc[self.df['status'] == 'subscribed', 'avg_open_rate'],
+            bin_boundaries))
+        self.hist_bin_counts = (pd.value_counts(bins, sort=False).apply(
+            lambda x: x / self.subscribers).tolist())
 
     def calc_high_open_rate_pct(self):
         """Calcuates the percentage of subscribers who open >80% of emails."""
@@ -520,19 +534,6 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
 
         # Percent of such subscribers
         self.cur_yr_inactive_pct = cur_yr_inactive_subs / self.subscribers
-
-    def get_list_stats(self):
-        """Returns list stats as a dictionary."""
-        stats = {'subscribers': self.subscribers,
-                 'open_rate': self.open_rate,
-                 'hist_bin_counts': self.hist_bin_counts,
-                 'subscribed_pct': self.subscribed_pct,
-                 'unsubscribed_pct': self.unsubscribed_pct,
-                 'cleaned_pct': self.cleaned_pct,
-                 'pending_pct': self.pending_pct,
-                 'high_open_rt_pct': self.high_open_rt_pct,
-                 'cur_yr_inactive_pct': self.cur_yr_inactive_pct}
-        return stats
 
     def get_list_as_csv(self):
         """Returns a string buffer containing a CSV of the list data."""

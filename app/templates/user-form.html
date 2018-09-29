@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container content-block">
+	<div class="row">
+		<div class="col-12 col-lg-7 d-flex flex-column content-block">
+			<h1 class="has-bottom-margin">Request access to the email benchmarking tool</h1>
+			<form class="has-bottom-margin" action="#" id="basic-info-form" method="post" autocomplete="off" novalidate>
+				<label for="contact_person">Name</label>
+				<div id="name-input-wrapper" class="form-input-wrapper">
+					{{ user_form.name() }}
+					<span class="focus-bg"></span>
+				</div>
+				<label for="email">Email Address</label>
+				<div id="email-input-wrapper" class="form-input-wrapper">
+					{{ user_form.email(custom_type="email") }}
+					<span class="focus-bg"></span>
+				</div>
+				<label for="news_org">News Organization&hairsp;*</label>
+				<div id="newsorg-input-wrapper" class="form-input-wrapper">
+					{{ user_form.news_org(class="awesomplete", data_list=orgs, data_maxitems="5") }}
+					<span class="focus-bg"></span>
+				</div>
+				<div class="form-submit-wrapper">
+					{{ user_form.submit() }}
+				</div>
+			</form>
+			<div>*&thinsp;Select an organization we're already tracking, or add yours to our system.</div>
+		</div>
+		<div class="col-12 col-lg-4 offset-lg-1">
+			<div class="bordered has-bottom-margin">
+				<h2 class="has-bottom-margin">What happens next?</h2>
+				<p>It depends whether your organization is already in our system.</p>
+				<p>If it is, we will send you a unique access link for the tool within 1-2 business days. Otherwise, we will collect some additional information from you on the next page in order to verify that you represent a valid news organization.</p>
+				<p>By requesting access, you agree to our <a href="/terms">Terms of Service</a>.
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

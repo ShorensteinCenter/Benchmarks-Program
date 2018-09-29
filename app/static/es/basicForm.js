@@ -23,19 +23,26 @@ const submitBasicInfo = async e => {
 	try {
 		const response = await fetch(request);
 		if (response.ok) {
-			const 
-				title = 'Thanks!',
-				body = 'We\'ve received your details. Once our team has ' +
-					'reviewed your submission, we\'ll email you with ' +
-					'instructions for accessing our benchmarking tool.';
-			window.location.href = '/confirmation?title=' + title +
-				'&body=' + body;
+			const body = await response.json();
+			if (body.org == 'existing') {
+				const 
+					title = 'Thanks!',
+					body = 'We\'ve received your details. Once our team has ' +
+						'reviewed your submission, we\'ll email you with ' +
+						'instructions for accessing our benchmarking tool.';
+				window.location.href = '/confirmation?title=' + title +
+					'&body=' + body;
+			}
+			window.location.href = '/org-info';
 		}
 		else {
 			if (response.status == 400) {
+				const invalidElts = basicInfoForm.querySelectorAll('.invalid');
+				for (let i = 0; i < invalidElts.length; ++i)
+					invalidElts[i].classList.remove('invalid');
 				const errors = await response.json();
 				for (const [k, _] of Object.entries(errors))
-					tagField(document.querySelector('#' + k));
+					tagField(basicInfoForm.querySelector('#' + k));
 				enable(basicInfoForm.querySelectorAll('input'));
 				basicInfoForm.addEventListener('submit', submitBasicInfo);
 			}
