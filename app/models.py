@@ -13,7 +13,7 @@ users = db.Table( # pylint: disable=invalid-name
 # Association table for many-to-many relationship between lists and users
 list_users = db.Table( # pylint: disable=invalid-name
     'list_users',
-    db.Column('list_id', db.Integer, db.ForeignKey('list_stats.list_id'),
+    db.Column('list_id', db.String(64), db.ForeignKey('list_stats.list_id'),
               primary_key=True),
     db.Column('user_id', db.Integer, db.ForeignKey('app_user.id'),
               primary_key=True))

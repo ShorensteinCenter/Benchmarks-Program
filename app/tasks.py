@@ -93,6 +93,7 @@ def import_analyze_store_list(list_data, org_id, user_email=None):
         list_name=list_data['list_name'],
         api_key=list_data['key'],
         data_center=list_data['data_center'],
+        frequency=mailing_list.frequency,
         subscribers=mailing_list.subscribers,
         open_rate=mailing_list.open_rate,
         hist_bin_counts=json.dumps(mailing_list.hist_bin_counts),
@@ -108,7 +109,7 @@ def import_analyze_store_list(list_data, org_id, user_email=None):
 
     # If the user gave their permission, store the object in the database
     if list_data['monthly_updates'] or list_data['store_aggregates']:
-        db.session.merge(list_stats)
+        list_stats = db.session.merge(list_stats)
         try:
             db.session.commit()
         except:
@@ -312,7 +313,8 @@ def update_stored_data():
         response = requests.get(
             request_uri, params=params,
             auth=('shorenstein', list_to_update.api_key))
-        response_stats = response.json().get('stats')
+        response_body = response.json()
+        response_stats = response_body['stats']
         count = (response_stats['member_count'] +
                  response_stats['unsubscribe_count'] +
                  response_stats['cleaned_count'])
@@ -326,7 +328,7 @@ def update_stored_data():
                      'store_aggregates': list_to_update.store_aggregates,
                      'total_count': count,
                      'open_rate': response_stats['open_rate'],
-                     'date_created': response['date_created'],
+                     'date_created': response_body['date_created'],
                      'campaign_count': response_stats['campaign_count']}
 
         # Then re-run the calculations and update the database
