@@ -8,7 +8,7 @@ from flask_mail import Message
 def make_celery(app):
     celery = Celery(
         app.import_name,
-        broker=app.config['CELERY_BROKER_URL']
+        broker=app.config['CELERY_BROKER_URI']
     )
     celery.conf.update(app.config)
     TaskBase = celery.Task
