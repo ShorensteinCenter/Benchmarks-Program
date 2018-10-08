@@ -105,7 +105,8 @@ def org_info():
 
     Returns a 403 if the user hasn't already submitted the basic info form.
     """
-    if not session['name'] or not session['email'] or not session['email_hash']:
+    session_params = ['name', 'email', 'email_hash', 'org']
+    if any(session_param not in session for session_param in session_params):
         abort(403)
     org_form = OrgForm()
     return render_template('org-form.html',
@@ -177,7 +178,7 @@ def validate_api_key():
 @app.route('/select-list')
 def select_list():
     """Select MailChimp List route."""
-    if not session['user_id']:
+    if 'user_id' not in session:
         abort(403)
     return render_template('select-list.html')
 
@@ -189,7 +190,7 @@ def get_list_data():
     about each list. Returns the data as JSON or None
     if there are no lists.
     """
-    if not session['user_id']:
+    if 'user_id' not in session:
         abort(403)
     request_uri = ('https://{}.api.mailchimp.com/3.0/lists'.format(
         session['data_center']))
