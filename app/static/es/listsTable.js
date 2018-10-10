@@ -44,7 +44,9 @@ const setupListsTable = data => {
 				(data[i].stats.member_count +
 				data[i].stats.unsubscribe_count +
 				data[i].stats.cleaned_count) + "' open-rate='" +
-				data[i].stats.open_rate + "'" + " href='#'>" +
+				data[i].stats.open_rate + "' date-created='" +
+				data[i].date_created + "' campaign-count='" +
+				data[i].stats.campaign_count + "' href='#'>" +
 				"<div class='analyze-link-text'>Analyze</div>" +
 				"<svg class='i-chevron-right' viewBox='0 0 32 32'" +
 				" width='16' height='16' fill='none' " +
@@ -67,15 +69,19 @@ const setupListsTable = data => {
 			listName = analyzeLinks[i].getAttribute('list-name'),
 			totalCount = analyzeLinks[i].getAttribute('total-count'),
 			openRate = analyzeLinks[i].getAttribute('open-rate'),
+			dateCreated = analyzeLinks[i].getAttribute('date-created'),
+			campaignCount = analyzeLinks[i].getAttribute('campaign-count'),
 			listener = analyzeList(listId, listName,
-				totalCount, openRate);
+				totalCount, openRate, dateCreated, campaignCount);
 		analyzeLinks[i].addEventListener('click', listener);
 		listeners[i] = listener;
 	}
 }
 
 /* Submit a list for processing */
-const analyzeList = (listId, listName, totalCount, openRate) => {
+const analyzeList = 
+	(listId, listName, totalCount, openRate, dateCreated, campaignCount) => {
+
 	return async e => {
 		e.preventDefault();
 		const analyzeLinks = document.querySelectorAll('.analyze-link');
@@ -91,7 +97,9 @@ const analyzeList = (listId, listName, totalCount, openRate) => {
 				"list_id": listId,
 				"list_name": listName,
 				"total_count": totalCount,
-				"open_rate": openRate
+				"open_rate": openRate,
+				"date_created": dateCreated,
+				"campaign_count": campaignCount
 			},
 			payload = {
 				method: 'POST',

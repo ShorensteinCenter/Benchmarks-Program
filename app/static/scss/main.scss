@@ -11,10 +11,12 @@
 
 @import "components/structure";
 @import "components/forms";
+@import "components/switches";
 @import "components/tables";
 @import "components/shared";
 
 @import "pages/index";
 @import "pages/basic-form";
+@import "pages/org-form";
 @import "pages/api-key-form";
 @import "pages/get-lists";

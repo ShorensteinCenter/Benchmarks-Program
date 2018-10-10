@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container content-block">
+	<div class="row">
+		<div class="col-12 col-lg-7 d-flex flex-column content-block">
+			<h1 class="has-bottom-margin">Tell us about your organization</h1>
+			<form action="#" id="org-form" method="post" autocomplete="off" novalidate>
+				<label class="disabled-elt" for="news_org">News Organization</label>
+				<div id="newsorg-input-wrapper" class="form-input-wrapper">
+					<input id="news_org" type="text" value="{{ org }}" class="disabled-elt">
+				</div>
+				<label class="d-block" for="financial_classification">Financial Classification</label>
+				<div class="inline-wrapper" id="financial-classification-wrapper">
+					{% for subfield in org_form.financial_classification %}
+						<div class="custom-control custom-radio custom-control-inline">
+							{{ subfield(class="custom-control-input") }}
+							{{ subfield.label(class="custom-control-label") }}
+						</div>
+					{% endfor %}
+				</div>
+				<label class="d-block" for="coverage_scope">Coverage Scope</label>
+				<div class="inline-wrapper" id="coverage-scope-wrapper">
+					{% for subfield in org_form.coverage_scope %}
+						<div class="custom-control custom-radio custom-control-inline">
+							{{ subfield(class="custom-control-input") }}
+							{{ subfield.label(class="custom-control-label") }}
+						</div>
+					{% endfor %}
+				</div>
+				<label class="d-block" for="coverage_focus">Coverage Focus</label>
+				<div class="inline-wrapper" id="coverage-focus-wrapper">
+					{% for subfield in org_form.coverage_focus %}
+						<div class="custom-control custom-radio custom-control-inline">
+							{{ subfield(class="custom-control-input") }}
+							{{ subfield.label(class="custom-control-label") }}
+						</div>
+					{% endfor %}
+				</div>
+				<label class="d-block" for="platform">Publishing Platform</label>
+				<div class="inline-wrapper" id="platform-wrapper">
+					{% for subfield in org_form.platform %}
+						<div class="custom-control custom-radio custom-control-inline">
+							{{ subfield(class="custom-control-input") }}
+							{{ subfield.label(class="custom-control-label") }}
+						</div>
+					{% endfor %}
+				</div>
+				<label class="d-block" for="employee_range">Number of Full-Time Employees</label>
+				<div class="inline-wrapper" id="employee-range-wrapper">
+					{% for subfield in org_form.employee_range %}
+						<div class="custom-control custom-radio custom-control-inline">
+							{{ subfield(class="custom-control-input") }}
+							{{ subfield.label(class="custom-control-label") }}
+						</div>
+					{% endfor %}
+				</div>
+				<label class="d-block" for="budget">Annual Budget</label>
+				<div class="inline-wrapper" id="budget-wrapper">
+					{% for subfield in org_form.budget %}
+						<div class="custom-control custom-radio custom-control-inline">
+							{{ subfield(class="custom-control-input") }}
+							{{ subfield.label(class="custom-control-label") }}
+						</div>
+					{% endfor %}
+				</div>
+				<label class="d-block" for="affiliation">Affiliation</label>
+				<div class="inline-wrapper" id="affiliation-wrapper">
+					<div class="custom-control custom-checkbox custom-control-inline">
+						{{ org_form.news_revenue_hub(type="checkbox", class="custom-control-input") }}
+  						<label class="custom-control-label" for="news_revenue_hub">News Revenue Hub</label>
+					</div>
+					<div class="custom-control custom-checkbox custom-control-inline">
+						{{ org_form.institute_for_nonprofit_news(type="checkbox", class="custom-control-input") }}
+  						<label class="custom-control-label" for="institute_for_nonprofit_news">Institute for Nonprofit News</label>
+					</div>
+					<div class="custom-control custom-checkbox custom-control-inline">
+						{{ org_form.lion_publishers(type="checkbox", class="custom-control-input") }}
+  						<label class="custom-control-label" for="lion_publishers">LION Publishers</label>
+					</div>
+				</div>
+				<div class="form-submit-wrapper">
+					{{ org_form.submit() }}
+				</div>
+			</form>
+		</div>
+		<div class="col-12 col-lg-4 offset-lg-1">
+			<div class="bordered has-bottom-margin">
+				<h2 class="has-bottom-margin">Why do we collect this data?</h2>
+				<p>In order to offer a benchmark tailed to your organization. As more users of the benchmarking tool tag these categories, we'll continue to build features that allows users to sort the email benchmarking database by those fields.</p>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

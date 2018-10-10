@@ -7,57 +7,12 @@ import requests
 from flask import render_template
 from flask_mail import Message
 from sqlalchemy.sql.functions import func
-from sqlalchemy.exc import IntegrityError
 from celery.utils.log import get_task_logger
 from app import app, celery, db, mail
 from app.lists import MailChimpList, MailChimpImportError, do_async_import
 from app.models import ListStats, AppUser
 from app.charts import BarChart, Histogram, render_png
-
-def update_user(user_info):
-    """Updates information about an app user.
-
-    Args:
-        user_info: a dictionary of user information (see store_user()).
-    """
-    AppUser.query.filter_by(email=user_info['email']).update(user_info)
-    try:
-        db.session.commit()
-    except:
-        db.session.rollback()
-        raise
-
-@celery.task
-def store_user(news_org, contact_person, email, email_hash, newsletters):
-    """Celery task which stores information about whoever is
-    currently using the app.
-
-    Args:
-        news_org: news organization the user belongs to.
-        contact_person: name of the person representing the organization.
-        email: news organization or contact person's email address.
-        email_hash: md5-hash of the email address.
-        newsletters: string containing email newsletter names.
-    """
-    user_info = {'news_org': news_org,
-                 'contact_person': contact_person,
-                 'email': email,
-                 'email_hash': email_hash,
-                 'newsletters': newsletters}
-
-    # The new user isn't approved for access by default
-    user = AppUser(**user_info, approved=False)
-
-    # Do a bootleg upsert (due to lack of ORM support)
-    db.session.add(user)
-    try:
-        db.session.commit()
-    except IntegrityError:
-        db.session.rollback()
-        update_user(user_info)
-    except:
-        db.session.rollback()
-        raise
+from app.dbops import associate_user_with_list
 
 @celery.task
 def send_activated_email(user_id):
@@ -75,17 +30,18 @@ def send_activated_email(user_id):
     send_email('You\'re all set to access our benchmarks!',
                'shorensteintesting@gmail.com',
                [result.email],
-               render_template('activated-email.html',
-                               title='You\'re all set to access our '
-                               'benchmarks!',
-                               email_hash=result.email_hash))
+               'activated-email.html',
+               {'title': 'You\'re all set to access our benchmarks!',
+                'email_hash': result.email_hash})
 
-def import_analyze_store_list(list_id, list_name, count, open_rate,
-                              user_session):
+def import_analyze_store_list(list_data, org_id, user_email=None):
     """Imports a MailChimp list, performs calculations, and stores results.
 
     Args:
-        See init_list_analysis().
+        list_data: see init_list_analysis().
+        org_id: the unique id of the organization associated with the list.
+        user_email: the user's email address. Only passed when the user
+            requested the analysis (as opposed to Celery Beat).
 
     Returns:
         A dictionary containing analysis results for the list.
@@ -97,8 +53,8 @@ def import_analyze_store_list(list_id, list_name, count, open_rate,
 
     # Create a new list instance and import member data/activity
     mailing_list = MailChimpList(
-        list_id, open_rate, count, user_session['key'],
-        user_session['data_center'])
+        list_data['list_id'], list_data['total_count'], list_data['key'],
+        list_data['data_center'])
 
     try:
 
@@ -109,14 +65,14 @@ def import_analyze_store_list(list_id, list_name, count, open_rate,
         do_async_import(mailing_list.import_sub_activity())
 
     except MailChimpImportError as e: # pylint: disable=invalid-name
-        if 'email' in user_session:
+        if user_email:
             send_email(
                 'We Couldn\'t Process Your Email Benchmarking Report',
                 'shorensteintesting@gmail.com',
-                [user_session['email'], os.environ.get('ADMIN_EMAIL') or None],
-                render_template('error-email.html',
-                                title='Looks like something went wrong ☹',
-                                error_details=e.error_details))
+                [user_email, os.environ.get('ADMIN_EMAIL') or None],
+                'error-email.html',
+                {'title': 'Looks like something went wrong ☹',
+                 'error_details': e.error_details})
         raise
 
     # Remove nested jsons from the dataframe
@@ -124,51 +80,52 @@ def import_analyze_store_list(list_id, list_name, count, open_rate,
 
     # Do the data science shit
     mailing_list.calc_list_breakdown()
-    mailing_list.calc_open_rate()
+    mailing_list.calc_open_rate(list_data['open_rate'])
+    mailing_list.calc_frequency(list_data['date_created'],
+                                list_data['campaign_count'])
     mailing_list.calc_histogram()
     mailing_list.calc_high_open_rate_pct()
     mailing_list.calc_cur_yr_stats()
 
-    # Get list stats
-    stats = mailing_list.get_list_stats()
+    # Create a list object
+    list_stats = ListStats(
+        list_id=list_data['list_id'],
+        list_name=list_data['list_name'],
+        api_key=list_data['key'],
+        data_center=list_data['data_center'],
+        frequency=mailing_list.frequency,
+        subscribers=mailing_list.subscribers,
+        open_rate=mailing_list.open_rate,
+        hist_bin_counts=json.dumps(mailing_list.hist_bin_counts),
+        subscribed_pct=mailing_list.subscribed_pct,
+        unsubscribed_pct=mailing_list.unsubscribed_pct,
+        cleaned_pct=mailing_list.cleaned_pct,
+        pending_pct=mailing_list.pending_pct,
+        high_open_rt_pct=mailing_list.high_open_rt_pct,
+        cur_yr_inactive_pct=mailing_list.cur_yr_inactive_pct,
+        store_aggregates=list_data['store_aggregates'],
+        monthly_updates=list_data['monthly_updates'],
+        org_id=org_id)
 
-    # Store the stats in database if we have permission
-    # Serialize the histogram data so it can be stored as string
-    if user_session['monthly_updates'] or user_session['store_aggregates']:
-        list_stats = ListStats(
-            list_id=list_id,
-            list_name=list_name,
-            user_id=user_session['id'],
-            api_key=user_session['key'],
-            data_center=user_session['data_center'],
-            subscribers=stats['subscribers'],
-            open_rate=stats['open_rate'],
-            hist_bin_counts=json.dumps(stats['hist_bin_counts']),
-            subscribed_pct=stats['subscribed_pct'],
-            unsubscribed_pct=stats['unsubscribed_pct'],
-            cleaned_pct=stats['cleaned_pct'],
-            pending_pct=stats['pending_pct'],
-            high_open_rt_pct=stats['high_open_rt_pct'],
-            cur_yr_inactive_pct=stats['cur_yr_inactive_pct'],
-            store_aggregates=user_session['store_aggregates'],
-            monthly_updates=user_session['monthly_updates'])
-        db.session.merge(list_stats)
+    # If the user gave their permission, store the object in the database
+    if list_data['monthly_updates'] or list_data['store_aggregates']:
+        list_stats = db.session.merge(list_stats)
         try:
             db.session.commit()
         except:
             db.session.rollback()
             raise
 
-    return stats
+    return list_stats
 
-def send_report(stats, list_id, list_name, user_email):
+def send_report(stats, list_id, list_name, user_email_or_emails):
     """Generates charts using Pygal and emails them to the user.
 
     Args:
         stats: a dictionary containing analysis results for a list.
         list_id: the list's unique MailChimp id.
         list_name: the list's name.
-        user_email: the list user's email address.
+        user_email_or_emails: a list of emails to send the report to.
     """
 
     # Generate averages from the database
@@ -241,70 +198,71 @@ def send_report(stats, list_id, list_name, user_email):
     # Send charts as an email report
     send_email('Your Email Benchmarking Report is Ready!',
                'shorensteintesting@gmail.com',
-               [user_email],
-               render_template(
-                   'report-email.html',
-                   title='We\'ve analyzed the {} list!'.format(list_name),
-                   list_id=list_id))
+               user_email_or_emails,
+               'report-email.html',
+               {'title': 'We\'ve analyzed the {} list!'.format(list_name),
+                'list_id': list_id})
 
-def send_email(subject, sender, recipients, html):
+def send_email(subject, sender, recipients, template_name, template_context):
     """Sends an email using Flask-Mail according to the args provided.
 
     Args:
         subject: the email subject line.
         sender: sender's email address.
         recipients: list of recipient email addresses.
-        html: html body of the email.
+        template_name: the name of the template to render as the html body.
+        template_context: the context to be passed to the html template.
     """
     with app.app_context():
+        html = render_template(template_name, **template_context)
         msg = Message(subject, sender=sender, recipients=recipients,
                       html=html)
         mail.send(msg)
 
+def extract_stats(list_object):
+    """Extracts a stats dictionary from a list object from the database."""
+    stats = {'subscribers': list_object.subscribers,
+             'open_rate': list_object.open_rate,
+             'hist_bin_counts': json.loads(list_object.hist_bin_counts),
+             'subscribed_pct': list_object.subscribed_pct,
+             'unsubscribed_pct': list_object.unsubscribed_pct,
+             'cleaned_pct': list_object.cleaned_pct,
+             'pending_pct': list_object.pending_pct,
+             'high_open_rt_pct': list_object.high_open_rt_pct,
+             'cur_yr_inactive_pct': list_object.cur_yr_inactive_pct}
+    return stats
+
 @celery.task
-def init_list_analysis(user_session, list_id, list_name, count,
-                       open_rate):
+def init_list_analysis(user_data, list_data, org_id):
     """Celery task wrapper for each stage of analyzing a list.
 
     First checks if the list stats are cached, i.e. already in the
     database. If not, calls import_analyze_store_list() to generate
-    them. Then generates a benchmarking report with those stats.
+    them. Then checks if the user is already associated with the list,
+    if not, create the relationship. Finally, generates a benchmarking
+    report with the stats.
 
     Args:
-        user_session: a dictionary containing details about the user.
-        list_id: the list's unique MailChimp id.
-        list_name: the list's name.
-        count: the total size of the list, including subscribed,
-            unsubscribed, pending, and cleaned.
-        open_rate: the list's open rate.
+        user_data: a dictionary containing information about the user.
+        list_data: a dictionary containing information about the list.
+        org_id: the id of the organization associated with the list.
     """
 
     # Try to pull the list stats from database
-    existing_list = (ListStats.query.filter_by(list_id=list_id).first())
+    # Otherwise generate them
+    list_object = (ListStats.query.filter_by(
+        list_id=list_data['list_id']).first() or
+                   import_analyze_store_list(
+                       list_data, org_id, user_data['email']))
 
-    # Placeholder for list stats
-    stats = None
+    # Associate the list with the user who requested the analysis
+    # If that user requested monthly updates
+    if list_data['monthly_updates']:
+        associate_user_with_list(user_data['user_id'], list_object)
 
-    if existing_list is None:
-
-        stats = import_analyze_store_list(
-            list_id, list_name, count, open_rate, user_session)
-
-    else:
-
-        # Get list stats from database results
-        # Deserialize the histogram data
-        stats = {'subscribers': existing_list.subscribers,
-                 'open_rate': existing_list.open_rate,
-                 'hist_bin_counts': json.loads(existing_list.hist_bin_counts),
-                 'subscribed_pct': existing_list.subscribed_pct,
-                 'unsubscribed_pct': existing_list.unsubscribed_pct,
-                 'cleaned_pct': existing_list.cleaned_pct,
-                 'pending_pct': existing_list.pending_pct,
-                 'high_open_rt_pct': existing_list.high_open_rt_pct,
-                 'cur_yr_inactive_pct': existing_list.cur_yr_inactive_pct}
-
-    send_report(stats, list_id, list_name, user_session['email'])
+    stats = extract_stats(list_object)
+    send_report(stats, list_data['list_id'],
+                list_data['list_name'], [user_data['email']])
 
 @celery.task
 def update_stored_data():
@@ -318,12 +276,12 @@ def update_stored_data():
     logger = get_task_logger(__name__)
 
     # Grab what we have in the database
-    lists_stats = ListStats.query.with_entities(
-        ListStats.list_id, ListStats.list_name, ListStats.user_id,
+    list_objects = ListStats.query.with_entities(
+        ListStats.list_id, ListStats.list_name, ListStats.org_id,
         ListStats.api_key, ListStats.data_center,
         ListStats.store_aggregates, ListStats.monthly_updates).all()
 
-    if not lists_stats:
+    if not list_objects:
         logger.info('No lists to update!')
         return
 
@@ -333,51 +291,52 @@ def update_stored_data():
     # Update 1/30th of the lists in the database (such that every list
     # is updated about once per month, on average).
     lists_to_update = random.sample(
-        lists_stats, len(lists_stats) // 31 if len(lists_stats) // 31 else 1)
+        list_objects, len(list_objects) // 31 if len(list_objects) // 31 else 1)
 
     # Update each list's calculations in sequence
-    for list_stats in lists_to_update:
+    for list_to_update in lists_to_update:
 
-        logger.info('Updating list %s!', list_stats.list_id)
+        logger.info('Updating list %s!', list_to_update.list_id)
 
-        # First repull the number of list members
-        # And the list overall open rate
+        # Pull information about the list from the API
         # This may have changed since we originally pulled the list data
         request_uri = ('https://{}.api.mailchimp.com/3.0/lists/{}'.format(
-            list_stats.data_center, list_stats.list_id))
+            list_to_update.data_center, list_to_update.list_id))
         params = (
             ('fields', 'stats.member_count,'
                        'stats.unsubscribe_count,'
                        'stats.cleaned_count,'
-                       'stats.open_rate'),
+                       'stats.open_rate,'
+                       'date_created,'
+                       'stats.campaign_count'),
         )
         response = requests.get(
             request_uri, params=params,
-            auth=('shorenstein', list_stats.api_key))
-        response_stats = response.json().get('stats')
+            auth=('shorenstein', list_to_update.api_key))
+        response_body = response.json()
+        response_stats = response_body['stats']
         count = (response_stats['member_count'] +
                  response_stats['unsubscribe_count'] +
                  response_stats['cleaned_count'])
-        open_rate = response_stats['open_rate']
 
-
-        # Create a 'simulated session', i.e.
-        # A dict similar to what the session would look like
-        # If the user were active
-        simulated_session = {'id': list_stats.user_id,
-                             'key': list_stats.api_key,
-                             'data_center': list_stats.data_center,
-                             'store_aggregates': list_stats.store_aggregates,
-                             'monthly_updates': list_stats.monthly_updates}
+        # Create a dictionary of list data
+        list_data = {'list_id': list_to_update.list_id,
+                     'list_name': list_to_update.list_name,
+                     'key': list_to_update.api_key,
+                     'data_center': list_to_update.data_center,
+                     'monthly_updates': list_to_update.monthly_updates,
+                     'store_aggregates': list_to_update.store_aggregates,
+                     'total_count': count,
+                     'open_rate': response_stats['open_rate'],
+                     'date_created': response_body['date_created'],
+                     'campaign_count': response_stats['campaign_count']}
 
         # Then re-run the calculations and update the database
         try:
-            import_analyze_store_list(
-                list_stats.list_id, list_stats.list_name, count,
-                open_rate, simulated_session)
+            import_analyze_store_list(list_data, list_to_update.org_id)
         except MailChimpImportError:
-            logger.error('Error updating list %s.', list_stats.list_id)
-            failed_updates.append(list_stats.list_id)
+            logger.error('Error updating list %s.', list_to_update.list_id)
+            failed_updates.append(list_to_update.list_id)
 
     # If any updates failed, raise an exception to send an error email
     if failed_updates:
@@ -396,25 +355,23 @@ def send_monthly_reports():
 
     # Grab info from the database
     monthly_report_lists = ListStats.query.filter_by(
-        monthly_updates=True).join(AppUser).all()
+        monthly_updates=True).all()
 
     # Send an email report for each list
     for monthly_report_list in monthly_report_lists:
-        logger.info('Emailing %s an updated report. List: %s (%s).',
-                    monthly_report_list.user.email,
-                    monthly_report_list.list_name,
-                    monthly_report_list.list_id)
-        stats = {'subscribers': monthly_report_list.subscribers,
-                 'open_rate': monthly_report_list.open_rate,
-                 'hist_bin_counts': json.loads(
-                     monthly_report_list.hist_bin_counts),
-                 'subscribed_pct': monthly_report_list.subscribed_pct,
-                 'unsubscribed_pct': monthly_report_list.unsubscribed_pct,
-                 'cleaned_pct': monthly_report_list.cleaned_pct,
-                 'pending_pct': monthly_report_list.pending_pct,
-                 'high_open_rt_pct': monthly_report_list.high_open_rt_pct,
-                 'cur_yr_inactive_pct': monthly_report_list.cur_yr_inactive_pct}
 
+        # Extract the users associated with each list
+        # Who requested a monthly update email
+        users_to_email = [user.email for user
+                          in monthly_report_list.monthly_update_users]
+        for email in users_to_email:
+            logger.info('Emailing %s an updated report. List: %s (%s).',
+                        email,
+                        monthly_report_list.list_name,
+                        monthly_report_list.list_id)
+
+        # Extract stats from the list object
+        stats = extract_stats(monthly_report_list)
         send_report(stats, monthly_report_list.list_id,
                     monthly_report_list.list_name,
-                    monthly_report_list.user.email)
+                    users_to_email)

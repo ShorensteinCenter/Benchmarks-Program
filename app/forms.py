@@ -6,23 +6,65 @@ The templates are rendered using Jinja2.
 import requests
 from flask import session
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, BooleanField
+from wtforms import (StringField, SubmitField,
+                     BooleanField, RadioField, SelectField)
 from wtforms.validators import DataRequired, Email
 
-class BasicInfoForm(FlaskForm):
+class UserForm(FlaskForm):
     """A form allowing the user to submit their basic information.
 
     Args:
         Flaskform: the base Flask-WTF form class.
     """
-    news_org = StringField('News Organization',
-                           validators=[DataRequired()])
-    contact_person = StringField('Contact Person',
-                                 validators=[DataRequired()])
-    email = (StringField('Email Address',
-                         validators=[DataRequired(), Email()]))
-    newsletters = StringField('Newsletters',
-                              validators=[DataRequired()])
+    name = StringField('Name', validators=[DataRequired()])
+    email = StringField('Email Address', validators=[DataRequired(), Email()])
+    news_org = StringField('News Organization', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+class OrgForm(FlaskForm):
+    """A form allowing the user to submit information about their organization.
+
+    Args:
+        Flaskform: the base Flask-WTF form class.
+    """
+    financial_classification = RadioField(
+        'Financial Classification', validators=[DataRequired()],
+        choices=[('For-Profit', 'For-Profit'),
+                 ('Non-Profit', 'Non-Profit'),
+                 ('B Corp', 'B Corp')])
+    coverage_scope = RadioField(
+        'Coverage Scope', validators=[DataRequired()],
+        choices=[('Hyperlocal', 'Hyperlocal'),
+                 ('City', 'City'),
+                 ('State', 'State'),
+                 ('National', 'National'),
+                 ('International', 'International')])
+    coverage_focus = RadioField(
+        'Coverage Focus', validators=[DataRequired()],
+        choices=[('Single Subject', 'Single Subject'),
+                 ('Investigative', 'Investigative'),
+                 ('Multiple Subjects', 'Multiple Subjects')])
+    platform = RadioField(
+        'Publishing Platform', validators=[DataRequired()],
+        choices=[('Digital Only', 'Digital Only'),
+                 ('Digital and Print', 'Digital and Print'),
+                 ('Newsletter Only', 'Newsletter Only')])
+    employee_range = RadioField(
+        'Number of Full-Time Employees', validators=[DataRequired()],
+        choices=[('5 or fewer', '5 or fewer'), ('6-10', '6-10'),
+                 ('11-20', '11-20'), ('21-50', '21-50'),
+                 ('More than 50', 'More than 50')])
+    budget = RadioField(
+        'Annual Budget', validators=[DataRequired()],
+        choices=[('Less than $500k', 'Less than $500k'),
+                 ('$500k-$2m', '$500k-$2m'),
+                 ('$2m-$10m', '$2m-$10m'),
+                 ('$10m-$30m', '$10m-$30m'),
+                 ('Greater than $30m', 'Greater than $30m')])
+    news_revenue_hub = BooleanField('News Revenue Hub')
+    institute_for_nonprofit_news = BooleanField(
+        'Institute for Nonprofit News')
+    lion_publishers = BooleanField('LION Publishers')
     submit = SubmitField('Submit')
 
 class ApiKeyForm(FlaskForm):
@@ -33,6 +75,7 @@ class ApiKeyForm(FlaskForm):
         Flaskform: the base Flask-WTF form class.
     """
     key = StringField('API Key', validators=[DataRequired()])
+    organization = SelectField('Organization', choices=[])
     store_aggregates = BooleanField('Use my aggregate MailChimp data'
                                     'for benchmarking')
     monthly_updates = BooleanField('I would like to receive monthly'
@@ -72,7 +115,7 @@ class ApiKeyForm(FlaskForm):
                                      'lists', params=params,
                                      auth=('shorenstein', key)))
         except requests.exceptions.ConnectionError:
-            self.key.errors.append('Connection to MailChimp servers'
+            self.key.errors.append('Connection to MailChimp servers '
                                    'refused')
             return False
         if response.status_code != 200:

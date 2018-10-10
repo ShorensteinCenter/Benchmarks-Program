@@ -1,7 +1,7 @@
 $crimson: #a71930;
 $dark-grey: #555;
 $medium-dark-grey: #aaa;
-$medium-grey: #ccc;
+$medium-grey: #ddd;
 $light-grey: #ededed;
 
 $link-color: $crimson;
@@ -31,7 +31,8 @@ $small-text-size-xxl: 0.9rem;
 $form-line-height: 1.5;
 $form-transition: 0.5s ease;
 $form-font-size: 1rem;
-$form-elt-margin: 0rem 0rem 2.25rem 0rem;
+$form-elt-bottom-margin: 2.25rem;
+$form-elt-margin: 0rem 0rem $form-elt-bottom-margin 0rem;
 $form-input-top-padding: .5rem;
 $form-input-padding: $form-input-top-padding 0.8rem;
 

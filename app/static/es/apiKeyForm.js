@@ -4,7 +4,7 @@ const apiKeyForm = document.querySelector('#api-key-form');
 const submitApiKey = async e => {
 	e.preventDefault();
 	apiKeyForm.removeEventListener('submit', submitApiKey);
-	const formElts = apiKeyForm.querySelectorAll(
+	const formElts = apiKeyForm.querySelectorAll('select,' +
 		'input:not([type="checkbox"]), .custom-control-label');
 	disable(formElts);
 	if (!clientSideValidateForm(apiKeyForm)) {
@@ -28,9 +28,12 @@ const submitApiKey = async e => {
 			window.location.href = '/select-list';
 		else {
 			if (response.status == 400) {
+				const invalidElts = apiKeyForm.querySelectorAll('.invalid');
+				for (let i = 0; i < invalidElts.length; ++i)
+					invalidElts[i].classList.remove('invalid');
 				const errors = await response.json();
 				for (const [k, _] of Object.entries(errors)) 
-					tagField(document.querySelector('#' + k));
+					tagField(apiKeyForm.querySelector('#' + k));
 				enable(formElts);
 				apiKeyForm.addEventListener('submit', submitApiKey);
 			}

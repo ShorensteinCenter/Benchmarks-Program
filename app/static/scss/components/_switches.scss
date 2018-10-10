@@ -1,0 +1,72 @@
+.switch {
+  font-size: $font-size-base;
+  position: relative;
+  display: inline-block;
+  height: $switch-height;
+
+  input {
+    position: absolute;
+    height: 1px;
+    width: 1px;
+    background: none;
+    border: 0;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    overflow: hidden;
+    padding: 0;
+
+    + label {
+      position: relative;
+      min-width: calc(#{$switch-height} * 2);
+      border-radius: $switch-border-radius;
+      height: $switch-height;
+      line-height: $switch-height;
+      display: inline-block;
+      cursor: pointer;
+      outline: none;
+      user-select: none;
+      vertical-align: middle;
+      text-indent: calc(calc(#{$switch-height} * 2) + .5rem);
+    }
+
+    + label::before,
+    + label::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: calc(#{$switch-height} * 2);
+      bottom: 0;
+      display: block;
+    }
+
+    + label::before {
+      right: 0;
+      background-color: $switch-bg;
+      border-radius: $switch-border-radius;
+      transition: $switch-transition;
+    }
+
+    + label::after {
+      top: $switch-thumb-padding;
+      left: $switch-thumb-padding;
+      width: calc(#{$switch-height} - calc(#{$switch-thumb-padding} * 2));
+      height: calc(#{$switch-height} - calc(#{$switch-thumb-padding} * 2));
+      border-radius: $switch-thumb-border-radius;
+      background-color: $switch-thumb-bg;
+      transition: $switch-transition;
+    }
+
+    &:checked + label::before {
+      background-color: $switch-checked-bg;
+    }
+
+    &:checked + label::after {
+      margin-left: $switch-height;
+    }
+  }
+
+  + .switch {
+    margin-left: 1rem;
+  }
+}

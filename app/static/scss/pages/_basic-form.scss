@@ -1,8 +1,4 @@
-#newsorg-input-wrapper.invalid:after {
-	content: 'Please enter a valid news organization.';
-}
-
-#contact-input-wrapper.invalid:after {
+#name-input-wrapper.invalid:after {
 	content: 'Please enter a valid contact person.';
 }
 
@@ -10,6 +6,6 @@
 	content: 'Please enter a valid email address.';
 }
 
-#newsletters-input-wrapper.invalid:after {
-	content: 'Please enter a valid newsletter or newsletters.'
+#newsorg-input-wrapper .awesomplete.invalid:after {
+	content: 'Please enter a valid news organization.';
 }
