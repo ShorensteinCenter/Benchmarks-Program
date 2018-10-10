@@ -27,13 +27,14 @@ const submitBasicInfo = async e => {
 			if (body.org == 'existing') {
 				const 
 					title = 'Thanks!',
-					body = 'We\'ve received your details. Once our team has ' +
+					pageBody = 'We\'ve received your details. Once our team has ' +
 						'reviewed your submission, we\'ll email you with ' +
-						'instructions for accessing our benchmarking tool.';
-				window.location.href = '/confirmation?title=' + title +
-					'&body=' + body;
+						'instructions for accessing our benchmarking tool.',
+					url = '/confirmation?title=' + title + '&body=' + pageBody;
+				window.location.href = url;
 			}
-			window.location.href = '/org-info';
+			else
+				window.location.href = '/org-info';
 		}
 		else {
 			if (response.status == 400) {
