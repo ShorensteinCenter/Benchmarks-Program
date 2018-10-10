@@ -9,9 +9,9 @@ These instructions will get you a copy of the project up and running on your loc
 ### Prerequisites
 
 * [Python](https://www.python.org), version 3.5+ (3.6+ recommended)
-* [RabbitMQ](https://www.rabbitmq.com/)
-* A relational database, e.g. [SQLite](https://www.sqlite.org) or [PostgresSQL](https://www.postgresql.org/).
-* [NodeJS](https://nodejs.org), to compile the front-end.
+* [RabbitMQ](https://www.rabbitmq.com/) or another AMQP broker
+* A relational database, e.g. [SQLite](https://www.sqlite.org) or [PostgresSQL](https://www.postgresql.org/)
+* [NodeJS](https://nodejs.org), version 10.11+
 
 ### Local Development
 

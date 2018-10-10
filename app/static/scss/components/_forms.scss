@@ -157,7 +157,8 @@ input:-webkit-autofill {
 }
 
 .custom-control-label:before {
-  border: 1px solid $medium-grey;
+  border: 1px solid $medium-dark-grey;
+  left: -1.8rem;
 }
 
 .inline-wrapper {
