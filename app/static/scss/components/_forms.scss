@@ -32,8 +32,7 @@ label {
 	margin: $form-elt-margin;
 }
 
-.form-input-wrapper:after, .form-input-wrapper .awesomplete:after,
-.inline-wrapper:after {
+.form-input-wrapper:after, .inline-wrapper:after {
     position: absolute;
     font-size: $small-text-size;
     left: 0rem;
@@ -44,7 +43,7 @@ label {
     }
 }
 
-.form-input-wrapper:after, .form-input-wrapper .awesomplete:after {
+.form-input-wrapper:after, {
     top: 2 * $form-input-top-padding + 
         $form-font-size * $form-line-height + 0.25rem;
 
@@ -64,13 +63,11 @@ label {
 }
 
 .form-input-wrapper.invalid:after,
-.form-input-wrapper .awesomplete.invalid:after,
 .inline-wrapper.invalid:after {
 	color: $form-invalid-msg-color;
 }
 
 .form-input-wrapper.valid:after,
-.form-input-wrapper .awesomplete.valid:after
 .inline-wrapper.invalid:after {
 	opacity: 1;
 	color: $form-valid-msg-color;
@@ -92,8 +89,7 @@ label {
 }
 
 .form-input-wrapper input ~ .focus-bg,
-.form-input-wrapper select ~ .focus-bg,
-.form-input-wrapper .awesomplete ~ .focus-bg {
+.form-input-wrapper select ~ .focus-bg {
     position: absolute; 
     left: 0; 
     top: 0; 
@@ -106,15 +102,13 @@ label {
 }
 
 .form-input-wrapper input.invalid ~ .focus-bg,
-.form-input-wrapper select.invalid ~ .focus-bg,
-.form-input-wrapper .awesomplete.invalid ~ .focus-bg {
+.form-input-wrapper select.invalid ~ .focus-bg {
 	background-color: $form-invalid-input-color;
 	opacity: 1;
 }
 
 .form-input-wrapper input.valid ~ .focus-bg,
-.form-input-wrapper select.valid ~ .focus-bg,
-.form-input-wrapper .awesomplete.valid ~ .focus-bg {
+.form-input-wrapper select.valid ~ .focus-bg {
 	background-color: $form-valid-input-color;
 	opacity: 1;
 }
@@ -153,75 +147,24 @@ input:-webkit-autofill {
 /* Checkboxes and Radios */
 
 .custom-control:not(.custom-control-inline) {
-  margin: $form-elt-margin;
+    margin: $form-elt-margin;
 }
 
 .custom-control-label:before {
-  border: 1px solid $medium-dark-grey;
-  left: -1.8rem;
+    border: 1px solid $medium-dark-grey;
+    left: -1.8rem;
+}
+
+.custom-control-label:after {
+    left: -1.8rem;
 }
 
 .inline-wrapper {
-  margin-top: 0.35rem;
-  margin-bottom: $form-elt-bottom-margin;
-  position: relative;
+    margin-top: 0.35rem;
+    margin-bottom: $form-elt-bottom-margin;
+    position: relative;
 }
 
 .custom-control-inline {
     margin-bottom: 0.2rem;
-}
-
-/* Autocomplete */
-
-.awesomplete {
-    ul {
-        position: absolute;
-        left: 0;
-        z-index: 1;
-        min-width: 100%;
-        box-sizing: border-box;
-        list-style: none;
-        padding-inline-start: 0;
-        opacity: 0.9;
-    }
-
-    li {
-        background-color: white;
-        transition: background-color $form-transition;
-        padding: $form-input-padding;
-        font-size: $form-font-size;
-        line-height: $form-line-height;
-        border-top: none;
-        border-left: .5px solid $medium-grey;
-        border-bottom: .5px solid $medium-grey;
-        border-right: .5px solid $medium-grey;
-
-        @include media-breakpoint-up(sm) {
-            padding: $form-input-padding-desktop;
-            font-size: $form-font-size-desktop;
-        }
-
-        @include media-breakpoint-up(xxl) {
-            padding: $form-input-padding-xxl;
-            font-size: $form-font-size-xxl;
-        }
-    }
-
-    li:hover {
-        background-color: $light-grey;
-        cursor: pointer;
-    }
-
-    li[aria-selected="true"] {
-        background-color: $medium-grey;
-    }
-
-    mark {
-        background-color: unset;
-        padding: unset;
-    }
-
-    .visually-hidden {
-        display: none;
-    }
 }

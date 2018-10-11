@@ -47,15 +47,7 @@ def confirmation():
 def basic_info():
     """Basic Info Form route."""
     user_form = UserForm()
-
-    # Process the list of organizations into a comma-separated string
-    # for autocomplete purposes
-    orgs = Organization.query.with_entities(Organization.name).all()
-    orgs_list = [org.name for org in orgs]
-    session['orgs_list'] = orgs_list
-    orgs_str = ', '.join(orgs_list)
-    return render_template('user-form.html', user_form=user_form,
-                           orgs=orgs_str)
+    return render_template('user-form.html', user_form=user_form)
 
 @app.route('/validate-basic-info', methods=['POST'])
 def validate_basic_info():
@@ -81,10 +73,14 @@ def validate_basic_info():
         email_hash = (hashlib.md5(
             user_form.email.data.encode()).hexdigest())
 
+        # Generate a list of organization names
+        orgs = Organization.query.with_entities(Organization.name).all()
+        org_list = [org.name for org in orgs]
+
         # If the user selected an organization we're already tracking
         # Find the organization and create/update the user
         # With a link to that org
-        if user_org in session['orgs_list']:
+        if user_org in org_list:
             org = Organization.query.filter_by(name=user_org).first()
             store_user(user_name, user_form.email.data, email_hash, org)
             return jsonify({'org': 'existing'})
