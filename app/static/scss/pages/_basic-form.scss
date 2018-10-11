@@ -1,11 +1,11 @@
 #name-input-wrapper.invalid:after {
-	content: 'Please enter a valid contact person.';
+	content: 'Please enter a name.';
 }
 
 #email-input-wrapper.invalid:after {
 	content: 'Please enter a valid email address.';
 }
 
-#newsorg-input-wrapper .awesomplete.invalid:after {
-	content: 'Please enter a valid news organization.';
+#basic-info-form #newsorg-input-wrapper.invalid:after {
+	content: 'Please enter a news organization.';
 }

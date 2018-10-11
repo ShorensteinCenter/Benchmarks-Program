@@ -58,7 +58,7 @@ for (let i = 0; i < inputs.length; ++i) {
 	const input = inputs[i];
 	if (input.tagName == 'INPUT') {
 		input.addEventListener(
-			'keyup', e => clientSideValidateField(e.currentTarget));
+			'blur', e => clientSideValidateField(e.currentTarget));
 	}
 	else {
 		input.addEventListener(
