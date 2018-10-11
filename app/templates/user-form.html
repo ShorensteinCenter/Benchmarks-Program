@@ -18,14 +18,14 @@
 				</div>
 				<label for="news_org">News Organization&hairsp;*</label>
 				<div id="newsorg-input-wrapper" class="form-input-wrapper">
-					{{ user_form.news_org(class="awesomplete", data_list=orgs, data_maxitems="5") }}
+					{{ user_form.news_org() }}
 					<span class="focus-bg"></span>
 				</div>
 				<div class="form-submit-wrapper">
 					{{ user_form.submit() }}
 				</div>
 			</form>
-			<div>*&thinsp;Select an organization we're already tracking, or add yours to our system.</div>
+			<div>*&thinsp;Type in an organization we're already tracking, or add yours to our system.</div>
 		</div>
 		<div class="col-12 col-lg-4 offset-lg-1">
 			<div class="bordered has-bottom-margin">
