@@ -65,6 +65,8 @@ class OrgForm(FlaskForm):
     institute_for_nonprofit_news = BooleanField(
         'Institute for Nonprofit News')
     lion_publishers = BooleanField('LION Publishers')
+    other_affiliation = BooleanField('Other')
+    other_affiliation_name = StringField('Other')
     submit = SubmitField('Submit')
 
 class ApiKeyForm(FlaskForm):

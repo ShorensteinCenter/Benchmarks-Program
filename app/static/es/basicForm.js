@@ -4,12 +4,12 @@ const basicInfoForm = document.querySelector('#basic-info-form');
 const submitBasicInfo = async e => {
 	e.preventDefault();
 	basicInfoForm.removeEventListener('submit', submitBasicInfo);
-	disable(basicInfoForm.querySelectorAll('input'));
 	if (!clientSideValidateForm(basicInfoForm)) {
-		enable(basicInfoForm.querySelectorAll('input'));
 		basicInfoForm.addEventListener('submit', submitBasicInfo);
 		return;
 	}
+	const formElts = basicInfoForm.querySelectorAll('input');
+	disable(formElts);
 	const
 		headers = new Headers({'X-CSRFToken': csrfToken}),
 		formData = new FormData(basicInfoForm),
@@ -37,14 +37,14 @@ const submitBasicInfo = async e => {
 				window.location.href = '/org-info';
 		}
 		else {
-			if (response.status == 400) {
+			if (response.status == 422) {
 				const invalidElts = basicInfoForm.querySelectorAll('.invalid');
 				for (let i = 0; i < invalidElts.length; ++i)
 					invalidElts[i].classList.remove('invalid');
 				const errors = await response.json();
 				for (const [k, _] of Object.entries(errors))
 					tagField(basicInfoForm.querySelector('#' + k));
-				enable(basicInfoForm.querySelectorAll('input'));
+				enable(formElts);
 				basicInfoForm.addEventListener('submit', submitBasicInfo);
 			}
 			else

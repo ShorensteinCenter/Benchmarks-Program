@@ -29,14 +29,14 @@ These instructions will get you a copy of the project up and running on your loc
 * `SECRET_KEY` - Flask secret key.
 * `CELERY_BROKER_URI` - The URI of the Celery broker. Default `'amqp://guest:guest@localhost:5672/'` (a broker running locally on port `5672`).
 * `SQLALCHEMY_DATABASE_URI` - The URI of the database. Default is a `sqlite` database named `app.db` located at the application root.
-* `SERVER_NAME` - the URL for the app. Default `None` (suitable for running locally). Note that `Flask-Mail` requires an externally-accessible URL.
-* `MAIL_SERVER` - `Flask-Mail` email server. Default `smtp.gmail.com` (suitable for Gmail).
-* `MAIL_PORT` - `Flask-Mail` email port. Default `465` (suitable for Gmail).
-* `MAIL_USE_SSL` - `Flask-Mail` SSL boolean. Default `True`.
-* `MAIL_USERNAME` - `Flask-Mail` email address.
-* `MAIL_PASSWORD` - `Flask-Mail` email password.
+* `SERVER_NAME` - the URL for the app. Default `127.0.0.1:5000` (suitable for running locally). Note that the URLs for assets sent via email (images, etc.) are generated using Flask's `url_for()` function. If `SERVER_NAME` is not externally accessible these assets will 404.
+* `AWS_ACCESS_KEY_ID` - AWS Access Key ID for `boto3`. We use AWS to send email via [Simple Email Service](https://aws.amazon.com/ses/).
+* `AWS_SECRET_ACCESS_KEY` - AWS Secret Access Key for `boto3`.
+* `SES_REGION_NAME` - AWS Simple Email Service region.
+* `SES_DEFAULT_EMAIL_SOURCE` - The default email address to send from, if none was specified.
+* `SES_CONFIGURATION_SET` - SES Configuration set for tracking opens/clicks/etc. Optional.
 * `NO_PROXY` - We use proxies to distribute our MailChimp requests across IP addresses. Set this variable to `True` in order to disable proxying, or modify the `enable_proxy` method in `app/lists.py` according to your proxy setup.
-* `ADMIN_EMAIL` - Email address to send error emails to.
+* `ADMIN_EMAIL` - Email address to send error emails to. Optional.
 
 ##### Upgrade the database
 
@@ -63,7 +63,6 @@ Finally, open a web browser and navigate to the `SERVER_NAME` URI.
 Lint the backend with `pylint`:
 
     pylint app
-
 
 `Gulp` should automatically lint the front-end. Javascript rules are defined in `.eslintrc`.
 
@@ -99,8 +98,7 @@ A sample init script for nginx:
         }
     }
 
-
-Sample init scripts for Celery can be found in the [Celery repo](https://github.com/celery/celery/tree/3.1/extra/generic-init.d/).
+Sample init scripts for Celery can be found in the [Celery repo](https://github.com/celery/celery/tree/master/extra/generic-init.d/).
 
 ## Authors
 

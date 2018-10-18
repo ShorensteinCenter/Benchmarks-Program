@@ -6,3 +6,7 @@
 #budget-wrapper.invalid:after {
 	content: 'Please select a value.';
 }
+
+#other-affiliation-name-wrapper.invalid:after {
+	content: 'Please enter a value.';
+}

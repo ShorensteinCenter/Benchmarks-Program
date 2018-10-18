@@ -93,7 +93,7 @@ def validate_basic_info():
         session['org'] = user_org
         return jsonify({'org': 'new'})
 
-    return jsonify(user_form.errors), 400
+    return jsonify(user_form.errors), 422
 
 @app.route('/org-info')
 def org_info():
@@ -120,9 +120,15 @@ def validate_org_info():
     """
     org_form = OrgForm()
     if org_form.validate_on_submit():
-        affiliations = [elt.label.text
-                        for elt in org_form
-                        if isinstance(elt, BooleanField) and elt.data]
+
+        # Create a list of strings from the affiliation checkboxes
+        # and the "Other" affiliation input field
+        affiliations = [*[elt.label.text
+                          for elt in org_form
+                          if isinstance(elt, BooleanField) and elt.data],
+                        *([org_form.other_affiliation_name.data]
+                          if org_form.other_affiliation_name.data
+                          else [])]
         org_details = {
             'name': session['org'],
             'financial_classification': org_form.financial_classification.data,
@@ -135,7 +141,7 @@ def validate_org_info():
         org = store_org(org_details)
         store_user(session['name'], session['email'], session['email_hash'], org)
         return jsonify(True)
-    return jsonify(org_form.errors), 400
+    return jsonify(org_form.errors), 422
 
 @app.route('/benchmarks/<string:user>')
 def benchmarks(user):
@@ -157,9 +163,16 @@ def benchmarks(user):
     # Dynamically generate options for the organizations select box
     orgs_list = [(str(org.id), org.name) for org in result.orgs]
     session['orgs_list'] = orgs_list
+    num_orgs = len(orgs_list)
     api_key_form = ApiKeyForm()
-    api_key_form.organization.choices = [*[('', '')], *orgs_list]
-    return render_template('enter-api-key.html', api_key_form=api_key_form)
+
+    # Don't include an empty select field if there is only one option
+    api_key_form.organization.choices = (
+        [*[('', '')], *orgs_list]
+        if num_orgs > 1
+        else orgs_list)
+    return render_template(
+        'enter-api-key.html', api_key_form=api_key_form, num_orgs=num_orgs)
 
 @app.route('/validate-api-key', methods=['POST'])
 def validate_api_key():
@@ -168,8 +181,9 @@ def validate_api_key():
     api_key_form.organization.choices = session['orgs_list']
     if api_key_form.validate_on_submit():
         session['org_id'] = api_key_form.organization.data
+        print(session['org_id'])
         return jsonify(True)
-    return jsonify(api_key_form.errors), 400
+    return jsonify(api_key_form.errors), 422
 
 @app.route('/select-list')
 def select_list():
@@ -201,7 +215,6 @@ def get_list_data():
                    'lists.stats.campaign_count'),
         ('count', session['num_lists']),
     )
-    print(params)
     response = requests.get(request_uri, params=params,
                             auth=('shorenstein', session['key']))
     data = response.json()['lists'] or None

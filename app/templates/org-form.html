@@ -11,72 +11,80 @@
 					<input id="news_org" type="text" value="{{ org }}" class="disabled-elt">
 				</div>
 				<label class="d-block" for="financial_classification">Financial Classification</label>
-				<div class="inline-wrapper" id="financial-classification-wrapper">
+				<div class="multi-custom-control-wrapper" id="financial-classification-wrapper">
 					{% for subfield in org_form.financial_classification %}
-						<div class="custom-control custom-radio custom-control-inline">
+						<div class="custom-control custom-radio multi-custom-control">
 							{{ subfield(class="custom-control-input") }}
 							{{ subfield.label(class="custom-control-label") }}
 						</div>
 					{% endfor %}
 				</div>
 				<label class="d-block" for="coverage_scope">Coverage Scope</label>
-				<div class="inline-wrapper" id="coverage-scope-wrapper">
+				<div class="multi-custom-control-wrapper" id="coverage-scope-wrapper">
 					{% for subfield in org_form.coverage_scope %}
-						<div class="custom-control custom-radio custom-control-inline">
+						<div class="custom-control custom-radio multi-custom-control">
 							{{ subfield(class="custom-control-input") }}
 							{{ subfield.label(class="custom-control-label") }}
 						</div>
 					{% endfor %}
 				</div>
 				<label class="d-block" for="coverage_focus">Coverage Focus</label>
-				<div class="inline-wrapper" id="coverage-focus-wrapper">
+				<div class="multi-custom-control-wrapper" id="coverage-focus-wrapper">
 					{% for subfield in org_form.coverage_focus %}
-						<div class="custom-control custom-radio custom-control-inline">
+						<div class="custom-control custom-radio multi-custom-control">
 							{{ subfield(class="custom-control-input") }}
 							{{ subfield.label(class="custom-control-label") }}
 						</div>
 					{% endfor %}
 				</div>
 				<label class="d-block" for="platform">Publishing Platform</label>
-				<div class="inline-wrapper" id="platform-wrapper">
+				<div class="multi-custom-control-wrapper" id="platform-wrapper">
 					{% for subfield in org_form.platform %}
-						<div class="custom-control custom-radio custom-control-inline">
+						<div class="custom-control custom-radio multi-custom-control">
 							{{ subfield(class="custom-control-input") }}
 							{{ subfield.label(class="custom-control-label") }}
 						</div>
 					{% endfor %}
 				</div>
 				<label class="d-block" for="employee_range">Number of Full-Time Employees</label>
-				<div class="inline-wrapper" id="employee-range-wrapper">
+				<div class="multi-custom-control-wrapper" id="employee-range-wrapper">
 					{% for subfield in org_form.employee_range %}
-						<div class="custom-control custom-radio custom-control-inline">
+						<div class="custom-control custom-radio multi-custom-control">
 							{{ subfield(class="custom-control-input") }}
 							{{ subfield.label(class="custom-control-label") }}
 						</div>
 					{% endfor %}
 				</div>
 				<label class="d-block" for="budget">Annual Budget</label>
-				<div class="inline-wrapper" id="budget-wrapper">
+				<div class="multi-custom-control-wrapper" id="budget-wrapper">
 					{% for subfield in org_form.budget %}
-						<div class="custom-control custom-radio custom-control-inline">
+						<div class="custom-control custom-radio multi-custom-control">
 							{{ subfield(class="custom-control-input") }}
 							{{ subfield.label(class="custom-control-label") }}
 						</div>
 					{% endfor %}
 				</div>
 				<label class="d-block" for="affiliation">Affiliation</label>
-				<div class="inline-wrapper" id="affiliation-wrapper">
-					<div class="custom-control custom-checkbox custom-control-inline">
+				<div class="multi-custom-control-wrapper" id="affiliation-wrapper">
+					<div class="custom-control custom-checkbox multi-custom-control">
 						{{ org_form.news_revenue_hub(type="checkbox", class="custom-control-input") }}
   						<label class="custom-control-label" for="news_revenue_hub">News Revenue Hub</label>
 					</div>
-					<div class="custom-control custom-checkbox custom-control-inline">
+					<div class="custom-control custom-checkbox multi-custom-control">
 						{{ org_form.institute_for_nonprofit_news(type="checkbox", class="custom-control-input") }}
   						<label class="custom-control-label" for="institute_for_nonprofit_news">Institute for Nonprofit News</label>
 					</div>
-					<div class="custom-control custom-checkbox custom-control-inline">
+					<div class="custom-control custom-checkbox multi-custom-control">
 						{{ org_form.lion_publishers(type="checkbox", class="custom-control-input") }}
   						<label class="custom-control-label" for="lion_publishers">LION Publishers</label>
+					</div>
+					<div class="custom-control custom-checkbox multi-custom-control">
+						{{ org_form.other_affiliation(type="checkbox", class="custom-control-input") }}
+  						<label class="custom-control-label" for="other_affiliation">Other (enter below):</label>
+					</div>
+					<div id="other-affiliation-name-wrapper" class="form-input-wrapper">
+						{{ org_form.other_affiliation_name(class="disabled-elt") }}
+						<span class="focus-bg"></span>
 					</div>
 				</div>
 				<div class="form-submit-wrapper">

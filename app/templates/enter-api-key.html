@@ -6,9 +6,13 @@
 		<div class="col-12 col-lg-7 d-flex flex-column content-block">
 			<h1 class="has-bottom-margin">Enter your MailChimp API key</h1>
 			<form action="#" id="api-key-form" method="post" autocomplete="off" novalidate>
-				<label for="news_org">News Organization</label>
+				<label for="news_org" {% if num_orgs == 1 %} class="disabled-elt" {% endif %}>News Organization</label>
 				<div id="newsorg-input-wrapper" class="form-input-wrapper">
-					{{ api_key_form.organization(class="custom-select") }}
+					{% if num_orgs == 1 %}
+						{{ api_key_form.organization(class="custom-select disabled-elt") }}
+					{% else %}
+						{{ api_key_form.organization(class="custom-select") }}
+					{% endif %}
 					<span class="focus-bg"></span>
 				</div>
 				<label for="api_key">API Key</label>
@@ -21,7 +25,7 @@
 					<label class="custom-control-label" for="store_aggregates">Store this API key, and use my aggregate MailChimp data for benchmarking</label>
 				</div>
 				<div class="custom-control custom-checkbox">
-					{{ api_key_form.monthly_updates(type="checkbox", class="custom-control-input") }}
+					{{ api_key_form.monthly_updates(type="checkbox", class="custom-control-input", checked="true") }}
 					<label class="custom-control-label" for="monthly_updates">Store this API key, and send me monthly benchmarking updates</label>
 				</div>
 				<div class="form-submit-wrapper">

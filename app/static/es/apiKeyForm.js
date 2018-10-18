@@ -4,14 +4,13 @@ const apiKeyForm = document.querySelector('#api-key-form');
 const submitApiKey = async e => {
 	e.preventDefault();
 	apiKeyForm.removeEventListener('submit', submitApiKey);
-	const formElts = apiKeyForm.querySelectorAll('select,' +
-		'input:not([type="checkbox"]), .custom-control-label');
-	disable(formElts);
 	if (!clientSideValidateForm(apiKeyForm)) {
-		enable(formElts);
 		apiKeyForm.addEventListener('submit', submitApiKey);
 		return;
 	}
+	const formElts = apiKeyForm.querySelectorAll('select,' +
+		'input:not([type="checkbox"]), .custom-control-label');
+	disable(formElts);
 	const
 		headers = new Headers({'X-CSRFToken': csrfToken}),
 		formData = new FormData(apiKeyForm),
@@ -27,7 +26,7 @@ const submitApiKey = async e => {
 		if (response.ok)
 			window.location.href = '/select-list';
 		else {
-			if (response.status == 400) {
+			if (response.status == 422) {
 				const invalidElts = apiKeyForm.querySelectorAll('.invalid');
 				for (let i = 0; i < invalidElts.length; ++i)
 					invalidElts[i].classList.remove('invalid');
