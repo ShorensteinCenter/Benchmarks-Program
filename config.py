@@ -23,9 +23,8 @@ class Config():
         ('sqlite:///' + os.path.join(
             os.path.abspath(os.path.dirname(__file__)), 'app.db')))
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SERVER_NAME = os.environ.get('SERVER_NAME') or None
-    MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'smtp.gmail.com'
-    MAIL_PORT = os.environ.get('MAIL_PORT') or 465
-    MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL') or True
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    SERVER_NAME = os.environ.get('SERVER_NAME') or '127.0.0.1:5000'
+    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    SES_REGION_NAME = os.environ.get('SES_REGION_NAME')
+    SES_DEFAULT_EMAIL_SOURCE = os.environ.get('SES_DEFAULT_EMAIL_SOURCE')

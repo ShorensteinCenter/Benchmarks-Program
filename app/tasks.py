@@ -4,11 +4,10 @@ import json
 import random
 from collections import OrderedDict
 import requests
-from flask import render_template
-from flask_mail import Message
 from sqlalchemy.sql.functions import func
 from celery.utils.log import get_task_logger
-from app import app, celery, db, mail
+from app import celery, db
+from app.emails import send_email
 from app.lists import MailChimpList, MailChimpImportError, do_async_import
 from app.models import ListStats, AppUser
 from app.charts import BarChart, Histogram, render_png
@@ -28,7 +27,6 @@ def send_activated_email(user_id):
 
     # Send an email with the unique link
     send_email('You\'re all set to access our benchmarks!',
-               'shorensteintesting@gmail.com',
                [result.email],
                'activated-email.html',
                {'title': 'You\'re all set to access our benchmarks!',
@@ -68,7 +66,6 @@ def import_analyze_store_list(list_data, org_id, user_email=None):
         if user_email:
             send_email(
                 'We Couldn\'t Process Your Email Benchmarking Report',
-                'shorensteintesting@gmail.com',
                 [user_email, os.environ.get('ADMIN_EMAIL') or None],
                 'error-email.html',
                 {'title': 'Looks like something went wrong ☹',
@@ -197,27 +194,12 @@ def send_report(stats, list_id, list_name, user_email_or_emails):
 
     # Send charts as an email report
     send_email('Your Email Benchmarking Report is Ready!',
-               'shorensteintesting@gmail.com',
                user_email_or_emails,
                'report-email.html',
                {'title': 'We\'ve analyzed the {} list!'.format(list_name),
-                'list_id': list_id})
-
-def send_email(subject, sender, recipients, template_name, template_context):
-    """Sends an email using Flask-Mail according to the args provided.
-
-    Args:
-        subject: the email subject line.
-        sender: sender's email address.
-        recipients: list of recipient email addresses.
-        template_name: the name of the template to render as the html body.
-        template_context: the context to be passed to the html template.
-    """
-    with app.app_context():
-        html = render_template(template_name, **template_context)
-        msg = Message(subject, sender=sender, recipients=recipients,
-                      html=html)
-        mail.send(msg)
+                'list_id': list_id},
+               configuration_set_name=(
+                   os.environ.get('SES_CONFIGURATION_SET') or None))
 
 def extract_stats(list_object):
     """Extracts a stats dictionary from a list object from the database."""

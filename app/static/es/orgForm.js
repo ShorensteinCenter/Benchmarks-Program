@@ -4,7 +4,12 @@ const orgForm = document.querySelector('#org-form');
 const submitOrg = async e => {
 	e.preventDefault();
 	orgForm.removeEventListener('submit', submitOrg);
-	const formElts = orgForm.querySelectorAll('label, .custom-control-label');
+	if (!clientSideValidateForm(orgForm)) {
+		orgForm.addEventListener('submit', submitOrg);
+		return;
+	}
+	const formElts = orgForm.querySelectorAll(
+		'label, .custom-control-label');
 	disable(formElts);
 	const
 		headers = new Headers({'X-CSRFToken': csrfToken}),
@@ -28,7 +33,7 @@ const submitOrg = async e => {
 				'&body=' + body;
 		}
 		else {
-			if (response.status == 400) {
+			if (response.status == 422) {
 				const invalidElts = orgForm.querySelectorAll('.invalid');
 				for (let i = 0; i < invalidElts.length; ++i)
 					invalidElts[i].classList.remove('invalid');
@@ -49,5 +54,23 @@ const submitOrg = async e => {
 	}
 }
 
-if (orgForm)
+/* Disable/enable the "Other" affiliation field based on whether the
+   "Other" checkbox is checked */
+const toggleOtherAffField = (otherInput, otherInputWrapper) => {
+	const classes = ['valid', 'invalid'];
+	otherInput.classList.remove(...classes);
+	otherInput.classList.toggle('disabled-elt');
+	otherInputWrapper.classList.remove(...classes);
+	otherInput.value = "";
+}
+
+if (orgForm) {
 	orgForm.addEventListener('submit', submitOrg);
+	const
+		otherCheckbox = orgForm.querySelector('#other_affiliation'),
+		otherInput = orgForm.querySelector('#other_affiliation_name'),
+		otherInputWrapper = orgForm.querySelector(
+			'#other-affiliation-name-wrapper');
+	otherCheckbox.addEventListener('change', e =>
+		toggleOtherAffField(otherInput, otherInputWrapper));
+}

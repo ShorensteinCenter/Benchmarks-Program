@@ -40,7 +40,8 @@ const clientSideValidateField = elt => {
 	checkboxes due to limitations around Bootstrap's custom styling
 	implementation. */
 const clientSideValidateForm = form => {
-	const elts = form.querySelectorAll('input, select');
+	const elts = form.querySelectorAll(
+		'input:not(.disabled-elt), select:not(.disabled-elt)');
 	let valid = true;
 	for (let i = 0; i < elts.length; ++i) {
 		const validity = clientSideValidateField(elts[i])

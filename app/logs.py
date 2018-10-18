@@ -1,27 +1,38 @@
 """This module sets up logging."""
 import os
-import smtplib
 import logging
 from logging.handlers import RotatingFileHandler, SMTPHandler
+import boto3
 from app import app
 
-class SSLSMTPHandler(SMTPHandler):
-    """An SMTP handler for logging which allows SSL connections."""
+class SESHandler(SMTPHandler):
+    """An SMTP handler for logging which uses Amazon SES"""
+    def __init__(self, mailhost, fromaddr, toaddrs, subject, aws_config): # pylint: disable=too-many-arguments
+        self.aws_config = aws_config
+        super().__init__(mailhost, fromaddr, toaddrs, subject)
+
     def emit(self, record):
         """Emits a record."""
         try:
-            port = self.mailport
-            if not port:
-                port = smtplib.SMTP_PORT
-            smtp = smtplib.SMTP_SSL(self.mailhost, port)
-            msg = self.format(record)
-            if self.username:
-                smtp.login(self.username, self.password)
-            smtp.sendmail(self.fromaddr, self.toaddrs, msg)
-            smtp.quit()
-        except (KeyboardInterrupt, SystemExit):
+            ses = boto3.client(
+                'ses',
+                region_name=self.aws_config['ses_region_name'],
+                aws_access_key_id=self.aws_config['aws_access_key_id'],
+                aws_secret_access_key=self.aws_config['aws_secret_access_key']
+            )
+            ses.send_email(
+                Source=self.fromaddr,
+                Destination={'ToAddresses': self.toaddrs},
+                Message={
+                    'Subject': {'Data': self.subject},
+                    'Body': {
+                        'Text': {'Data': self.format(record)}
+                    }
+                }
+            )
+        except (KeyboardInterrupt, SystemExit): # pylint: disable=try-except-raise
             raise
-        except:
+        except: # pylint: disable=bare-except
             self.handleError(record)
 
 def setup_logging():
@@ -43,12 +54,15 @@ def setup_logging():
         file_handler.setLevel(logging.WARN)
 
     # Create equivalent mail handler
-    mail_handler = SSLSMTPHandler(
-        mailhost=(app.config['MAIL_SERVER'], app.config['MAIL_PORT']),
-        fromaddr='shorensteintesting@gmail.com',
-        toaddrs=os.environ.get('ADMIN_EMAIL'),
+    mail_handler = SESHandler(
+        mailhost="",
+        fromaddr=app.config['SES_DEFAULT_EMAIL_SOURCE'],
+        toaddrs=[os.environ.get('ADMIN_EMAIL')],
         subject='Application Error',
-        credentials=(app.config['MAIL_USERNAME'], app.config['MAIL_PASSWORD']))
+        aws_config={
+            'ses_region_name': app.config['SES_REGION_NAME'],
+            'aws_access_key_id': app.config['AWS_ACCESS_KEY_ID'],
+            'aws_secret_access_key': app.config['AWS_SECRET_ACCESS_KEY']})
 
     # Set the email format
     mail_handler.setFormatter(logging.Formatter('''

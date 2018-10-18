@@ -1,46 +1,64 @@
 h1 {
-	color: $crimson;
-	font-size: $h1-size;
-	padding-bottom: $h1-extra-padding;
-	text-align: center;
+    color: $crimson;
+    font-size: $h1-size;
+    padding-bottom: $h1-extra-padding;
+    text-align: center;
 
     @include media-breakpoint-up(sm) {
-		font-size: $h1-size-sm;
-		padding-bottom: $h1-extra-padding-sm;
-	}
+        font-size: $h1-size-sm;
+        padding-bottom: $h1-extra-padding-sm;
+    }
 
-	@include media-breakpoint-up(xxl) {
-		font-size: $h1-size-xxl;
-		padding-bottom: $h1-extra-padding-xxl;
-	}
+    @include media-breakpoint-up(xxl) {
+        font-size: $h1-size-xxl;
+        padding-bottom: $h1-extra-padding-xxl;
+    }
 }
 
 h2 {
-	color: $crimson;
-	font-size: $h2-size;
+    color: $crimson;
+    font-size: $h2-size;
 
     @include media-breakpoint-up(sm) {
-		font-size: $h2-size-sm;
-	}
+        font-size: $h2-size-sm;
+    }
 
-	@include media-breakpoint-up(xxl) {
-		font-size: $h2-size-xxl;
-	}
+    @include media-breakpoint-up(xxl) {
+        font-size: $h2-size-xxl;
+    }
 }
 
 strong {
-	color: $crimson;
+    color: $crimson;
 }
 
 .disabled-elt {
-	opacity: 0.5;
-	pointer-events: none;
+    opacity: 0.5;
+    pointer-events: none;
+    background-image: none;
 }
 
 .small {
-	font-size: $small-text-size;
+    font-size: $small-text-size;
 
-	@include media-breakpoint-up(xxl) {
-		font-size: $small-text-size-xxl;
-	}
+    @include media-breakpoint-up(xxl) {
+        font-size: $small-text-size-xxl;
+    }
+}
+
+.info-svg {
+    width: 1.35rem;
+    height: 1.35rem;
+    margin-bottom: .15rem;
+    margin-left: 9px;
+    cursor: pointer;
+    fill: $crimson;
+    stroke: $crimson;
+    stroke-width: 4px;
+
+    .circle {
+        stroke: $medium-dark-grey;
+        stroke-width: 2px;
+        fill: $medium-dark-grey;
+    }
 }

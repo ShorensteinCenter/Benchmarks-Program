@@ -32,7 +32,7 @@ label {
 	margin: $form-elt-margin;
 }
 
-.form-input-wrapper:after, .inline-wrapper:after {
+.form-input-wrapper:after, .multi-custom-control-wrapper:after {
     position: absolute;
     font-size: $small-text-size;
     left: 0rem;
@@ -58,18 +58,17 @@ label {
     }
 }
 
-.inline-wrapper:after {
-    bottom: -1.25rem;
+.multi-custom-control-wrapper:after {
+    bottom: -1.4rem;
 }
 
 .form-input-wrapper.invalid:after,
-.inline-wrapper.invalid:after {
+.multi-custom-control-wrapper.invalid:after {
 	color: $form-invalid-msg-color;
 }
 
 .form-input-wrapper.valid:after,
-.inline-wrapper.invalid:after {
-	opacity: 1;
+.multi-custom-control-wrapper.valid:after {
 	color: $form-valid-msg-color;
 }
 
@@ -146,8 +145,22 @@ input:-webkit-autofill {
 
 /* Checkboxes and Radios */
 
-.custom-control:not(.custom-control-inline) {
+.custom-control {
+    padding-left: 1.8rem;
+}
+
+.custom-control:not(.multi-custom-control) {
     margin: $form-elt-margin;
+}
+
+.multi-custom-control {
+    margin-bottom: 0.35rem;
+}
+
+.multi-custom-control-wrapper {
+    margin-top: 0.5rem;
+    margin-bottom: $form-elt-bottom-margin;
+    position: relative;
 }
 
 .custom-control-label:before {
@@ -157,14 +170,4 @@ input:-webkit-autofill {
 
 .custom-control-label:after {
     left: -1.8rem;
-}
-
-.inline-wrapper {
-    margin-top: 0.35rem;
-    margin-bottom: $form-elt-bottom-margin;
-    position: relative;
-}
-
-.custom-control-inline {
-    margin-bottom: 0.2rem;
 }
