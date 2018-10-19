@@ -25,9 +25,11 @@ const submitBasicInfo = async e => {
 		if (response.ok) {
 			const body = await response.json();
 			if (body.org == 'existing') {
-				const 
+				const
 					title = 'Thanks!',
-					pageBody = 'We\'ve received your details. Once our team has ' +
+					pageBody = (body.user == 'approved') ? 'You\'re all set! ' +
+						'We\'ve emailed you a unique access link.' : 'We\'ve ' +
+						'received your details. Once our team has ' +
 						'reviewed your submission, we\'ll email you with ' +
 						'instructions for accessing our benchmarking tool.',
 					url = '/confirmation?title=' + title + '&body=' + pageBody;

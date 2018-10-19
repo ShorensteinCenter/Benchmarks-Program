@@ -3,7 +3,7 @@ import boto3
 from flask import render_template
 from app import app
 
-def send_email(subject, recipients, template_name, template_context,
+def send_email(subject, recipients, template_name, template_context, # pylint: disable=too-many-arguments
                sender=None, configuration_set_name=None):
     """Sends an email using Amazon SES according to the args provided.
 

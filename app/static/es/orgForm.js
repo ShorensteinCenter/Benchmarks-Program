@@ -24,13 +24,16 @@ const submitOrg = async e => {
 	try {
 		const response = await fetch(request);
 		if (response.ok) {
+			const body = await response.json();
 			const 
 				title = 'Thanks!',
-				body = 'We\'ve received your details. Once our team has ' +
-					'reviewed your submission, we\'ll email you with ' +
-					'instructions for accessing our benchmarking tool.';
-			window.location.href = '/confirmation?title=' + title +
-				'&body=' + body;
+				pageBody = (body.user == 'approved') ? 'You\'re all set! ' +
+					'We\'ve emailed you a unique access link.' : 'We\'ve ' +
+					'received your details. Once our team has reviewed your ' +
+					'submission, we\'ll email you with instructions for ' +
+					'accessing our benchmarking tool.',
+				url = '/confirmation?title=' + title + '&body=' + pageBody;
+			window.location.href = url;
 		}
 		else {
 			if (response.status == 422) {

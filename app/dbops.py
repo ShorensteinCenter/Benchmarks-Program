@@ -18,6 +18,7 @@ def update_user(user_info, org):
     except:
         db.session.rollback()
         raise
+    return user
 
 def store_user(name, email, email_hash, org):
     """Inserts a new user into the database.
@@ -42,10 +43,11 @@ def store_user(name, email, email_hash, org):
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        update_user(user_info, org)
+        return update_user(user_info, org)
     except:
         db.session.rollback()
         raise
+    return user
 
 def store_org(org_info):
     """Inserts a new orgaization into the database.

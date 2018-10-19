@@ -56,15 +56,18 @@ def validate_basic_info():
     Calls the WTF-Forms validation function.
     If form is valid, calculates the md5-hash of the user's email and
     parses the form data (e.g. titlecase organization names).
-    If the user entered an organization already in the database, create a new
-    user affiliated with that organization (or update an existing user). If the
-    organization is new, store the user's data and the organization data in
-    the session for later use.
+    Checks whether the user and/or organization are already present in the
+    database. If the organization exists, create or update the user such
+    that they are affiliated with the organization. If the user already exists
+    and is approved for access, re-send them an email containing their access
+    link.
+    If the organization does not exist, store the user's data in the session
+    so that it can be used later (see validate_org_info())
 
     Returns:
         A json containing either the form's errors (if form does not
         validate) or information about what happened (i.e. was the org
-        new or existing).
+        new or existing, was the user new or existing, etc.).
     """
     user_form = UserForm()
     if user_form.validate_on_submit():
@@ -72,22 +75,39 @@ def validate_basic_info():
         user_name = user_form.name.data.title()
         email_hash = (hashlib.md5(
             user_form.email.data.encode()).hexdigest())
+        user_email = user_form.email.data
 
-        # Generate a list of organization names
-        orgs = Organization.query.with_entities(Organization.name).all()
-        org_list = [org.name for org in orgs]
+        # See if the user already exists
+        existing_user = AppUser.query.filter_by(email=user_email).first()
+
+        # See if the organization already exists
+        existing_org = Organization.query.filter_by(name=user_org).first()
 
         # If the user selected an organization we're already tracking
-        # Find the organization and create/update the user
-        # With a link to that org
-        if user_org in org_list:
-            org = Organization.query.filter_by(name=user_org).first()
-            store_user(user_name, user_form.email.data, email_hash, org)
-            return jsonify({'org': 'existing'})
+        # Add or update that user with a link to the organization
+        if existing_org:
+            if existing_user:
+                existing_user.name = user_name
+                existing_user.orgs.append(existing_org)
+                db.session.commit()
+
+                # If the user exists, and was already approved for access
+                # Re-send them the email containing their access link
+                if existing_user.approved:
+                    send_activated_email.delay(user_email, email_hash)
+
+            else:
+                store_user(user_name, user_email, email_hash, existing_org)
+
+            return jsonify({'org': 'existing',
+                            'user': ('approved'
+                                     if existing_user
+                                     and existing_user.approved
+                                     else 'other')})
 
         # If we're not already tracking the organization, add the user's data
         # to the session to store later once they've told us about the org
-        session['name'] = user_name
+        session['user_name'] = user_name
         session['email'] = user_form.email.data
         session['email_hash'] = email_hash
         session['org'] = user_org
@@ -101,7 +121,7 @@ def org_info():
 
     Returns a 403 if the user hasn't already submitted the basic info form.
     """
-    session_params = ['name', 'email', 'email_hash', 'org']
+    session_params = ['user_name', 'email', 'email_hash', 'org']
     if any(session_param not in session for session_param in session_params):
         abort(403)
     org_form = OrgForm()
@@ -125,7 +145,9 @@ def validate_org_info():
         # and the "Other" affiliation input field
         affiliations = [*[elt.label.text
                           for elt in org_form
-                          if isinstance(elt, BooleanField) and elt.data],
+                          if isinstance(elt, BooleanField)
+                          and elt.data
+                          and elt.label.text != 'Other'],
                         *([org_form.other_affiliation_name.data]
                           if org_form.other_affiliation_name.data
                           else [])]
@@ -139,8 +161,13 @@ def validate_org_info():
             'budget': org_form.budget.data,
             'affiliations': json.dumps(affiliations)}
         org = store_org(org_details)
-        store_user(session['name'], session['email'], session['email_hash'], org)
-        return jsonify(True)
+        user = store_user(session['user_name'], session['email'],
+                          session['email_hash'], org)
+        if user.approved:
+            send_activated_email.delay(user.email, user.email_hash)
+        return jsonify({'user': 'approved'
+                                if user and user.approved
+                                else 'other'})
     return jsonify(org_form.errors), 422
 
 @app.route('/benchmarks/<string:user>')
@@ -273,15 +300,16 @@ def activate_user():
     link to the /benchmarks route.
     """
     user_id = request.args.get('user')
-    result = AppUser.query.filter_by(id=user_id).with_entities(
-        AppUser.approved).first()
-    new_status = not result.approved
-    AppUser.query.filter_by(id=user_id).update({'approved': new_status})
+    user = AppUser.query.with_entities(
+        AppUser.email, AppUser.email_hash, AppUser.approved).filter_by(
+            id=user_id).first()
+    new_status = not user.approved
+    user.approved = new_status
     try:
         db.session.commit()
     except:
         db.session.rollback()
         raise
     if new_status:
-        send_activated_email.delay(user_id)
+        send_activated_email.delay(user.email, user.email_hash)
     return jsonify(True)
