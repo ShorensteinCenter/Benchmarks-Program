@@ -14,23 +14,18 @@ from app.charts import BarChart, Histogram, render_png
 from app.dbops import associate_user_with_list
 
 @celery.task
-def send_activated_email(user_id):
+def send_activated_email(user_email, user_email_hash):
     """Sends an email telling a user that they've been authorized.
 
     Args:
-        user_id: the user's unique id.
+        user_email: the email address of the user.
+        user_email_hash: the hash of the user's email address.
     """
-
-    # Request the user's email and email hash from the database
-    result = AppUser.query.with_entities(
-        AppUser.email, AppUser.email_hash).filter_by(id=user_id).first()
-
-    # Send an email with the unique link
     send_email('You\'re all set to access our benchmarks!',
-               [result.email],
+               [user_email],
                'activated-email.html',
                {'title': 'You\'re all set to access our benchmarks!',
-                'email_hash': result.email_hash})
+                'email_hash': user_email_hash})
 
 def import_analyze_store_list(list_data, org_id, user_email=None):
     """Imports a MailChimp list, performs calculations, and stores results.

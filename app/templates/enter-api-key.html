@@ -6,7 +6,7 @@
 		<div class="col-12 col-lg-7 d-flex flex-column content-block">
 			<h1 class="has-bottom-margin">Enter your MailChimp API key</h1>
 			<form action="#" id="api-key-form" method="post" autocomplete="off" novalidate>
-				<label for="news_org" {% if num_orgs == 1 %} class="disabled-elt" {% endif %}>News Organization</label>
+				<label for="news_org" {% if num_orgs == 1 %}class="disabled-elt" {% endif %}>News Organization</label>
 				<div id="newsorg-input-wrapper" class="form-input-wrapper">
 					{% if num_orgs == 1 %}
 						{{ api_key_form.organization(class="custom-select disabled-elt") }}
