@@ -1,5 +1,5 @@
 {% extends "email-base.html" %}
 
 {% block content %}
-	<p style="font-family:Montserrat,Verdana,sans-serif;margin-bottom:2.5em;margin-left:auto;margin-right:auto;max-width:1200px;">Your unique link is: {{ url_for('benchmarks', _external=True, user=email_hash) }}.</p>
+	<p style="font-family:Montserrat,Verdana,sans-serif;margin-bottom:2.5em;margin-left:auto;margin-right:auto;max-width:1200px;">Your unique link is {{ url_for('benchmarks', _external=True, user=email_hash) }}/?utm_source=activation_email&utm_medium=email.</p>
 {% endblock %}

@@ -16,17 +16,18 @@
 					<span class="focus-bg"></span>
 				</div>
 				<label for="api_key">API Key</label>
+				<svg data-toggle="popover" role="button" data-trigger="focus" data-content="For more information on how MailChimp API keys work and where to find yours, please visit <a href='https://mailchimp.com/help/about-api-keys' target='_blank' rel='noopener'>MailChimp's page on API keys</a>." class="info-svg" xmlns="http://www.w3.org/2000/svg" viewBox="-3 -3 70 70"><path d="M38.535 47.606h-4.08V28.447a1 1 0 0 0-1-1h-4.52a1 1 0 1 0 0 2h3.52v18.16h-5.122a1 1 0 1 0 0 2h11.202a1 1 0 1 0 0-2z"/><circle cx="32" cy="18" r="3"/><path class="circle" d="M32 0C14.327 0 0 14.327 0 32s14.327 32 32 32 32-14.327 32-32S49.673 0 32 0zm0 62C15.458 62 2 48.542 2 32S15.458 2 32 2s30 13.458 30 30-13.458 30-30 30z"/></svg>
 				<div id="api-key-input-wrapper" class="form-input-wrapper">
 					{{ api_key_form.key(custom_type="key") }}
 					<span class="focus-bg"></span>
 				</div>
 				<div class="custom-control custom-checkbox">
 					{{ api_key_form.store_aggregates(type="checkbox", class="custom-control-input", checked="true") }}
-					<label class="custom-control-label" for="store_aggregates">Store this API key, and use my aggregate MailChimp data for benchmarking</label>
+					<label class="custom-control-label" for="store_aggregates">Store this API key, and use my aggregate MailChimp data for benchmarking</label><svg data-toggle="popover" role="button" data-trigger="focus" data-content="By opting-in to this feature, you allow us to include your data in the aggregated and anonymized benchmarking portion of our email metrics. In other words, your data will be counted in the averages that help us calculate industry-wide email newsletter benchmarks. For more information on how we store your data, please read our <a href='/privacy'>Privacy Policy</a>." class="info-svg" xmlns="http://www.w3.org/2000/svg" viewBox="-3 -3 70 70"><path d="M38.535 47.606h-4.08V28.447a1 1 0 0 0-1-1h-4.52a1 1 0 1 0 0 2h3.52v18.16h-5.122a1 1 0 1 0 0 2h11.202a1 1 0 1 0 0-2z"/><circle cx="32" cy="18" r="3"/><path class="circle" d="M32 0C14.327 0 0 14.327 0 32s14.327 32 32 32 32-14.327 32-32S49.673 0 32 0zm0 62C15.458 62 2 48.542 2 32S15.458 2 32 2s30 13.458 30 30-13.458 30-30 30z"/></svg>
 				</div>
 				<div class="custom-control custom-checkbox">
 					{{ api_key_form.monthly_updates(type="checkbox", class="custom-control-input", checked="true") }}
-					<label class="custom-control-label" for="monthly_updates">Store this API key, and send me monthly benchmarking updates</label>
+					<label class="custom-control-label" for="monthly_updates">Store this API key, and send me monthly benchmarking updates</label><svg data-toggle="popover" role="button" data-trigger="focus" data-content="By opting-in to this feature, you allow us to  automatically run this tool through your list each month and send you an updated monthly metrics report. For more information on how we store your data, please read our <a href='/privacy'>Privacy Policy</a>." class="info-svg" xmlns="http://www.w3.org/2000/svg" viewBox="-3 -3 70 70"><path d="M38.535 47.606h-4.08V28.447a1 1 0 0 0-1-1h-4.52a1 1 0 1 0 0 2h3.52v18.16h-5.122a1 1 0 1 0 0 2h11.202a1 1 0 1 0 0-2z"/><circle cx="32" cy="18" r="3"/><path class="circle" d="M32 0C14.327 0 0 14.327 0 32s14.327 32 32 32 32-14.327 32-32S49.673 0 32 0zm0 62C15.458 62 2 48.542 2 32S15.458 2 32 2s30 13.458 30 30-13.458 30-30 30z"/></svg>
 				</div>
 				<div class="form-submit-wrapper">
 					{{ api_key_form.submit() }}

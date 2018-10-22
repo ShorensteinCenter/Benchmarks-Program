@@ -1,0 +1,34 @@
+.info-svg {
+    width: $info-svg-dim;
+    height: $info-svg-dim;
+    margin-bottom: .15rem;
+    cursor: pointer;
+    fill: $crimson;
+    stroke: $crimson;
+    stroke-width: 4px;
+    margin-left: 3px;
+    display: inline;
+
+    &:focus {
+        outline: none;
+    }
+
+    .circle {
+        stroke: $medium-dark-grey;
+        stroke-width: 1px;
+        fill: $medium-dark-grey;
+    }
+}
+
+.custom-control-label ~ .info-svg {
+	margin-left: 9px;
+}
+
+.popover {
+	border-color: $medium-grey;
+	border-radius: $border-radius;
+
+	.arrow {
+		left: 125px !important;
+	}
+}
