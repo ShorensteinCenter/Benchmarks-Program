@@ -1,22 +1,15 @@
 .info-svg {
     width: $info-svg-dim;
     height: $info-svg-dim;
-    margin-bottom: .15rem;
     cursor: pointer;
-    fill: $crimson;
-    stroke: $crimson;
-    stroke-width: 4px;
+    fill: $dark-grey;
     margin-left: 3px;
+    margin-bottom: $form-label-bottom-margin;
     display: inline;
+    position: relative;
 
     &:focus {
         outline: none;
-    }
-
-    .circle {
-        stroke: $medium-dark-grey;
-        stroke-width: 1px;
-        fill: $medium-dark-grey;
     }
 }
 
@@ -27,8 +20,4 @@
 .popover {
 	border-color: $medium-grey;
 	border-radius: $border-radius;
-
-	.arrow {
-		left: 125px !important;
-	}
 }

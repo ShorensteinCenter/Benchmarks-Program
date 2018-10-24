@@ -6,8 +6,9 @@ $table-cell-padding: 1.33rem;
 
 $link-color: $crimson;
 $link-hover-decoration: none;
+$link-hover-color: lighten($link-color, 25%);
 $navbar-light-color: $link-color;
-$navbar-light-hover-color: darken($link-color, 15%);
+$navbar-light-hover-color: lighten($link-color, 25%);
 
 $grid-breakpoints: (
   xs: 0,
