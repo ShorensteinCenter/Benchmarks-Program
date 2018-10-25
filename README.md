@@ -21,7 +21,7 @@ These instructions will get you a copy of the project up and running on your loc
     virtualenv venv
     source venv/bin/activate
 
-##### Install requirements
+##### Install Python dependencies
 
     pip install -r requirements.txt
 
@@ -44,7 +44,7 @@ These instructions will get you a copy of the project up and running on your loc
     export FLASK_APP=app.py
     flask db upgrade
 
-##### Compile the front-end
+##### Install Node dependencies and compile the front-end source
 
     npm install
     gulp

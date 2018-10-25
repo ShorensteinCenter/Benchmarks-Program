@@ -45,20 +45,3 @@ strong {
         font-size: $small-text-size-xxl;
     }
 }
-
-.info-svg {
-    width: 1.35rem;
-    height: 1.35rem;
-    margin-bottom: .15rem;
-    margin-left: 9px;
-    cursor: pointer;
-    fill: $crimson;
-    stroke: $crimson;
-    stroke-width: 4px;
-
-    .circle {
-        stroke: $medium-dark-grey;
-        stroke-width: 2px;
-        fill: $medium-dark-grey;
-    }
-}

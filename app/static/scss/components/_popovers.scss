@@ -1,0 +1,23 @@
+.info-svg {
+    width: $info-svg-dim;
+    height: $info-svg-dim;
+    cursor: pointer;
+    fill: $dark-grey;
+    margin-left: 3px;
+    margin-bottom: $form-label-bottom-margin;
+    display: inline;
+    position: relative;
+
+    &:focus {
+        outline: none;
+    }
+}
+
+.custom-control-label ~ .info-svg {
+	margin-left: 9px;
+}
+
+.popover {
+	border-color: $medium-grey;
+	border-radius: $border-radius;
+}

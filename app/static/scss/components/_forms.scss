@@ -23,7 +23,7 @@
 }
 
 label {
-	margin-bottom: .2rem;
+	margin-bottom: $form-label-bottom-margin;
 }
 
 .form-input-wrapper {
@@ -163,11 +163,17 @@ input:-webkit-autofill {
     position: relative;
 }
 
+.custom-control-label {
+    display: inline;
+}
+
 .custom-control-label:before {
+    top: .05rem;
     border: 1px solid $medium-dark-grey;
     left: -1.8rem;
 }
 
 .custom-control-label:after {
+    top: .05rem;
     left: -1.8rem;
 }

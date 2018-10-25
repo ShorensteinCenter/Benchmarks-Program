@@ -4,9 +4,6 @@ $medium-dark-grey: #aaa;
 $medium-grey: #ddd;
 $light-grey: #ededed;
 
-$link-color: $crimson;
-$link-hover-decoration: none;
-
 $border-radius: 2px;
 
 $h1-size: 2rem;
@@ -47,6 +44,10 @@ $form-invalid-msg-color: rgb(238, 95, 91);
 $form-valid-input-color: rgba(98, 196, 98, .25);
 $form-valid-msg-color: rgb(98, 196, 98);
 
+$form-label-bottom-margin: 0.2rem;
+
 $modal-drawer-width:          16rem;
 $modal-drawer-header-height:  4.25rem;
 $modal-drawer-footer-height:  4.25rem;
+
+$info-svg-dim: 0.9rem;
