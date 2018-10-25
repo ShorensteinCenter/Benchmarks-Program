@@ -300,9 +300,7 @@ def activate_user():
     link to the /benchmarks route.
     """
     user_id = request.args.get('user')
-    user = AppUser.query.with_entities(
-        AppUser.email, AppUser.email_hash, AppUser.approved).filter_by(
-            id=user_id).first()
+    user = AppUser.query.filter_by(id=user_id).first()
     new_status = not user.approved
     user.approved = new_status
     try:
