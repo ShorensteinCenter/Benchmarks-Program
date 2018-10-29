@@ -208,7 +208,6 @@ def validate_api_key():
     api_key_form.organization.choices = session['orgs_list']
     if api_key_form.validate_on_submit():
         session['org_id'] = api_key_form.organization.data
-        print(session['org_id'])
         return jsonify(True)
     return jsonify(api_key_form.errors), 422
 
