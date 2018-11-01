@@ -14,7 +14,7 @@ class Config():
         },
         'send_monthly_reports': {
             'task': 'app.tasks.send_monthly_reports',
-            'schedule': crontab(minute='0', hour='0', day_of_month='1'),
+            'schedule': crontab(minute='0', hour='0', day_of_month='2'),
             'args': ()
         }
     }
