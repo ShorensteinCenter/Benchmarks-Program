@@ -51,7 +51,7 @@ class ListStats(db.Model): # pylint: disable=too-few-public-methods
     store_aggregates = db.Column(db.Boolean)
     monthly_updates = db.Column(db.Boolean)
     monthly_update_users = db.relationship(
-        AppUser, secondary=list_users, backref='lists')
+        AppUser, secondary=list_users, backref='lists', lazy='subquery')
 
     def __repr__(self):
         return '<ListStats {}>'.format(self.list_id)
