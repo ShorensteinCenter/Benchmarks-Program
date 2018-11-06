@@ -41,6 +41,8 @@ def confirmation():
     """Generic confirmation page route."""
     title = request.args.get('title')
     body = request.args.get('body')
+    if not title or not body:
+        abort(404)
     return render_template('confirmation.html', title=title, body=body)
 
 @app.route('/basic-info')
