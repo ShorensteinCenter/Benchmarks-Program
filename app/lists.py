@@ -12,7 +12,8 @@ import pandas as pd
 from pandas.io.json import json_normalize
 import numpy as np
 from aiohttp import ClientSession, BasicAuth
-from aiohttp.client_exceptions import ClientHttpProxyError
+from aiohttp.client_exceptions import (
+    ClientHttpProxyError, ServerDisconnectedError)
 import iso8601
 from celery.utils.log import get_task_logger
 
@@ -245,14 +246,21 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
                     'Invalid response code from MailChimp',
                     error_details)
 
-        # Catch proxy problems as well as potential asyncio timeouts
-        except (asyncio.TimeoutError, ClientHttpProxyError) as e: # pylint: disable=invalid-name
+        # Catch proxy problems as well as potential asyncio timeouts/disconnects
+        except (asyncio.TimeoutError, # pylint: disable=invalid-name
+                ClientHttpProxyError,
+                ServerDisconnectedError) as e:
 
             exception_type = type(e).__name__
 
             if exception_type == 'ClientHttpProxyError':
                 self.logger.warning('Failed to connect to proxy! Proxy: %s',
                                     self.proxy)
+
+            elif exception_type == 'ServerDisconnectedError':
+                self.logger.warning('Server disconnected! URL: %s. API key: '
+                                    '%s.', url, self.api_key)
+
             else:
                 self.logger.warning('Asyncio request timed out! URL: %s. '
                                     'API key: %s.', url, self.api_key)

@@ -8,3 +8,4 @@ __pycache__/
 celerybeat-schedule.*
 .elasticbeanstalk/
 *.zip
+.pytest_cache/
