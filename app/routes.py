@@ -214,7 +214,7 @@ def validate_api_key():
 @app.route('/select-list')
 def select_list():
     """Select MailChimp List route."""
-    if 'user_id' not in session:
+    if 'user_id' not in session or 'key' not in session:
         abort(403)
     return render_template('select-list.html')
 
@@ -226,7 +226,7 @@ def get_list_data():
     about each list. Returns the data as JSON or None
     if there are no lists.
     """
-    if 'user_id' not in session:
+    if 'user_id' not in session or 'key' not in session:
         abort(403)
     request_uri = ('https://{}.api.mailchimp.com/3.0/lists'.format(
         session['data_center']))
