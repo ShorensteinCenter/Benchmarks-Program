@@ -9,3 +9,7 @@ celerybeat-schedule.*
 .elasticbeanstalk/
 *.zip
 .pytest_cache/
+benchmarks-env/
+*.dmg
+.coverage
+.DS_Store
