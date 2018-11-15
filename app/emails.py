@@ -1,4 +1,6 @@
 """This module contains functions associated with sending email."""
+import os
+import logging
 import boto3
 from flask import render_template
 from app import app
@@ -32,6 +34,13 @@ def send_email(subject, recipients, template_name, template_context, # pylint: d
 
     with app.app_context():
         html = render_template(template_name, **template_context)
+        if os.environ.get('NO_EMAIL'):
+            logger = logging.getLogger(__name__)
+            logger.warning('NO_EMAIL environment variable set. '
+                           'Suppressing an email with the following params: '
+                           'Sender: %s. Recipients: %s. Subject: %s.',
+                           sender, recipients, subject)
+            return
         ses.send_email(
             Source=sender,
             Destination={'ToAddresses': recipients},

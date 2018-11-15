@@ -12,8 +12,6 @@ import pandas as pd
 from pandas.io.json import json_normalize
 import numpy as np
 from aiohttp import ClientSession, BasicAuth
-from aiohttp.client_exceptions import (
-    ClientHttpProxyError, ServerDisconnectedError)
 import iso8601
 from celery.utils.log import get_task_logger
 
@@ -247,9 +245,7 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
                     error_details)
 
         # Catch proxy problems as well as potential asyncio timeouts/disconnects
-        except (asyncio.TimeoutError, # pylint: disable=invalid-name
-                ClientHttpProxyError,
-                ServerDisconnectedError) as e:
+        except Exception as e: # pylint: disable=invalid-name
 
             exception_type = type(e).__name__
 
@@ -261,9 +257,14 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
                 self.logger.warning('Server disconnected! URL: %s. API key: '
                                     '%s.', url, self.api_key)
 
-            else:
+            elif exception_type == 'TimeoutError':
                 self.logger.warning('Asyncio request timed out! URL: %s. '
                                     'API key: %s.', url, self.api_key)
+
+            else:
+                self.logger.warning('An unforseen error type occurred. '
+                                    'Error type: %s. URL: %s. API Key: %s.',
+                                    exception_type, url, self.api_key)
 
             # Retry if we haven't already retried a few times
             if retry < self.MAX_RETRIES:
