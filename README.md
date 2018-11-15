@@ -36,7 +36,8 @@ These instructions will get you a copy of the project up and running on your loc
 * `SES_REGION_NAME` - AWS Simple Email Service region.
 * `SES_DEFAULT_EMAIL_SOURCE` - The default email address to send from. This email needs to be verified by SES and active outside the SES sandbox.
 * `SES_CONFIGURATION_SET` - SES Configuration set for tracking opens/clicks/etc. Optional.
-* `NO_PROXY` - We use proxies to distribute our MailChimp requests across IP addresses. Set this variable to `True` in order to disable proxying, or modify the `enable_proxy` method in `app/lists.py` according to your proxy setup.
+* `NO_PROXY` - We use proxies to distribute our MailChimp requests across IP addresses. Set this variable to `True` in order to disable proxying, or modify the `enable_proxy` method in `app/lists.py` according to your proxy configuration.
+* `NO_EMAIL` - Suppresses sending of emails. Note that SES is still required, emails will just be logged rather than sent. Optional.
 * `ADMIN_EMAIL` - Email address to send error emails to. Optional.
 
 ##### Upgrade the database
