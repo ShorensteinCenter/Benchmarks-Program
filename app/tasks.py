@@ -2,16 +2,17 @@
 import os
 import json
 import random
-from collections import OrderedDict
 import requests
+import numpy as np
 from sqlalchemy.sql.functions import func
 from celery.utils.log import get_task_logger
 from app import celery, db
 from app.emails import send_email
 from app.lists import MailChimpList, MailChimpImportError, do_async_import
-from app.models import ListStats, AppUser
-from app.charts import BarChart, Histogram, render_png
+from app.models import ListStats
 from app.dbops import associate_user_with_list
+from app.visualizations import (
+    draw_bar, draw_stacked_horizontal_bar, draw_histogram, draw_donuts)
 
 @celery.task
 def send_activated_email(user_email, user_email_hash):
@@ -120,72 +121,70 @@ def send_report(stats, list_id, list_name, user_email_or_emails):
         user_email_or_emails: a list of emails to send the report to.
     """
 
-    # Generate averages from the database
+    # Generate aggregates for the database
     # Only include lists where we have permission
-    avg_stats = db.session.query(
+    agg_stats = db.session.query(
         func.avg(ListStats.subscribers),
-        func.avg(ListStats.open_rate),
         func.avg(ListStats.subscribed_pct),
         func.avg(ListStats.unsubscribed_pct),
         func.avg(ListStats.cleaned_pct),
         func.avg(ListStats.pending_pct),
+        func.avg(ListStats.open_rate),
         func.avg(ListStats.high_open_rt_pct),
         func.avg(ListStats.cur_yr_inactive_pct)).filter_by(
             store_aggregates=True).first()
 
     # Make sure we have no 'None' values
-    avg_stats = [avg if avg else 0 for avg in avg_stats]
+    agg_stats = [agg if agg else 0 for agg in agg_stats]
 
     # Generate charts
-    # Using OrderedDict (for now) as Pygal occasionally seems to break with
-    # The Python 3.5 dictionary standard which preserves order by default
-    # Export them as pngs to /charts
-    list_size_chart = BarChart(
-        'Chart A: List Size vs. Database Average (Mean)',
-        OrderedDict(
-            [('Your List', [stats['subscribers']]),
-             ('Average (Mean)', [avg_stats[0]])]),
-        percentage=False)
-    render_png(list_size_chart, list_id + '_size')
+    draw_bar(
+        ['Your List', 'Dataset Mean'],
+        [stats['subscribers'], agg_stats[0]],
+        'Chart A: List Size',
+        list_id + '_size')
 
-    list_breakdown_chart = BarChart(
-        'Chart B: List Composition vs. Database Average (Mean)',
-        OrderedDict(
-            [('Subscribed %', [stats['subscribed_pct'], avg_stats[2]]),
-             ('Unsubscribed %', [stats['unsubscribed_pct'], avg_stats[3]]),
-             ('Cleaned %', [stats['cleaned_pct'], avg_stats[4]]),
-             ('Pending %', [stats['pending_pct'], avg_stats[5]])]),
-        x_labels=('Your List', 'Average (Mean)'))
-    render_png(list_breakdown_chart, list_id + '_breakdown')
+    draw_stacked_horizontal_bar(
+        ['Your List', 'Dataset Mean'],
+        [('Subscribed %', [stats['subscribed_pct'], agg_stats[1]]),
+         ('Unsubscribed %', [stats['unsubscribed_pct'], agg_stats[2]]),
+         ('Cleaned %', [stats['cleaned_pct'], agg_stats[3]]),
+         ('Pending %', [stats['pending_pct'], agg_stats[4]])],
+        'Chart B: List Composition',
+        list_id + '_breakdown')
 
-    open_rate_chart = BarChart(
-        'Chart C: List Open Rate vs. Database Average (Mean)',
-        OrderedDict(
-            [('Your List', [stats['open_rate']]),
-             ('Average (Mean)', [avg_stats[1]])]))
-    render_png(open_rate_chart, list_id + '_open_rate')
+    draw_bar(
+        ['Your List', 'Dataset Mean'],
+        [stats['open_rate'], agg_stats[5]],
+        'Chart C: List Open Rate',
+        list_id + '_open_rate',
+        percentage_values=True)
 
-    open_rate_hist_chart = Histogram(
+    draw_histogram(
+        np.linspace(.05, .95, num=10),
+        stats['hist_bin_counts'],
+        'Open Rate',
+        'Percent of List',
         'Chart D: Distribution of User Unique Open Rates',
-        OrderedDict(
-            [('Your List', stats['hist_bin_counts'])]))
-    render_png(open_rate_hist_chart, list_id + '_open_rate_histogram')
+        '(Users who open x% of your emails comprise y% of your list)',
+        list_id + '_open_rate_histogram')
 
-    high_open_rt_pct_chart = BarChart(
-        'Chart E: Percentage of Subscribers with User Unique Open Rate '
-        '>80% vs. Database Average (Mean)',
-        OrderedDict(
-            [('Your List', [stats['high_open_rt_pct']]),
-             ('Average (Mean)', [avg_stats[6]])]))
-    render_png(high_open_rt_pct_chart, list_id + '_high_open_rt')
+    draw_donuts(
+        ['Open Rate >80%', 'Open Rate <=80%'],
+        [('Your List',
+          [stats['high_open_rt_pct'], 1 - stats['high_open_rt_pct']]),
+         ('Dataset Mean', [agg_stats[6], 1 - agg_stats[6]])],
+        'Chart E: Percentage of Subscribers with User Unique Open Rate >80%',
+        list_id + 'high_open_rt_pct')
 
-    cur_yr_member_pct_chart = BarChart(
-        'Chart F: Percentage of Subscribers who did not Open in last 365 '
-        'Days vs. Database Average (Mean)',
-        OrderedDict(
-            [('Your List', [stats['cur_yr_inactive_pct']]),
-             ('Average (Mean)', [avg_stats[7]])]))
-    render_png(cur_yr_member_pct_chart, list_id + '_cur_yr_inactive_pct')
+    draw_donuts(
+        ['Inactive in Past 365 Days', 'Active in Past 365 Days'],
+        [('Your List',
+          [stats['cur_yr_inactive_pct'], 1 - stats['cur_yr_inactive_pct']]),
+         ('Dataset Mean', [agg_stats[7], 1 - agg_stats[7]])],
+        'Chart F: Percentage of Subscribers who did not Open '
+        'in last 365 Days',
+        list_id + '_cur_yr_inactive_pct')
 
     # Send charts as an email report
     send_email('Your Email Benchmarking Report is Ready!',
