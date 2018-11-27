@@ -176,7 +176,7 @@ def send_report(stats, list_id, list_name, user_email_or_emails):
           [stats['high_open_rt_pct'], 1 - stats['high_open_rt_pct']]),
          ('Dataset Mean', [agg_stats[6], 1 - agg_stats[6]])],
         'Chart E: Percentage of Subscribers with User Unique Open Rate >80%',
-        list_id + 'high_open_rt_pct')
+        list_id + '_high_open_rt_pct')
 
     draw_donuts(
         ['Inactive in Past 365 Days', 'Active in Past 365 Days'],

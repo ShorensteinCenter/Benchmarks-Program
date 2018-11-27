@@ -6,7 +6,7 @@ from flask import render_template
 from app import app
 
 def send_email(subject, recipients, template_name, template_context, # pylint: disable=too-many-arguments
-               sender=None, configuration_set_name=None):
+               sender=None, configuration_set_name=None, error=False):
     """Sends an email using Amazon SES according to the args provided.
 
     Args:
@@ -15,6 +15,7 @@ def send_email(subject, recipients, template_name, template_context, # pylint: d
         template_name: the name of the template to render as the html body.
         template_context: the context to be passed to the html template.
         sender: sender's email address. Optional.
+        error: boolean representing whether the email is an error message.
     """
     ses = boto3.client(
         'ses',
@@ -34,7 +35,7 @@ def send_email(subject, recipients, template_name, template_context, # pylint: d
 
     with app.app_context():
         html = render_template(template_name, **template_context)
-        if os.environ.get('NO_EMAIL'):
+        if os.environ.get('NO_EMAIL') and not error:
             logger = logging.getLogger(__name__)
             logger.warning('NO_EMAIL environment variable set. '
                            'Suppressing an email with the following params: '
