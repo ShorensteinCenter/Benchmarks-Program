@@ -11,7 +11,7 @@ These instructions will get you a copy of the project up and running on your loc
 * [Python](https://www.python.org), version 3.5+ (3.6+ recommended)
 * [RabbitMQ](https://www.rabbitmq.com/) or another AMQP broker
 * A relational database, e.g. [SQLite](https://www.sqlite.org) or [PostgresSQL](https://www.postgresql.org/)
-* [NodeJS](https://nodejs.org), version 10.11+
+* [NodeJS](https://nodejs.org), version 11.2+. (We use [NVM](https://github.com/creationix/nvm) to manage Node versions.) 
 * [Amazon SES](https://aws.amazon.com/ses/)
 
 ### Local Development
@@ -47,7 +47,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ##### Install Node dependencies and compile the front-end source
 
-    npm install
+    npm install -g
     gulp
 
 ##### Run the application
@@ -101,6 +101,8 @@ A sample init script for nginx:
     }
 
 Sample init scripts for Celery can be found in the [Celery repo](https://github.com/celery/celery/tree/master/extra/generic-init.d/).
+
+Setting up [Orca](https://github.com/plotly/orca) (required for exporting visualizations from `plotly`) can be tricky on headless machines. We got it to work by installing the standalone binaries and additional dependencies (such as `google-chrome-stable`) as per the `readme`, then using Xvfb with the `-a` flag, i.e. `xvfb-run -a ...`. 
 
 ## Authors
 

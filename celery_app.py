@@ -31,7 +31,8 @@ def make_celery(app):
                 'Application Error (Celery Task)',
                 [os.environ.get('ADMIN_EMAIL')],
                 'error-email-internal.html',
-                {'error_details': error_details})
+                {'error_details': error_details},
+                error=True)
 
     celery.Task = ContextTask
 

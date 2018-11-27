@@ -42,7 +42,8 @@ def draw_bar(x_vals, y_vals, title, filename, percentage_values=False):
     layout = go.Layout(
         title=title,
         autosize=False,
-        width=600,
+        width=550,
+        height=400,
         font={'size': 9},
         titlefont={'size': 13})
     if percentage_values:
