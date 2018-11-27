@@ -6,6 +6,12 @@ OPACITY = 0.7
 COLORS = ['rgba(0,0,51,{})', 'rgba(94,12,35,{})', 'rgba(4,103,103,{})',
           'rgba(128,128,128,{})']
 FILL_COLORS = [color.format(OPACITY) for color in COLORS]
+HISTOGRAM_COLORS = ['rgba(94,12,35,{})', 'rgba(84,22,43,{})',
+                    'rgba(74,32,50,{})', 'rgba(64,42,58,{})',
+                    'rgba(54,52,65,{})', 'rgba(44,63,73,{})',
+                    'rgba(34,73,80,{})', 'rgba(24,83,88,{})',
+                    'rgba(14,93,95,{})', 'rgba(4,103,103,{})']
+HISTOGRAM_FILL_COLORS = [color.format(OPACITY) for color in HISTOGRAM_COLORS]
 
 def write_png(data, layout, filename):
     """Writes out a visualization with the given data and layout to png."""
@@ -37,8 +43,8 @@ def draw_bar(x_vals, y_vals, title, filename, percentage_values=False):
         title=title,
         autosize=False,
         width=600,
-        font={'size': 8},
-        titlefont={'size': 12})
+        font={'size': 9},
+        titlefont={'size': 13})
     if percentage_values:
         layout.yaxis = go.layout.YAxis(tickformat=',.0%')
     write_png(data, layout, filename)
@@ -83,7 +89,7 @@ def draw_stacked_horizontal_bar(y_vals, x_series, title, filename):
                               ticksuffix='  '))
     write_png(data, layout, filename)
 
-def draw_histogram(x_vals, y_vals, x_title, y_title, title, subtitle, filename):
+def draw_histogram(x_data, y_data, title, legend_img_uri, filename):
     """Creates a histogram.
 
     Does not use plotly's histogram functionality
@@ -92,49 +98,83 @@ def draw_histogram(x_vals, y_vals, x_title, y_title, title, subtitle, filename):
     chart with no spacing and x-axis ticks between bars.
 
     Args:
-        x_vals: a list or numpy array containing the bar x-values.
-        y_vals: a list containing the histogram bins.
-        x_title: the x-axis title.
-        y_title: the y-axis title.
+        x_data: a dictionary containing the x-axis title and x-data.
+        y_vals: a dictionary containing the y-axis title and y-data.
         title: see draw_bar().
-        subtitle: the chart subtitle.
+        legend_img_uri: the URI of the legend image.
         filename: see draw_bar().
     """
     trace = go.Bar(
-        x=x_vals,
-        y=y_vals,
-        text=['{:.1%}'.format(y_val) for y_val in y_vals],
+        x=x_data['vals'],
+        y=y_data['vals'],
+        text=y_data['vals'],
         textposition='outside',
-        marker={'color': FILL_COLORS[0],
-                'line': {'color': COLORS[0].format(.78), 'width': 0.5}})
+        marker={'color': HISTOGRAM_FILL_COLORS})
     data = [trace]
     layout = go.Layout(
         title=title,
         annotations=[{
-            'text': subtitle,
+            'text': 'Lower Open Rates',
             'font': {
-                'size': 14,
+                'size': 12
             },
             'showarrow': False,
-            'align': 'center',
-            'x': 0.5,
-            'y': 1.125,
             'xref': 'paper',
-            'yref': 'paper'
+            'yref': 'paper',
+            'x': .12,
+            'y': -0.175,
+            'xanchor': 'right',
+            'yanchor': 'bottom'
+        }, {
+            'text': 'Higher Open Rates',
+            'font': {
+                'size': 12
+            },
+            'showarrow': False,
+            'xref': 'paper',
+            'yref': 'paper',
+            'x': .88,
+            'y': -0.175,
+            'xanchor': 'left',
+            'yanchor': 'bottom'
+        }, {
+            'text': x_data['title'],
+            'font': {
+                'size': 13
+            },
+            'showarrow': False,
+            'xref': 'paper',
+            'yref': 'paper',
+            'x': .5,
+            'y': -0.275,
+            'align': 'center'
         }],
         autosize=False,
         width=1000,
+        margin={'b': 100},
         bargap=0,
-        xaxis=go.layout.XAxis(title=x_title,
-                              tickmode='linear',
-                              tickformat=',.0%',
-                              tick0=0,
-                              dtick=0.1),
-        yaxis=go.layout.YAxis(title=y_title,
-                              tickformat=',.0%',
-                              automargin=True,
-                              ticksuffix='  ',
-                              tickprefix='    '))
+        xaxis=go.layout.XAxis(
+            tickmode='linear',
+            tickformat=',.0%',
+            tick0=0,
+            dtick=0.1,),
+        yaxis=go.layout.YAxis(
+            title=y_data['title'],
+            automargin=True,
+            ticksuffix='  ',
+            tickprefix='    '),
+        images=[{
+            'source': legend_img_uri,
+            'xref': 'paper',
+            'yref': 'paper',
+            'x': .5,
+            'y': -0.175,
+            'layer': 'above',
+            'sizex': .75,
+            'sizey': 1,
+            'xanchor': 'center',
+            'yanchor': 'bottom'
+        }])
     write_png(data, layout, filename)
 
 def draw_donuts(series_names, donuts, title, filename):

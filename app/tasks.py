@@ -160,13 +160,14 @@ def send_report(stats, list_id, list_name, user_email_or_emails):
         list_id + '_open_rate',
         percentage_values=True)
 
+    histogram_legend_uri = ('https://s3-us-west-2.amazonaws.com/email-'
+                            'benchmarking-imgs/open_rate_histogram_legend.png')
+
     draw_histogram(
-        np.linspace(.05, .95, num=10),
-        stats['hist_bin_counts'],
-        'Open Rate',
-        'Percent of List',
-        'Chart D: Distribution of User Unique Open Rates',
-        '(Users who open x% of your emails comprise y% of your list)',
+        {'title': 'Open Rate by Decile', 'vals': np.linspace(.05, .95, num=10)},
+        {'title': 'Subscribers', 'vals': stats['hist_bin_counts']},
+        'Chart D: Distribution of Subscribers by Open Rate',
+        histogram_legend_uri,
         list_id + '_open_rate_histogram')
 
     draw_donuts(
