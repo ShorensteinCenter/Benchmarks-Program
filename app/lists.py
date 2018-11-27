@@ -520,8 +520,7 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
         bins = (pd.cut(
             self.df.loc[self.df['status'] == 'subscribed', 'avg_open_rate'],
             bin_boundaries))
-        self.hist_bin_counts = (pd.value_counts(bins, sort=False).apply(
-            lambda x: x / self.subscribers).tolist())
+        self.hist_bin_counts = (pd.value_counts(bins, sort=False).tolist())
 
     def calc_high_open_rate_pct(self):
         """Calcuates the percentage of subscribers who open >80% of emails."""
