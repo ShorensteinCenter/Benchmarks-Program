@@ -2,6 +2,7 @@
 import os
 import json
 import random
+import time
 import requests
 import numpy as np
 from sqlalchemy.sql.functions import func
@@ -137,27 +138,30 @@ def send_report(stats, list_id, list_name, user_email_or_emails):
     # Make sure we have no 'None' values
     agg_stats = [agg if agg else 0 for agg in agg_stats]
 
+    # Generate epoch time (to get around image caching in webmail)
+    epoch_time = str(int(time.time()))
+
     # Generate charts
     draw_bar(
-        ['Your List', 'Dataset Mean'],
+        ['Your List', 'Dataset Average'],
         [stats['subscribers'], agg_stats[0]],
         'Chart A: List Size',
-        list_id + '_size')
+        list_id + '_size_' + epoch_time)
 
     draw_stacked_horizontal_bar(
-        ['Your List', 'Dataset Mean'],
-        [('Subscribed %', [stats['subscribed_pct'], agg_stats[1]]),
-         ('Unsubscribed %', [stats['unsubscribed_pct'], agg_stats[2]]),
-         ('Cleaned %', [stats['cleaned_pct'], agg_stats[3]]),
-         ('Pending %', [stats['pending_pct'], agg_stats[4]])],
+        ['Dataset Average', 'Your List'],
+        [('Subscribed %', [agg_stats[1], stats['subscribed_pct']]),
+         ('Unsubscribed %', [agg_stats[2], stats['unsubscribed_pct']]),
+         ('Cleaned %', [agg_stats[3], stats['cleaned_pct']]),
+         ('Pending %', [agg_stats[4], stats['pending_pct']])],
         'Chart B: List Composition',
-        list_id + '_breakdown')
+        list_id + '_breakdown_' + epoch_time)
 
     draw_bar(
-        ['Your List', 'Dataset Mean'],
+        ['Your List', 'Dataset Average'],
         [stats['open_rate'], agg_stats[5]],
         'Chart C: List Open Rate',
-        list_id + '_open_rate',
+        list_id + '_open_rate_' + epoch_time,
         percentage_values=True)
 
     histogram_legend_uri = ('https://s3-us-west-2.amazonaws.com/email-'
@@ -168,31 +172,32 @@ def send_report(stats, list_id, list_name, user_email_or_emails):
         {'title': 'Subscribers', 'vals': stats['hist_bin_counts']},
         'Chart D: Distribution of Subscribers by Open Rate',
         histogram_legend_uri,
-        list_id + '_open_rate_histogram')
+        list_id + '_open_rate_histogram_' + epoch_time)
 
     draw_donuts(
         ['Open Rate >80%', 'Open Rate <=80%'],
         [('Your List',
           [stats['high_open_rt_pct'], 1 - stats['high_open_rt_pct']]),
-         ('Dataset Mean', [agg_stats[6], 1 - agg_stats[6]])],
+         ('Dataset Average', [agg_stats[6], 1 - agg_stats[6]])],
         'Chart E: Percentage of Subscribers with User Unique Open Rate >80%',
-        list_id + '_high_open_rt_pct')
+        list_id + '_high_open_rt_pct_' + epoch_time)
 
     draw_donuts(
         ['Inactive in Past 365 Days', 'Active in Past 365 Days'],
         [('Your List',
           [stats['cur_yr_inactive_pct'], 1 - stats['cur_yr_inactive_pct']]),
-         ('Dataset Mean', [agg_stats[7], 1 - agg_stats[7]])],
+         ('Dataset Average', [agg_stats[7], 1 - agg_stats[7]])],
         'Chart F: Percentage of Subscribers who did not Open '
         'in last 365 Days',
-        list_id + '_cur_yr_inactive_pct')
+        list_id + '_cur_yr_inactive_pct_' + epoch_time)
 
     # Send charts as an email report
     send_email('Your Email Benchmarking Report is Ready!',
                user_email_or_emails,
                'report-email.html',
                {'title': 'We\'ve analyzed the {} list!'.format(list_name),
-                'list_id': list_id},
+                'list_id': list_id,
+                'epoch_time': epoch_time},
                configuration_set_name=(
                    os.environ.get('SES_CONFIGURATION_SET') or None))
 

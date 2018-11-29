@@ -12,6 +12,7 @@ HISTOGRAM_COLORS = ['rgba(94,12,35,{})', 'rgba(84,22,43,{})',
                     'rgba(34,73,80,{})', 'rgba(24,83,88,{})',
                     'rgba(14,93,95,{})', 'rgba(4,103,103,{})']
 HISTOGRAM_FILL_COLORS = [color.format(OPACITY) for color in HISTOGRAM_COLORS]
+CHART_MARGIN = 55
 
 def write_png(data, layout, filename):
     """Writes out a visualization with the given data and layout to png."""
@@ -42,8 +43,9 @@ def draw_bar(x_vals, y_vals, title, filename, percentage_values=False):
     layout = go.Layout(
         title=title,
         autosize=False,
-        width=550,
-        height=400,
+        width=600,
+        height=500,
+        margin={'pad': 0, 'b': CHART_MARGIN - 15, 't': CHART_MARGIN},
         font={'size': 9},
         titlefont={'size': 13})
     if percentage_values:
@@ -85,6 +87,8 @@ def draw_stacked_horizontal_bar(y_vals, x_series, title, filename):
         autosize=False,
         width=1000,
         height=450,
+        margin={'pad': 0, 'b': CHART_MARGIN, 't': CHART_MARGIN},
+        legend={'traceorder': 'normal'},
         xaxis=go.layout.XAxis(tickformat=',.0%'),
         yaxis=go.layout.YAxis(automargin=True,
                               ticksuffix='  '))
@@ -152,7 +156,7 @@ def draw_histogram(x_data, y_data, title, legend_img_uri, filename):
         }],
         autosize=False,
         width=1000,
-        margin={'b': 100},
+        margin={'t': CHART_MARGIN, 'b': 115},
         bargap=0,
         xaxis=go.layout.XAxis(
             tickmode='linear',
@@ -206,6 +210,7 @@ def draw_donuts(series_names, donuts, title, filename):
         autosize=False,
         width=1000,
         height=550,
+        margin={'pad': 0, 'b': CHART_MARGIN, 't': CHART_MARGIN},
         annotations=[{
             'text': donut[0],
             'font': {
