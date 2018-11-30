@@ -102,7 +102,17 @@ A sample init script for nginx:
 
 Sample init scripts for Celery can be found in the [Celery repo](https://github.com/celery/celery/tree/master/extra/generic-init.d/).
 
-Setting up [Orca](https://github.com/plotly/orca) (required for exporting visualizations from `plotly`) can be tricky on headless machines. We got it to work by installing the standalone binaries and additional dependencies (such as `google-chrome-stable`) as per the `readme`, then using Xvfb with the `-a` flag, i.e. `xvfb-run -a ...`. Additionally, restarting a daemonized Celery will create a new Xvfb instance rather than re-using the one that is already running. The [Celery restart script](restart-celery.sh) kills old Xvfb instances in order to keep the memory footprint from escalating. 
+Setting up [Orca](https://github.com/plotly/orca) (required for exporting visualizations from Plotly) can be tricky on headless machines. We got it to work by installing the standalone binaries and additional dependencies (such as `google-chrome-stable`) as per the `readme`, then using Xvfb with the `-a` flag, i.e. `xvfb-run -a ...`. Additionally, restarting a daemonized Celery will create a new xvfb instance rather than re-using the one that is already running. We added the following function to our Celery init script, which kills running xvfb processes:
+
+    kill_xvfb () {
+        local xvfb_pids=`ps aux | grep tmp/xvfb-run | grep -v grep | awk '{print $2}'`
+        if [ "$xvfb_pids" != "" ]; then
+            echo "Killing the following xvfb processes: $xvfb_pids"
+            sudo kill $xvfb_pids
+        else
+            echo "No xvfb processes to kill"
+        fi
+    }    
 
 ## Authors
 
