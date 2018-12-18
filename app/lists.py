@@ -134,7 +134,7 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
         try:
             proxy_process_number = str(process.index + 1)
         except AttributeError:
-            proxy_process_number = 1
+            proxy_process_number = '1'
 
         # Use the US Proxies API to get the proxy info
         proxy_request_uri = 'http://us-proxies.com/api.php'
@@ -168,7 +168,7 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
             self.logger.info('Using proxy: %s', self.proxy)
             await asyncio.sleep(self.PROXY_BOOT_TIME)
         else:
-            self.logger.warning('Not using a proxy. Reason: %s',
+            self.logger.warning('Not using a proxy. Reason: %s.',
                                 proxy_response_vars[2] if
                                 proxy_response_vars else
                                 'ConnectionError: proxy provider down.')

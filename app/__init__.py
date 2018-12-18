@@ -24,7 +24,7 @@ csp = {
     'font-src': ['\'self\'', 'fonts.gstatic.com'],
     'img-src': ['\'self\'', 'www.google-analytics.com', 'data:']}
 Talisman(app, content_security_policy=csp,
-     	 content_security_policy_nonce_in=['script-src', 'style-src'])
+         content_security_policy_nonce_in=['script-src', 'style-src'])
 
 csrf = CSRFProtect(app)
 db = SQLAlchemy(app)
