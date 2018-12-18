@@ -8,10 +8,10 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-* [Python](https://www.python.org), version 3.5+ (3.6+ recommended)
-* [RabbitMQ](https://www.rabbitmq.com/) or another AMQP broker
-* A relational database, e.g. [SQLite](https://www.sqlite.org) or [PostgresSQL](https://www.postgresql.org/)
-* [NodeJS](https://nodejs.org), version 11.2+. (We use [NVM](https://github.com/creationix/nvm) to manage Node versions.) 
+* [Python](https://www.python.org), version 3.5+ (3.6+ recommended).
+* [RabbitMQ](https://www.rabbitmq.com/) or another AMQP broker.
+* A relational database, e.g. [SQLite](https://www.sqlite.org) or [PostgresSQL](https://www.postgresql.org/).
+* [NodeJS](https://nodejs.org). We're currently using version 11.2, but any recent version should work. (We use [NVM](https://github.com/creationix/nvm) to manage Node versions.) 
 * [Amazon SES](https://aws.amazon.com/ses/)
 
 ### Local Development
@@ -60,6 +60,16 @@ These instructions will get you a copy of the project up and running on your loc
 
 Finally, open a web browser and navigate to the `SERVER_NAME` URI.
 
+## Testing
+
+Run tests with `pytest`:
+
+    python -m pytest tests
+
+To generate a coverage report as well:
+
+    python -m pytest --cov=app --cov-report term-missing tests
+
 ## Linting
 
 Lint the backend with `pylint`:
@@ -100,7 +110,7 @@ A sample init script for nginx:
         }
     }
 
-Sample init scripts for Celery can be found in the [Celery repo](https://github.com/celery/celery/tree/master/extra/generic-init.d/).
+Sample init scripts for `Celery` can be found in the [Celery repo](https://github.com/celery/celery/tree/master/extra/generic-init.d/).
 
 Setting up [Orca](https://github.com/plotly/orca) (required for exporting visualizations from Plotly) can be tricky on headless machines. We got it to work by installing the standalone binaries and additional dependencies (such as `google-chrome-stable`) as per the `readme`, then using Xvfb with the `-a` flag, i.e. `xvfb-run -a ...`. Additionally, restarting a daemonized Celery will create a new xvfb instance rather than re-using the one that is already running. We added the following function to our Celery init script, which kills running xvfb processes:
 

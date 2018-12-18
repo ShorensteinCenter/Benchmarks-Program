@@ -18,7 +18,7 @@ logs.setup_logging()
 
 # Set up flask-talisman to prevent xss and other attacks
 csp = {
-    'default-src': '\'self\'',
+	'default-src': '\'self\'',
     'script-src': ['\'self\'', 'cdnjs.cloudflare.com', 'www.googletagmanager.com'],
     'style-src': ['\'self\'', 'fonts.googleapis.com'],
     'font-src': ['\'self\'', 'fonts.gstatic.com'],
