@@ -1,10 +1,10 @@
 {
   "name": "benchmarks",
-  "version": "1.0.0",
+  "version": "2.5.1",
   "description": "Analytics for MailChimp Lists",
   "main": "app.py",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "gulp": "./node_modules/.bin/gulp"
   },
   "author": "William Hakim",
   "license": "MIT",
@@ -21,7 +21,7 @@
     "gulp-util": "^3.0.8"
   },
   "dependencies": {
-    "electron": "^3.0.10",
+    "electron": "^3.0.13",
     "orca": "^1.1.1"
   }
 }
