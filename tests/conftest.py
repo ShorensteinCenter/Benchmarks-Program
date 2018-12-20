@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 from wtforms import BooleanField
 from app import app
+from app.lists import MailChimpList
 
 @pytest.fixture
 def test_app():
@@ -96,3 +97,8 @@ def mocked_mailchimp_list(mocker, fake_calculation_results):
     for k, v in fake_calculation_results.items():
         setattr(mocked_mailchimp_list.return_value, k, v)
     yield mocked_mailchimp_list
+
+@pytest.fixture
+def mailchimp_list():
+    """Creates a MailChimpList. Used for testing class/instance methiods."""
+    yield MailChimpList(1, 2, 'foo-bar1', 'bar1')
