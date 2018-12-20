@@ -5,7 +5,7 @@ import json
 import asyncio
 from collections import OrderedDict
 from datetime import datetime, timedelta, timezone
-from billiard import current_process
+from billiard import current_process # pylint: disable=no-name-in-module
 import requests
 from requests.exceptions import ConnectionError as ConnError
 import pandas as pd
@@ -249,6 +249,12 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
 
             exception_type = type(e).__name__
 
+            # If we're just catching the exception raised above
+            # don't need to do anything else
+            if exception_type == 'MailChimpImportError':
+                raise
+
+            # Otherwise, log what happened as appropriate
             if exception_type == 'ClientHttpProxyError':
                 self.logger.warning('Failed to connect to proxy! Proxy: %s',
                                     self.proxy)
@@ -287,6 +293,7 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
             # Log the error and raise an exception
             self.logger.exception('Error in async request to MailChimp (%s)',
                                   exception_type)
+
             raise MailChimpImportError(
                 'Error in async request to MailChimp ({})'.format(
                     exception_type),
@@ -397,6 +404,7 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
         """
         params = (
             ('fields', 'activity.action,activity.timestamp,email_id'),
+            ('exclude_fields', 'total_items,_links')
         )
 
         request_uri = ('https://{}.api.mailchimp.com/3.0/lists/{}/members/'
@@ -516,10 +524,10 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
 
     def calc_histogram(self):
         """Calculates the distribution for subscriber open rate."""
-        bin_boundaries = [-0.001, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.]
+        bin_boundaries = np.linspace(0, 1, num=11)
         bins = (pd.cut(
             self.df.loc[self.df['status'] == 'subscribed', 'avg_open_rate'],
-            bin_boundaries))
+            bin_boundaries, include_lowest=True))
         self.hist_bin_counts = (pd.value_counts(bins, sort=False).tolist())
 
     def calc_high_open_rate_pct(self):
