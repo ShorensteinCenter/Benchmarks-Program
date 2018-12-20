@@ -10,7 +10,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 * [Python](https://www.python.org), version 3.5+ (3.6+ recommended).
 * [RabbitMQ](https://www.rabbitmq.com/) or another AMQP broker.
-* A relational database, e.g. [SQLite](https://www.sqlite.org) or [PostgresSQL](https://www.postgresql.org/).
+* A relational database, e.g. [SQLite](https://www.sqlite.org) or [PostgreSQL](https://www.postgresql.org/).
 * [NodeJS](https://nodejs.org). We're currently using version 11.2, but any recent version should work. (We use [NVM](https://github.com/creationix/nvm) to manage Node versions.) 
 * [Amazon SES](https://aws.amazon.com/ses/)
 
@@ -48,7 +48,7 @@ These instructions will get you a copy of the project up and running on your loc
 ##### Install Node dependencies and compile the front-end source
 
     npm install
-    gulp
+    npm run gulp
 
 ##### Run the application
 
