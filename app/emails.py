@@ -1,5 +1,4 @@
 """This module contains functions associated with sending email."""
-import os
 import logging
 import boto3
 from flask import render_template
@@ -35,7 +34,7 @@ def send_email(subject, recipients, template_name, template_context, # pylint: d
 
     with app.app_context():
         html = render_template(template_name, **template_context)
-        if os.environ.get('NO_EMAIL') and not error:
+        if app.config['NO_EMAIL'] and not error:
             logger = logging.getLogger(__name__)
             logger.warning('NO_EMAIL environment variable set. '
                            'Suppressing an email with the following params: '
