@@ -1,5 +1,3 @@
-import os
-import tempfile
 from unittest.mock import MagicMock
 import pytest
 from wtforms import BooleanField
@@ -9,13 +7,9 @@ from app.lists import MailChimpList
 @pytest.fixture
 def test_app():
     """Sets up a test app."""
-    db_fd, app.config['SQLALCHEMY_DATABASE_URI'] = tempfile.mkstemp()
     app.config['TESTING'] = True
     app.config['WTF_CSRF_ENABLED'] = False
     yield app
-
-    os.close(db_fd)
-    os.unlink(app.config['SQLALCHEMY_DATABASE_URI'])
 
 @pytest.fixture
 def client(test_app):

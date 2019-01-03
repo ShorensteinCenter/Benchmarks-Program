@@ -12,8 +12,7 @@ def test_send_email(test_app, mocker, sender, config_set_arg,
     mocked_boto3_client_instance = mocked_boto3_client.return_value
     mocked_render_template = mocker.patch('app.emails.render_template')
     mocked_template_html = mocked_render_template.return_value
-    mocked_os = mocker.patch('app.emails.os')
-    mocked_os.environ.get.side_effect = [False]
+    test_app.config['NO_EMAIL'] = False
     with test_app.app_context():
         test_app.config['SES_REGION_NAME'] = 'foo'
         test_app.config['AWS_ACCESS_KEY_ID'] = 'bar'
@@ -45,6 +44,7 @@ def test_send_error_email_or_email_disabled(test_app, mocker, caplog):
     """Tests the send_email function for an error email or if NO_EMAIL is set."""
     mocked_boto3_client = mocker.patch('app.emails.boto3.client')
     mocker.patch('app.emails.render_template')
+    test_app.config['NO_EMAIL'] = True
     with test_app.app_context():
         test_app.config['SES_REGION_NAME'] = 'foo'
         test_app.config['AWS_ACCESS_KEY_ID'] = 'bar'
