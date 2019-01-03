@@ -4,7 +4,8 @@
   "description": "Analytics for MailChimp Lists",
   "main": "app.py",
   "scripts": {
-    "gulp": "./node_modules/.bin/gulp"
+    "gulp": "./node_modules/.bin/gulp",
+    "lint": "./node_modules/.bin/gulp lint"
   },
   "author": "William Hakim",
   "license": "MIT",

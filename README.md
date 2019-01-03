@@ -62,13 +62,14 @@ Finally, open a web browser and navigate to the `SERVER_NAME` URI.
 
 ## Testing
 
-Run tests with `pytest`:
+Run unit and integration tests with `pytest`:
 
-    python -m pytest tests
+    python -m pytest tests/unit
+    python -m pytest tests/integration
 
 To generate a coverage report as well:
 
-    python -m pytest --cov=app --cov-report term-missing tests
+    python -m pytest --cov=app --cov-report term-missing tests/unit
 
 ## Linting
 
@@ -76,7 +77,11 @@ Lint the backend with `pylint`:
 
     pylint app
 
-`Gulp` should automatically lint the front-end. Javascript rules are defined in `.eslintrc`.
+Lint the frontend:
+
+    npm run lint
+
+Python and Javascript rules are defined in `pylintrc` and `.eslintrc`, respectively.
 
 ## Deployment
 
