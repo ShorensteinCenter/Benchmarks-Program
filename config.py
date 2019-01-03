@@ -28,3 +28,4 @@ class Config():
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
     SES_REGION_NAME = os.environ.get('SES_REGION_NAME')
     SES_DEFAULT_EMAIL_SOURCE = os.environ.get('SES_DEFAULT_EMAIL_SOURCE')
+    NO_EMAIL = os.environ.get('NO_EMAIL')
