@@ -12,7 +12,7 @@ These instructions will get you a copy of the project up and running on your loc
 * [RabbitMQ](https://www.rabbitmq.com/) or another AMQP broker.
 * A relational database, e.g. [SQLite](https://www.sqlite.org) or [PostgreSQL](https://www.postgresql.org/).
 * [NodeJS](https://nodejs.org). We're currently using version 11.2, but any recent version should work. (We use [NVM](https://github.com/creationix/nvm) to manage Node versions.) 
-* [Amazon SES](https://aws.amazon.com/ses/)
+* [Amazon SES](https://aws.amazon.com/ses/).
 
 ### Local Development
 
@@ -40,14 +40,24 @@ These instructions will get you a copy of the project up and running on your loc
 * `NO_EMAIL` - Suppresses sending of emails. Note that SES is still required, emails will just be logged rather than sent. Optional.
 * `ADMIN_EMAIL` - Email address to send error emails to. Optional.
 
+The following variables are only required to run integration tests:
+
+* `TESTING_API_KEY` - MailChimp API key to use in integration tests.
+* `TESTING_LIST_ID` - MailChimp list ID to run integration tests against.
+
 ##### Upgrade the database
 
     export FLASK_APP=app.py
     flask db upgrade
 
-##### Install Node dependencies and compile the front-end source
+##### Install Node dependencies
 
     npm install
+
+You may need to add the installed binaries to your system path (or install with the `-g` flag), as the application expects to find certain executables (such as `orca`).
+
+##### Compile front-end
+
     npm run gulp
 
 ##### Run the application
