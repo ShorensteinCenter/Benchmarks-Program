@@ -5,12 +5,13 @@ import random
 import time
 import requests
 import numpy as np
+from sqlalchemy import desc, distinct
 from sqlalchemy.sql.functions import func
 from celery.utils.log import get_task_logger
 from app import celery, db
 from app.emails import send_email
 from app.lists import MailChimpList, MailChimpImportError, do_async_import
-from app.models import ListStats
+from app.models import EmailList, ListStats
 from app.dbops import associate_user_with_list
 from app.visualizations import (
     draw_bar, draw_stacked_horizontal_bar, draw_histogram, draw_donuts)
@@ -82,11 +83,17 @@ def import_analyze_store_list(list_data, org_id, user_email=None):
     mailing_list.calc_cur_yr_stats()
 
     # Create a list object
-    list_stats = ListStats(
+    email_list = EmailList(
         list_id=list_data['list_id'],
         list_name=list_data['list_name'],
         api_key=list_data['key'],
         data_center=list_data['data_center'],
+        store_aggregates=list_data['store_aggregates'],
+        monthly_updates=list_data['monthly_updates'],
+        org_id=org_id)
+
+    # Create a set of stats
+    list_stats = ListStats( 
         frequency=mailing_list.frequency,
         subscribers=mailing_list.subscribers,
         open_rate=mailing_list.open_rate,
@@ -97,23 +104,22 @@ def import_analyze_store_list(list_data, org_id, user_email=None):
         pending_pct=mailing_list.pending_pct,
         high_open_rt_pct=mailing_list.high_open_rt_pct,
         cur_yr_inactive_pct=mailing_list.cur_yr_inactive_pct,
-        store_aggregates=list_data['store_aggregates'],
-        monthly_updates=list_data['monthly_updates'],
-        org_id=org_id)
+        list_id=list_data['list_id'])
 
     # If the user gave their permission, store the object in the database
     if list_data['monthly_updates'] or list_data['store_aggregates']:
-        list_stats = db.session.merge(list_stats)
+        email_list = db.session.merge(email_list)
+        db.session.add(list_stats)
         try:
             db.session.commit()
         except:
             db.session.rollback()
             raise
 
-    return list_stats
+    return email_list
 
 def send_report(stats, list_id, list_name, user_email_or_emails):
-    """Generates charts using Pygal and emails them to the user.
+    """Generates charts using Plotly and emails them to the user.
 
     Args:
         stats: a dictionary containing analysis results for a list.
@@ -122,21 +128,29 @@ def send_report(stats, list_id, list_name, user_email_or_emails):
         user_email_or_emails: a list of emails to send the report to.
     """
 
-    # Generate aggregates for the database
-    # Only include lists where we have permission
+    # This subquery generates the most recent stats
+    # For each unique list_id in the database
+    # Where store_aggregates is True
+    subquery = ListStats.query.filter(
+        ListStats.list.has(store_aggregates=True)).order_by('list_id', desc(
+            'analysis_timestamp')).distinct(ListStats.list_id).subquery()
+
+    # Generate aggregates within the subquery
     agg_stats = db.session.query(
-        func.avg(ListStats.subscribers),
-        func.avg(ListStats.subscribed_pct),
-        func.avg(ListStats.unsubscribed_pct),
-        func.avg(ListStats.cleaned_pct),
-        func.avg(ListStats.pending_pct),
-        func.avg(ListStats.open_rate),
-        func.avg(ListStats.high_open_rt_pct),
-        func.avg(ListStats.cur_yr_inactive_pct)).filter_by(
-            store_aggregates=True).first()
+        func.avg(subquery.columns.subscribers),
+        func.avg(subquery.columns.subscribed_pct),
+        func.avg(subquery.columns.unsubscribed_pct),
+        func.avg(subquery.columns.cleaned_pct),
+        func.avg(subquery.columns.pending_pct),
+        func.avg(subquery.columns.open_rate),
+        func.avg(subquery.columns.high_open_rt_pct),
+        func.avg(subquery.columns.cur_yr_inactive_pct)).first()
 
     # Make sure we have no 'None' values
     agg_stats = [agg if agg else 0 for agg in agg_stats]
+
+    # Convert subscribers average to an integer
+    agg_stats[0] = int(agg_stats[0])
 
     # Generate epoch time (to get around image caching in webmail)
     epoch_time = str(int(time.time()))
@@ -218,10 +232,12 @@ def extract_stats(list_object):
 def init_list_analysis(user_data, list_data, org_id):
     """Celery task wrapper for each stage of analyzing a list.
 
-    First checks if the list stats are cached, i.e. already in the
+    First checks if the EmailList is cached, i.e. already in the
     database. If not, calls import_analyze_store_list() to generate
-    them. Then checks if the user is already associated with the list,
-    if not, create the relationship. Finally, generates a benchmarking
+    the EmailList and an associated set of ListStats. Next updates the user's
+    privacy options (e.g. store_aggregates, monthly_updates) if the list was
+    cached. Then checks if the user selected monthly updates, if so,
+    create the relationship. Finally, generates a benchmarking
     report with the stats.
 
     Args:
@@ -230,19 +246,38 @@ def init_list_analysis(user_data, list_data, org_id):
         org_id: the id of the organization associated with the list.
     """
 
-    # Try to pull the list stats from database
-    # Otherwise generate them
-    list_object = (ListStats.query.filter_by(
+    # Try to pull the EmailList from the database
+    # Otherwise generate it (and associated stats)
+    list_object = (EmailList.query.filter_by(
         list_id=list_data['list_id']).first() or
-                   import_analyze_store_list(
-                       list_data, org_id, user_data['email']))
+           import_analyze_store_list(
+               list_data, org_id, user_data['email']))
+
+    # Update the list privacy options if they differ from previous selection
+    if (list_object.monthly_updates != list_data['monthly_updates']
+        or list_object.store_aggregates != list_data['store_aggregates']):
+        list_object.monthly_updates = list_data['monthly_updates']
+        list_object.store_aggregates = list_data['store_aggregates']
+        list_object = db.session.merge(list_object)
+        try:
+            db.session.commit()
+        except:
+            db.session.rollback()
+            raise
 
     # Associate the list with the user who requested the analysis
     # If that user requested monthly updates
     if list_data['monthly_updates']:
         associate_user_with_list(user_data['user_id'], list_object)
 
-    stats = extract_stats(list_object)
+    # Grab the most recent set of stats for the given list
+    most_recent_analysis = ListStats.query.filter_by(
+        list_id=list_data['list_id']).order_by(desc(
+            'analysis_timestamp')).first()
+
+    # Convert the ListStats object to an easier-to-use dictionary
+    stats = extract_stats(most_recent_analysis)
+
     send_report(stats, list_data['list_id'],
                 list_data['list_name'], [user_data['email']])
 
@@ -258,7 +293,7 @@ def update_stored_data():
     logger = get_task_logger(__name__)
 
     # Grab what we have in the database
-    list_objects = ListStats.query.with_entities(
+    list_objects = EmailList.query.with_entities(
         ListStats.list_id, ListStats.list_name, ListStats.org_id,
         ListStats.api_key, ListStats.data_center,
         ListStats.store_aggregates, ListStats.monthly_updates).all()
