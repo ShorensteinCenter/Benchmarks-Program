@@ -13,7 +13,7 @@ users = db.Table( # pylint: disable=invalid-name
 # Association table for many-to-many relationship between lists and users
 list_users = db.Table( # pylint: disable=invalid-name
     'list_users',
-    db.Column('list_id', db.String(64), db.ForeignKey('list_stats.list_id'),
+    db.Column('list_id', db.String(64), db.ForeignKey('email_list.list_id'),
               primary_key=True),
     db.Column('user_id', db.Integer, db.ForeignKey('app_user.id'),
               primary_key=True))
@@ -31,13 +31,9 @@ class AppUser(db.Model): # pylint: disable=too-few-public-methods
         return '<AppUser {}>'.format(self.id)
 
 class ListStats(db.Model): # pylint: disable=too-few-public-methods
-    """Stores individual MailChimp lists and their associated stats."""
-    list_id = db.Column(db.String(64), primary_key=True)
-    list_name = db.Column(db.String(128))
-    org_id = db.Column(db.Integer, db.ForeignKey('organization.id',
-                                                 name='fk_org_id'))
-    api_key = db.Column(db.String(64))
-    data_center = db.Column(db.String(64))
+    """Stores stats associated with a MailChimp list."""
+    id = db.Column(db.Integer, primary_key=True)
+    analysis_timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     frequency = db.Column(db.Float)
     subscribers = db.Column(db.Integer)
     open_rate = db.Column(db.Float)
@@ -48,13 +44,28 @@ class ListStats(db.Model): # pylint: disable=too-few-public-methods
     pending_pct = db.Column(db.Float)
     high_open_rt_pct = db.Column(db.Float)
     cur_yr_inactive_pct = db.Column(db.Float)
+    list_id = db.Column(db.String(64), db.ForeignKey('email_list.list_id',
+                                                     name='fk_list_id'))
+
+    def __repr__(self):
+        return '<ListStats {}>'.format(self.id)
+
+class EmailList(db.Model): # pylint: disable=too-few-public-methods
+    """Stores individual MailChimp lists."""
+    list_id = db.Column(db.String(64), primary_key=True)
+    list_name = db.Column(db.String(128))
+    api_key = db.Column(db.String(64))
+    data_center = db.Column(db.String(64))
     store_aggregates = db.Column(db.Boolean)
     monthly_updates = db.Column(db.Boolean)
     monthly_update_users = db.relationship(
         AppUser, secondary=list_users, backref='lists', lazy='subquery')
+    org_id = db.Column(db.Integer, db.ForeignKey('organization.id',
+                                                 name='fk_org_id'))
+    analyses = db.relationship(ListStats, backref='list')
 
     def __repr__(self):
-        return '<ListStats {}>'.format(self.list_id)
+        return '<EmailList {}>'.format(self.list_id)
 
 class Organization(db.Model): # pylint: disable=too-few-public-methods
     """Stores a media or journalism organization."""
@@ -67,7 +78,7 @@ class Organization(db.Model): # pylint: disable=too-few-public-methods
     employee_range = db.Column(db.String(32))
     budget = db.Column(db.String(64))
     affiliations = db.Column(db.String(512))
-    lists = db.relationship(ListStats, backref='org')
+    lists = db.relationship(EmailList, backref='org')
     users = db.relationship(AppUser, secondary=users, backref='orgs')
 
     def __repr__(self):

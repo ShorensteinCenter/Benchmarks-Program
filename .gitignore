@@ -13,3 +13,4 @@ benchmarks-env/
 *.dmg
 .coverage
 .DS_Store
+scratch/
