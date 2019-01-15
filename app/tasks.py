@@ -1,12 +1,11 @@
 """This module contains Celery tasks and functions associated with them."""
 import os
 import json
-import random
 import time
 from datetime import datetime, timedelta, timezone
 import requests
 import numpy as np
-from sqlalchemy import desc, distinct
+from sqlalchemy import desc
 from sqlalchemy.sql.functions import func
 from celery.utils.log import get_task_logger
 from app import celery, db
@@ -84,7 +83,7 @@ def import_analyze_store_list(list_data, org_id, user_email=None):
     mailing_list.calc_cur_yr_stats()
 
     # Create a set of stats
-    list_stats = ListStats( 
+    list_stats = ListStats(
         frequency=mailing_list.frequency,
         subscribers=mailing_list.subscribers,
         open_rate=mailing_list.open_rate,
@@ -264,7 +263,7 @@ def init_list_analysis(user_data, list_data, org_id):
 
         # Update the privacy options if they differ from previous selection
         if (list_object.monthly_updates != list_data['monthly_updates']
-            or list_object.store_aggregates != list_data['store_aggregates']):
+                or list_object.store_aggregates != list_data['store_aggregates']):
             list_object.monthly_updates = list_data['monthly_updates']
             list_object.store_aggregates = list_data['store_aggregates']
             list_object = db.session.merge(list_object)

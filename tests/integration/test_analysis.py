@@ -3,7 +3,7 @@ import glob
 import json
 import requests
 from app import db
-from app.models import AppUser, Organization, ListStats
+from app.models import AppUser, Organization, EmailList
 
 def test_analysis(client, caplog):
     """End-to-end test of analyzing a list."""
@@ -78,10 +78,12 @@ def test_analysis(client, caplog):
     assert any(list_id + '_high_open_rt_pct_' in file for file in chart_files)
     assert any(list_id + '_cur_yr_inactive_pct_' in file for file in chart_files)
     assert ('Suppressing an email with the following params: '
-        'Sender: testing@testing.com. Recipients: [\'foo@bar.com\']. '
-        'Subject: Your Email Benchmarking Report is Ready!'
-        in caplog.text)
-    list_result = ListStats.query.filter_by(list_id=list_id).first()
-    assert list_result
-    assert list_result.org.id == existing_org_id
-    assert list_result.monthly_update_users[0].id == existing_user_id
+            'Sender: testing@testing.com. Recipients: [\'foo@bar.com\']. '
+            'Subject: Your Email Benchmarking Report is Ready!'
+            in caplog.text)
+    email_list = EmailList.query.filter_by(list_id=list_id).first()
+    assert email_list
+    assert email_list.org.id == existing_org_id
+    assert email_list.monthly_update_users[0].id == existing_user_id
+    assert email_list.analyses[0]
+    assert email_list.analyses[0].open_rate == data['stats']['open_rate']

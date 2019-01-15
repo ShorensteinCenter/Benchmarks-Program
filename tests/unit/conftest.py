@@ -88,8 +88,7 @@ def mocked_mailchimp_list(mocker, fake_calculation_results):
     """Mocks the MailChimp list class from app/lists.py and attaches fake calculation
     results to the mock attributes."""
     mocked_mailchimp_list = mocker.patch('app.tasks.MailChimpList')
-    for k, v in fake_calculation_results.items():
-        setattr(mocked_mailchimp_list.return_value, k, v)
+    mocked_mailchimp_list.return_value = MagicMock(**fake_calculation_results)
     yield mocked_mailchimp_list
 
 @pytest.fixture

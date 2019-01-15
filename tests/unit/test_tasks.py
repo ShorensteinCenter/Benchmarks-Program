@@ -7,7 +7,7 @@ from app.tasks import (
     send_activated_email, import_analyze_store_list, send_report, extract_stats,
     init_list_analysis, update_stored_data, send_monthly_reports)
 from app.lists import MailChimpImportError
-from app.models import ListStats, EmailList
+from app.models import ListStats
 
 def test_send_activated_email(mocker):
     """Tests the send_activated_email function."""
@@ -50,7 +50,6 @@ def test_import_analyze_store_list(
     mocked_mailchimp_list_instance = mocked_mailchimp_list.return_value
     mocked_do_async_import = mocker.patch('app.tasks.do_async_import')
     mocked_list_stats = mocker.patch('app.tasks.ListStats', spec=ListStats)
-    mocked_email_list = mocker.patch('app.tasks.EmailList')
     list_stats = import_analyze_store_list(
         fake_list_data, fake_list_data['org_id'])
     mocked_mailchimp_list.assert_called_with(
