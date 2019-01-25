@@ -111,7 +111,7 @@ def draw_stacked_horizontal_bar(y_vals, x_series, diff_vals, title, filename):
             textfont={'color': '#444'
                                if series_data[0] == 'Pending %'
                                else '#fff',
-                      'size': 8},
+                      'size': 9},
             cliponaxis=False,
             marker={'color': FILL_COLORS[series_num]},
             orientation='h')
@@ -254,7 +254,7 @@ def draw_donuts(series_names, donuts, diff_vals, title, filename):
             domain={'x': donut_domains[donut_num]},
             marker={'colors': FILL_COLORS,
                     'line': {'width': 0}},
-            textfont={'color': '#fff', 'size': 7.5},
+            textfont={'color': '#fff', 'size': 8.5},
             textinfo='text')
         data.append(trace)
     layout = go.Layout(
