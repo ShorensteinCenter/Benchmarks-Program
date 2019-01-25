@@ -243,11 +243,11 @@ def send_report(
 
         # Calculate the diffs (for month-over-month change labels)
         diff_vals = generate_diffs(list_stats, agg_stats)
-        bar_titles = ['Last Month<br>(Your List)', 'This Month<br>(Your List)',
-                      'Last Month<br>(Average)', 'This Month<br>(Average)']
+        bar_titles = ['Last Month<br>Your List', 'This Month<br>Your List',
+                      'Last Month<br>Average', 'This Month<br>Average']
         stacked_bar_titles = [
-            'Last Month   <br>(Average)   ', 'This Month   <br>(Average)   ',
-            'Last Month   <br>(Your List)   ', 'This Month   <br>(Your List)   ']
+            'Last Month   <br>Average   ', 'This Month   <br>Average   ',
+            'Last Month   <br>Your List   ', 'This Month   <br>Your List   ']
 
     else:
 
