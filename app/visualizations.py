@@ -1,4 +1,5 @@
 """This module contains plotly visualizations."""
+import itertools
 import plotly.graph_objs as go
 import plotly.io as pio
 
@@ -20,39 +21,54 @@ def write_png(data, layout, filename):
     pio.write_image(
         fig, 'app/static/charts/{}.png'.format(filename), scale=2)
 
-def draw_bar(x_vals, y_vals, title, filename, percentage_values=False):
+def draw_bar(x_vals, y_vals, diff_vals, title, filename,
+             percentage_values=False):
     """Creates a simple bar chart. See plot.ly/python/bar-charts.
 
     Args:
         x_vals: a list containing the bar x-values.
-        y_vals: a list containing the bar y-values.
+        y_vals: a list containing the bar y-values
+        diff_vals difference between monthly values (for labels), if the
+            previous month's data is included.
         title: the chart title.
         filename: the filename of the exported png.
         percentage_values: if true, formats y-values as percentages.
     """
+    label_text = [
+        '{:.1%}'.format(y_val) if percentage_values
+        else '{:,d}'.format(int(y_val))
+        for y_val in y_vals]
+    if diff_vals:
+        label_text[1] += ('<br>(' + diff_vals[0] + ')')
+        label_text[3] += ('<br>(' + diff_vals[1] + ')')
+
     trace = go.Bar(
         x=x_vals,
         y=y_vals,
         width=[0.6 for x_val in x_vals],
-        text=['{:.1%}'.format(y_val) if percentage_values
-              else '{:,d}'.format(int(y_val))
-              for y_val in y_vals],
+        text=label_text,
         textposition='outside',
-        marker={'color': FILL_COLORS[0:len(x_vals)]})
+        cliponaxis=False,
+        marker={'color': (
+            [FILL_COLORS[0], FILL_COLORS[0], FILL_COLORS[1], FILL_COLORS[1]]
+            if diff_vals
+            else [FILL_COLORS[0], FILL_COLORS[1]])
+        }
+    )
     data = [trace]
     layout = go.Layout(
         title=title,
         autosize=False,
         width=600,
         height=500,
-        margin={'pad': 0, 'b': CHART_MARGIN - 15, 't': CHART_MARGIN},
+        margin={'pad': 0, 'b': CHART_MARGIN - 10, 't': CHART_MARGIN + 5},
         font={'size': 9},
         titlefont={'size': 13})
     if percentage_values:
         layout.yaxis = go.layout.YAxis(tickformat=',.0%')
     write_png(data, layout, filename)
 
-def draw_stacked_horizontal_bar(y_vals, x_series, title, filename):
+def draw_stacked_horizontal_bar(y_vals, x_series, diff_vals, title, filename):
     """Creates a horizontal stacked bar chart.
 
     See plot.ly/python/bar-charts/#stacked-bar-chart and
@@ -63,21 +79,40 @@ def draw_stacked_horizontal_bar(y_vals, x_series, title, filename):
         x_series: a list of tuples. Each tuple represents a data series.
             The tuple's first element is the series name; the second element
             is a list containing the series data.
+        diff_vals difference between monthly values (for labels), if the
+            previous month's data is included.
         title: see draw_bar().
         filename: see draw_bar().
     """
     data = []
     for series_num, series_data in enumerate(x_series):
+        
+        text = []
+        for series_datum_num, series_datum in enumerate(series_data[1]):
+            diff_val = (
+                diff_vals.pop(0)
+                if diff_vals and series_datum_num % 2 != 0
+                else None)
+            
+            if series_datum < .02 and series_data[0] != 'Pending %':
+                text.append('')
+            elif diff_val:
+                text.append('{:.1%}'.format(series_datum) +
+                            '<br>(' + diff_val + ')')
+            else:
+                text.append('{:.1%}'.format(series_datum))
+
         trace = go.Bar(
             y=y_vals,
             x=series_data[1],
             name=series_data[0],
-            text=['{:.1%}'.format(series_datum)
-                  for series_datum in series_data[1]],
+            text=text,
             textposition='auto',
             textfont={'color': '#444'
                                if series_data[0] == 'Pending %'
-                               else '#fff'},
+                               else '#fff',
+                      'size': 8},
+            cliponaxis=False,
             marker={'color': FILL_COLORS[series_num]},
             orientation='h')
         data.append(trace)
@@ -90,8 +125,7 @@ def draw_stacked_horizontal_bar(y_vals, x_series, title, filename):
         margin={'pad': 0, 'b': CHART_MARGIN, 't': CHART_MARGIN},
         legend={'traceorder': 'normal'},
         xaxis=go.layout.XAxis(tickformat=',.0%'),
-        yaxis=go.layout.YAxis(automargin=True,
-                              ticksuffix='  '))
+        yaxis=go.layout.YAxis(automargin=True))
     write_png(data, layout, filename)
 
 def draw_histogram(x_data, y_data, title, legend_img_uri, filename):
@@ -182,7 +216,7 @@ def draw_histogram(x_data, y_data, title, legend_img_uri, filename):
         }])
     write_png(data, layout, filename)
 
-def draw_donuts(series_names, donuts, title, filename):
+def draw_donuts(series_names, donuts, diff_vals, title, filename):
     """Creates two side-by-side donut charts. See plot.ly/python/pie-charts/.
 
     Args:
@@ -190,38 +224,59 @@ def draw_donuts(series_names, donuts, title, filename):
         donuts: a list of tuples, each containing the data for a chart.
             The first element of the tuple is the chart name; the second
             is a list of data corresponding to each series.
+        diff_vals difference between monthly values (for labels), if the
+            previous month's data is included. 
         title: see draw_bar().
         filename: see draw_bar().
     """
     data = []
+
+    donut_domains = (
+        [[0, .19], [.27, .46], [.54, .73], [.81, 1]]
+        if len(donuts) == 4
+        else [[.27, .46], [.54, .73]]
+    )
+
+    donut_title_x = [.095, .365, .635, .905] if len(donuts) == 4 else [.365, .635]
+    
     for donut_num, donut in enumerate(donuts):
+        
+        text = ['{:.1%}'.format(donut_val) for donut_val in donut[1]]
+        if donut_num % 2 != 0 and diff_vals:
+            text[0] += ('<br>(' + diff_vals.pop(0) + ')')
+
         trace = go.Pie(
             values=donut[1],
             labels=series_names,
             name=donut[0],
+            text=text,
             hole=.45,
-            domain={'x': [0, .46] if donut_num == 0 else [.54, 1]},
+            domain={'x': donut_domains[donut_num]},
             marker={'colors': FILL_COLORS,
                     'line': {'width': 0}},
-            textfont={'color': '#fff'})
+            textfont={'color': '#fff', 'size': 7.5},
+            textinfo='text')
         data.append(trace)
     layout = go.Layout(
         title=title,
         autosize=False,
         width=1000,
-        height=550,
-        margin={'pad': 0, 'b': CHART_MARGIN, 't': CHART_MARGIN},
+        height=500,
+        margin={'pad': 0, 'b': 0, 't': CHART_MARGIN},
         annotations=[{
             'text': donut[0],
             'font': {
-                'size': 14,
+                'size': 12.5,
             },
             'showarrow': False,
             'align': 'center',
-            'x': 0.18 + 0.665 * donut_num,
-            'y': -0.05,
-            'xref': 'paper',
-            'yref': 'paper'} for donut_num, donut in enumerate(donuts)],
-        legend={'y': 0.5,
-                'x': 1.1})
+            'x': donut_title_x[donut_num],
+            'y': .83,
+            'xanchor': 'center',
+            'yanchor': 'top'} for donut_num, donut in enumerate(donuts)],
+        legend={'orientation': 'h',
+                'xanchor': 'center',
+                'yanchor': 'bottom',
+                'y': .15,
+                'x': .5})
     write_png(data, layout, filename)

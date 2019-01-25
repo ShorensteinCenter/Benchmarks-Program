@@ -3,9 +3,11 @@ from datetime import datetime, timezone
 from unittest.mock import MagicMock, ANY, call
 import json
 import pytest
+import pandas as pd
 from app.tasks import (
-    send_activated_email, import_analyze_store_list, send_report, extract_stats,
-    init_list_analysis, update_stored_data, send_monthly_reports)
+    send_activated_email, import_analyze_store_list, generate_summary_stats,
+    send_report, extract_stats, init_list_analysis, update_stored_data,
+    send_monthly_reports)
 from app.lists import MailChimpImportError
 from app.models import ListStats
 
@@ -109,6 +111,47 @@ def test_import_analyze_store_list_store_results_in_db_exception(
         import_analyze_store_list(fake_list_data, 'foo')
     mocked_db.session.rollback.assert_called()
 
+def test_generate_summary_stats_single_analysis(
+        mocker, fake_list_stats_query_result_as_df,
+        fake_list_stats_query_result_means):
+    """Tests the generate_summary_stats function when passed a single analysis."""
+    mocked_extract_stats = mocker.patch('app.tasks.extract_stats')
+    mocked_extract_stats.return_value = {'foo': 1, 'bar': 2}
+    mocked_list_stats = mocker.patch('app.tasks.ListStats')
+    mocked_db = mocker.patch('app.tasks.db')
+    mocked_pd_read_sql = mocker.patch('app.tasks.pd.read_sql')
+    mocked_pd_read_sql.return_value = fake_list_stats_query_result_as_df
+    list_stats, agg_stats = generate_summary_stats(['foo'])
+    mocked_extract_stats.assert_called_once()
+    mocked_pd_read_sql.assert_called_with(
+        mocked_list_stats.query.filter.return_value.order_by.return_value
+        .distinct.return_value.statement,
+        mocked_db.session.bind)
+    assert list_stats == {'foo': [1], 'bar': [2]}
+    assert agg_stats == fake_list_stats_query_result_means
+
+def test_generate_summary_stats_multiple_analyses(
+        mocker, fake_list_stats_query_result_as_df,
+        fake_list_stats_query_result_means):
+    """Tests the generate_summary_stats function when passed two sets of analysis."""
+    mocked_extract_stats = mocker.patch('app.tasks.extract_stats')
+    mocked_extract_stats.return_value = {'foo': 1, 'bar': 2}
+    mocked_db = mocker.patch('app.tasks.db')
+    mocked_pd_read_sql = mocker.patch('app.tasks.pd.read_sql')
+    fake_list_stats_query_result_as_df = pd.concat([
+        fake_list_stats_query_result_as_df.assign(row_number=1),
+        fake_list_stats_query_result_as_df.assign(row_number=2)])
+    mocked_pd_read_sql.return_value = fake_list_stats_query_result_as_df
+    list_stats, agg_stats = generate_summary_stats(['foo', 'bar'])
+    mocked_extract_stats.assert_has_calls([call('foo'), call('bar')])
+    mocked_pd_read_sql.assert_called_with(ANY, mocked_db.session.bind)
+    assert list_stats == {'foo': [1, 1], 'bar': [2, 2]}
+    assert agg_stats == {
+        k: [*v, *v] for k, v in
+        fake_list_stats_query_result_means.items()
+    }
+
+'''
 def test_send_report(mocker, fake_calculation_results):
     """Tests the send_report function."""
     mocked_db = mocker.patch('app.tasks.db')
@@ -161,7 +204,7 @@ def test_send_report(mocker, fake_calculation_results):
             'list_id': '1',
             'epoch_time': ANY},
         configuration_set_name=ANY)
-
+'''
 def test_extract_stats(fake_calculation_results):
     """Tests the extract_stats function."""
     fake_calculation_results.pop('frequency')
@@ -178,9 +221,9 @@ def test_init_list_analysis_existing_list_update_privacy_options(
     the database. Also tests that monthly_updates and store_aggregates
     are updated if they differ from that stored in the database."""
     mocked_list_stats = mocker.patch('app.tasks.ListStats')
-    mocked_recent_analysis = (
+    mocked_recent_analyses = (
         mocked_list_stats.query.filter_by.return_value.order_by
-        .return_value.first.return_value)
+        .return_value.limit.return_value.all.return_value)
     mocked_desc = mocker.patch('app.tasks.desc')
     mocked_email_list = mocker.patch('app.tasks.EmailList')
     mocked_list_object = (
@@ -188,7 +231,9 @@ def test_init_list_analysis_existing_list_update_privacy_options(
     mocked_list_object.monthly_updates = True
     mocked_list_object.store_aggregates = False
     mocked_db = mocker.patch('app.tasks.db')
-    mocked_extract_stats = mocker.patch('app.tasks.extract_stats')
+    mocked_generate_summary_stats = mocker.patch(
+        'app.tasks.generate_summary_stats')
+    mocked_generate_summary_stats.return_value = 'foo', 'bar'
     mocked_send_report = mocker.patch('app.tasks.send_report')
     init_list_analysis({'email': 'foo@bar.com'}, fake_list_data, 1)
     mocked_list_stats.query.filter_by.assert_called_with(
@@ -199,10 +244,10 @@ def test_init_list_analysis_existing_list_update_privacy_options(
         list_id=fake_list_data['list_id'])
     mocked_db.session.merge.assert_called_with(mocked_list_object)
     mocked_db.session.commit.assert_called()
-    mocked_extract_stats.assert_called_with(mocked_recent_analysis)
+    mocked_generate_summary_stats.assert_called_with(mocked_recent_analyses)
     mocked_send_report.assert_called_with(
-        mocked_extract_stats.return_value, fake_list_data['list_id'],
-        fake_list_data['list_name'], ['foo@bar.com'])
+        'foo', 'bar', fake_list_data['list_id'], fake_list_data['list_name'],
+        ['foo@bar.com'])
 
 def test_init_analysis_existing_list_db_error(mocker, fake_list_data):
     """Tests the init_list_analysis function when the list exists in the
@@ -224,12 +269,13 @@ def test_init_list_analysis_new_list_no_store(mocker, fake_list_data):
     in the database and the user chose not to store their data."""
     mocked_list_stats = mocker.patch('app.tasks.ListStats')
     (mocked_list_stats.query.filter_by.return_value.order_by
-     .return_value.first.return_value) = None
+     .return_value.limit.return_value.all.return_value) = None
     mocked_import_analyze_store_list = mocker.patch(
         'app.tasks.import_analyze_store_list')
     mocked_email_list = mocker.patch('app.tasks.EmailList')
     mocked_email_list.query.filter_by.return_value.first.return_value = None
-    mocker.patch('app.tasks.extract_stats')
+    mocker.patch('app.tasks.generate_summary_stats', return_value=(
+        'foo', 'bar'))
     mocker.patch('app.tasks.send_report')
     init_list_analysis({'email': 'foo@bar.com'}, fake_list_data, 1)
     mocked_import_analyze_store_list.assert_called_with(
@@ -241,7 +287,7 @@ def test_init_list_analysis_new_list_monthly_updates(mocker, fake_list_data):
     requested monthly updates."""
     mocked_list_stats = mocker.patch('app.tasks.ListStats')
     (mocked_list_stats.query.filter_by.return_value.order_by
-     .return_value.first.return_value) = None
+     .return_value.limit.return_value.all.return_value) = None
     mocker.patch('app.tasks.import_analyze_store_list')
     mocked_email_list = mocker.patch('app.tasks.EmailList')
     mocked_list_object = (
@@ -250,13 +296,14 @@ def test_init_list_analysis_new_list_monthly_updates(mocker, fake_list_data):
     mocked_list_object.store_aggregates = False
     mocked_associate_user_with_list = mocker.patch(
         'app.tasks.associate_user_with_list')
-    mocker.patch('app.tasks.extract_stats')
+    mocker.patch('app.tasks.generate_summary_stats', return_value=(
+        'foo', 'bar'))
     mocker.patch('app.tasks.send_report')
     fake_list_data['monthly_updates'] = True
     init_list_analysis(
         {'email': 'foo@bar.com', 'user_id': 2}, fake_list_data, 1)
     mocked_associate_user_with_list.assert_called_with(2, mocked_list_object)
-
+'''
 def test_update_stored_data_empty_db(mocker, caplog):
     """Tests the update_stored_data function when there are no lists stored in
     the database."""
@@ -383,3 +430,4 @@ def test_send_monthly_reports(mocker, fake_list_data, caplog):
     mocked_extract_stats.assert_called_with(mocked_stats_object)
     mocked_send_report.assert_called_with(
         mocked_extract_stats.return_value, 'foo', 'bar', ['foo@bar.com'])
+'''
