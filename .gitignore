@@ -1,6 +1,5 @@
 node_modules/
 *.exe
-*.png
 __pycache__/
 *.pyc
 *.db
@@ -14,3 +13,4 @@ benchmarks-env/
 .coverage
 .DS_Store
 scratch/
+app/static/charts/*.png
