@@ -2,11 +2,12 @@
 import os
 import json
 import time
+import calendar
 from datetime import datetime, timedelta, timezone
 import requests
+import pandas as pd
 import numpy as np
 from sqlalchemy import desc
-from sqlalchemy.sql.functions import func
 from celery.utils.log import get_task_logger
 from app import celery, db
 from app.emails import send_email
@@ -119,89 +120,216 @@ def import_analyze_store_list(list_data, org_id, user_email=None):
 
     return list_stats
 
-def send_report(stats, list_id, list_name, user_email_or_emails):
+def generate_summary_stats(list_stats_objects):
+    """Generates summary statistics dictionaries for a list and the database.
+
+    First extracts the stats from SQLAlchemy objects for the most recent and
+    next to most recent analyses for the given list and organizes them in a
+    dictionary. Then creates a similar dictionary for the database averages. If
+    list_stats_objects only contains a single analysis, takes the average of the
+    most recent analysis across all lists. Otherwise, takes the average of the
+    most recent analysis and next to me recent analysis across all lists with
+    two or more total analyses.
+
+    Args:
+        list_stats_objects: a list of SQLAlchemy query results.
+
+    Returns:
+        A tuple consisting of two dictionaries. The first dictionary pertains to
+        the list under analysis, the second pertains to the database as a whole.
+        The dictionaries consist of keys, such as 'subscribers', and values,
+        a list of analysis results. These lists contain either one element
+        (the value for the most recent analysis), or two elements
+        (the value for the next to most recent analysis followed by the value
+        for the most recent analysis).
+    """
+
+    # Convert the ListStats objects to easier-to-use dictionary
+    # Then merge the two dictionaries
+    most_recent_stats = extract_stats(list_stats_objects[0])
+    previous_stats = (extract_stats(list_stats_objects[1])
+                      if len(list_stats_objects) > 1
+                      else None)
+    list_stats = ({k: [previous_stats[k], v] for k, v in most_recent_stats.items()}
+                  if previous_stats
+                  else {k: [v] for k, v in most_recent_stats.items()})
+
+    # Now generate averages
+    # Works a bit differently depending on whether we're comparing
+    # single or multiple analyses (see docstring)
+    if previous_stats:
+
+        # This query returns all list_stats objects where the list_id column
+        # is duplicated elsewhere in the table as well as a row_number column,
+        # e.g. row_number == 1 corresponds to the most recent analysis for each
+        # grouping
+        df = pd.read_sql( # pylint: disable=invalid-name
+            '''WITH has_prev_stats as (
+            SELECT list_stats.list_id, COUNT(*) from list_stats
+            LEFT JOIN email_list ON list_stats.list_id = email_list.list_id
+            WHERE email_list.store_aggregates = 'True'
+            GROUP BY list_stats.list_id HAVING COUNT(*) >= 2)
+            SELECT list_stats.*,
+            ROW_NUMBER() OVER(PARTITION BY list_stats.list_id
+            ORDER BY analysis_timestamp DESC)
+            FROM list_stats
+            JOIN has_prev_stats
+            ON has_prev_stats.list_id = list_stats.list_id;''',
+            db.session.bind)
+
+        mean_dfs = [df[df['row_number'] == 2].mean(),
+                    df[df['row_number'] == 1].mean()]
+
+    else:
+
+        df = pd.read_sql( # pylint: disable=invalid-name
+            ListStats.query.filter(ListStats.list.has(
+                store_aggregates=True)).order_by('list_id', desc(
+                    'analysis_timestamp')).distinct(ListStats.list_id).statement,
+            db.session.bind)
+
+        mean_dfs = [df.mean()]
+
+
+    agg_stats = {
+        'subscribers': [int(mean_df['subscribers']) for mean_df in mean_dfs],
+        'subscribed_pct': [mean_df['subscribed_pct'] for mean_df in mean_dfs],
+        'unsubscribed_pct': [mean_df['unsubscribed_pct'] for mean_df in mean_dfs],
+        'cleaned_pct': [mean_df['cleaned_pct'] for mean_df in mean_dfs],
+        'pending_pct': [mean_df['pending_pct'] for mean_df in mean_dfs],
+        'open_rate': [mean_df['open_rate'] for mean_df in mean_dfs],
+        'high_open_rt_pct': [mean_df['high_open_rt_pct'] for mean_df in mean_dfs],
+        'cur_yr_inactive_pct': [
+            mean_df['cur_yr_inactive_pct'] for mean_df in mean_dfs]
+    }
+
+    return list_stats, agg_stats
+
+def generate_diffs(list_stats, agg_stats):
+    """Generates diffs between last month and this month's stats and returns
+    them in a dictionary."""
+    diffs = {}
+    for k in agg_stats.keys():
+        diffs[k] = [
+            ((list_stats[k][1] - list_stats[k][0]) / list_stats[k][0]
+             if list_stats[k][0] else 0),
+            ((agg_stats[k][1] - agg_stats[k][0]) / agg_stats[k][0]
+             if agg_stats[k][0] else 0)
+        ]
+        diffs[k] = [('+{:.1%}' if diff >= 0 else '{:.1%}').format(diff)
+                    for diff in diffs[k]]
+    return diffs
+
+def send_report( # pylint: disable=too-many-locals
+        list_stats, agg_stats, list_id, list_name, user_email_or_emails):
     """Generates charts using Plotly and emails them to the user.
 
     Args:
-        stats: a dictionary containing analysis results for a list.
+        list_stats: a dictionary containing analysis results for a list.
+        agg_stats: a dictionary containing aggregate analysis results from the
+            database.
         list_id: the list's unique MailChimp id.
         list_name: the list's name.
         user_email_or_emails: a list of emails to send the report to.
     """
 
-    # This subquery generates the most recent stats
-    # For each unique list_id in the database
-    # Where store_aggregates is True
-    subquery = ListStats.query.filter(
-        ListStats.list.has(store_aggregates=True)).order_by('list_id', desc(
-            'analysis_timestamp')).distinct(ListStats.list_id).subquery()
-
-    # Generate aggregates within the subquery
-    agg_stats = db.session.query(
-        func.avg(subquery.columns.subscribers),
-        func.avg(subquery.columns.subscribed_pct),
-        func.avg(subquery.columns.unsubscribed_pct),
-        func.avg(subquery.columns.cleaned_pct),
-        func.avg(subquery.columns.pending_pct),
-        func.avg(subquery.columns.open_rate),
-        func.avg(subquery.columns.high_open_rt_pct),
-        func.avg(subquery.columns.cur_yr_inactive_pct)).first()
-
-    # Make sure we have no 'None' values
-    agg_stats = [agg if agg else 0 for agg in agg_stats]
-
-    # Convert subscribers average to an integer
-    agg_stats[0] = int(agg_stats[0])
-
-    # Generate epoch time (to get around image caching in webmail)
+    # Generate epoch time to append to filenames
+    # This is a hacky workaround for webmail image caching
     epoch_time = str(int(time.time()))
 
-    # Generate charts
+    # Figure out whether there's two sets of stats per graph
+    contains_prev_month = len(list_stats['subscribers']) == 2
+
+    if contains_prev_month:
+
+        # Calculate the diffs (for month-over-month change labels)
+        diff_vals = generate_diffs(list_stats, agg_stats)
+
+        # Get the current month and previous month in words (for labels)
+        cur_month = datetime.now().month
+        last_month = cur_month - 1 or 12
+        cur_month_formatted = calendar.month_abbr[cur_month]
+        last_month_formatted = calendar.month_abbr[last_month]
+
+        bar_titles = [
+            'Your List<br>as of ' + last_month_formatted,
+            'Your List<br>as of ' + cur_month_formatted,
+            'Average<br>as of ' + last_month_formatted,
+            'Average<br>as of ' + cur_month_formatted]
+        stacked_bar_titles = [
+            'Average   <br>as of ' + last_month_formatted + '   ',
+            'Average   <br>as of ' + cur_month_formatted + '   ',
+            'Your List   <br>as of ' + last_month_formatted + '   ',
+            'Your List   <br>as of ' + cur_month_formatted + '   ']
+
+    else:
+
+        diff_vals = None
+        bar_titles = ['Your List', 'Average']
+        stacked_bar_titles = ['Average   ', 'Your List   ']
+
     draw_bar(
-        ['Your List', 'Dataset Average'],
-        [stats['subscribers'], agg_stats[0]],
+        bar_titles,
+        [*list_stats['subscribers'], *agg_stats['subscribers']],
+        diff_vals['subscribers'] if diff_vals else None,
         'Chart A: List Size',
         list_id + '_size_' + epoch_time)
 
-    draw_stacked_horizontal_bar(
-        ['Dataset Average', 'Your List'],
-        [('Subscribed %', [agg_stats[1], stats['subscribed_pct']]),
-         ('Unsubscribed %', [agg_stats[2], stats['unsubscribed_pct']]),
-         ('Cleaned %', [agg_stats[3], stats['cleaned_pct']]),
-         ('Pending %', [agg_stats[4], stats['pending_pct']])],
-        'Chart B: List Composition',
-        list_id + '_breakdown_' + epoch_time)
-
     draw_bar(
-        ['Your List', 'Dataset Average'],
-        [stats['open_rate'], agg_stats[5]],
+        bar_titles,
+        [*list_stats['open_rate'], *agg_stats['open_rate']],
+        diff_vals['open_rate'] if diff_vals else None,
         'Chart C: List Open Rate',
         list_id + '_open_rate_' + epoch_time,
         percentage_values=True)
+
+    draw_stacked_horizontal_bar(
+        stacked_bar_titles,
+        [('Subscribed %',
+          [*agg_stats['subscribed_pct'], *list_stats['subscribed_pct']]),
+         ('Unsubscribed %',
+          [*agg_stats['unsubscribed_pct'], *list_stats['unsubscribed_pct']]),
+         ('Cleaned %',
+          [*agg_stats['cleaned_pct'], *list_stats['cleaned_pct']]),
+         ('Pending %',
+          [*agg_stats['pending_pct'], *list_stats['pending_pct']])],
+        diff_vals['subscribed_pct'][::-1] if diff_vals else None,
+        'Chart B: List Composition',
+        list_id + '_breakdown_' + epoch_time)
+
 
     histogram_legend_uri = ('https://s3-us-west-2.amazonaws.com/email-'
                             'benchmarking-imgs/open_rate_histogram_legend.png')
 
     draw_histogram(
         {'title': 'Open Rate by Decile', 'vals': np.linspace(.05, .95, num=10)},
-        {'title': 'Subscribers', 'vals': stats['hist_bin_counts']},
+        {'title': 'Subscribers', 'vals': list_stats['hist_bin_counts'][0]},
         'Chart D: Distribution of Subscribers by Open Rate',
         histogram_legend_uri,
         list_id + '_open_rate_histogram_' + epoch_time)
 
+    high_open_rt_vals = [
+        *list_stats['high_open_rt_pct'],
+        *agg_stats['high_open_rt_pct']]
+
     draw_donuts(
         ['Open Rate >80%', 'Open Rate <=80%'],
-        [('Your List',
-          [stats['high_open_rt_pct'], 1 - stats['high_open_rt_pct']]),
-         ('Dataset Average', [agg_stats[6], 1 - agg_stats[6]])],
+        [(title, [high_open_rt_vals[title_num], 1 - high_open_rt_vals[title_num]])
+         for title_num, title in enumerate(bar_titles)],
+        diff_vals['high_open_rt_pct'] if diff_vals else None,
         'Chart E: Percentage of Subscribers with User Unique Open Rate >80%',
         list_id + '_high_open_rt_pct_' + epoch_time)
 
+    cur_yr_inactive_vals = [
+        *list_stats['cur_yr_inactive_pct'],
+        *agg_stats['cur_yr_inactive_pct']]
+
     draw_donuts(
         ['Inactive in Past 365 Days', 'Active in Past 365 Days'],
-        [('Your List',
-          [stats['cur_yr_inactive_pct'], 1 - stats['cur_yr_inactive_pct']]),
-         ('Dataset Average', [agg_stats[7], 1 - agg_stats[7]])],
+        [(title,
+          [cur_yr_inactive_vals[title_num], 1 - cur_yr_inactive_vals[title_num]])
+         for title_num, title in enumerate(bar_titles)],
+        diff_vals['cur_yr_inactive_pct'] if diff_vals else None,
         'Chart F: Percentage of Subscribers who did not Open '
         'in last 365 Days',
         list_id + '_cur_yr_inactive_pct_' + epoch_time)
@@ -233,10 +361,11 @@ def extract_stats(list_object):
 def init_list_analysis(user_data, list_data, org_id):
     """Celery task wrapper for each stage of analyzing a list.
 
-    First checks if there is a recently cached analysis, i.e. already in the
-    database. If not, calls import_analyze_store_list() to generate
-    the ListStats and an associated EmailList. Next updates the user's
-    privacy options (e.g. store_aggregates, monthly_updates) if the list was
+    First checks if there is a recently cached analysis/analyses,
+    i.e. already in the database. If not, calls import_analyze_store_list()
+    to generate the ListStats (and an associated EmailList, if the user
+    gave permission to store their data). Next updates the user's privacy options
+    (e.g. store_aggregates, monthly_updates) if the list was
     cached. Then checks if the user selected monthly updates, if so,
     create the relationship. Finally, generates a benchmarking
     report with the stats.
@@ -247,12 +376,12 @@ def init_list_analysis(user_data, list_data, org_id):
         org_id: the id of the organization associated with the list.
     """
 
-    # Try to pull the most recent ListStats from the database
-    # Otherwise generate them
-    most_recent_analysis = (ListStats.query.filter_by(
+    # Try to pull the two most recent ListStats records from the database
+    # Otherwise generate one
+    analyses = (ListStats.query.filter_by(
         list_id=list_data['list_id']).order_by(desc(
-            'analysis_timestamp')).first() or import_analyze_store_list(
-                list_data, org_id, user_data['email']))
+            'analysis_timestamp')).limit(2).all() or [
+                import_analyze_store_list(list_data, org_id, user_data['email'])])
 
     # If the user chose to store their data, there will be an associated
     # EmailList object
@@ -278,9 +407,9 @@ def init_list_analysis(user_data, list_data, org_id):
         if list_data['monthly_updates']:
             associate_user_with_list(user_data['user_id'], list_object)
 
-    # Convert the ListStats object to an easier-to-use dictionary
-    stats = extract_stats(most_recent_analysis)
-    send_report(stats, list_data['list_id'],
+    list_stats, agg_stats = generate_summary_stats(analyses)
+
+    send_report(list_stats, agg_stats, list_data['list_id'],
                 list_data['list_name'], [user_data['email']])
 
 @celery.task
@@ -398,12 +527,13 @@ def send_monthly_reports():
                         monthly_report_list.list_id)
 
         # Get the most recent analysis for the list
-        stats_object = ListStats.query.filter_by(
-            list_id=monthly_report_list.list_id).order_by(
-                desc('analysis_timestamp')).first()
+        analyses = ListStats.query.filter_by(
+            list_id=monthly_report_list.list_id).order_by(desc(
+                'analysis_timestamp')).limit(2).all()
 
-        # Extract stats from the list object
-        stats = extract_stats(stats_object)
-        send_report(stats, monthly_report_list.list_id,
+        # Generate summary statistics
+        list_stats, agg_stats = generate_summary_stats(analyses)
+
+        send_report(list_stats, agg_stats, monthly_report_list.list_id,
                     monthly_report_list.list_name,
                     users_to_email)

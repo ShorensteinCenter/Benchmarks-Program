@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock
 import pytest
+import pandas as pd
 from wtforms import BooleanField
 from app import app
 from app.lists import MailChimpList
@@ -82,6 +83,36 @@ def fake_calculation_results():
         'cur_yr_inactive_pct': 0.1
     }
     yield calculation_results
+
+@pytest.fixture
+def fake_list_stats_query_result_as_df():
+    """Provides a Pandas DataFrame containing fake stats as could be extracted
+    from the database."""
+    yield pd.DataFrame({
+        'subscribers': [3, 4, 6],
+        'subscribed_pct': [1, 1, 4],
+        'unsubscribed_pct': [1, 1, 1],
+        'cleaned_pct': [1, 1, 1],
+        'pending_pct': [1, 1, 1],
+        'open_rate': [0.5, 1, 1.5],
+        'high_open_rt_pct': [1, 1, 1],
+        'cur_yr_inactive_pct': [1, 1, 1]
+    })
+
+@pytest.fixture
+def fake_list_stats_query_result_means():
+    """Provides a dictionary containing the mean values for the
+    fake_list_stats_query_result_as_df() fixture."""
+    yield {
+        'subscribers': [4],
+        'subscribed_pct': [2],
+        'unsubscribed_pct': [1],
+        'cleaned_pct': [1],
+        'pending_pct': [1],
+        'open_rate': [1],
+        'high_open_rt_pct': [1],
+        'cur_yr_inactive_pct': [1]
+    }
 
 @pytest.fixture
 def mocked_mailchimp_list(mocker, fake_calculation_results):
