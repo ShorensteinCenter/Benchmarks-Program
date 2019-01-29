@@ -1,5 +1,4 @@
 """This module contains plotly visualizations."""
-import itertools
 import plotly.graph_objs as go
 import plotly.io as pio
 
@@ -21,7 +20,7 @@ def write_png(data, layout, filename):
     pio.write_image(
         fig, 'app/static/charts/{}.png'.format(filename), scale=2)
 
-def draw_bar(x_vals, y_vals, diff_vals, title, filename,
+def draw_bar(x_vals, y_vals, diff_vals, title, filename, # pylint: disable=too-many-arguments
              percentage_values=False):
     """Creates a simple bar chart. See plot.ly/python/bar-charts.
 
@@ -52,8 +51,7 @@ def draw_bar(x_vals, y_vals, diff_vals, title, filename,
         marker={'color': (
             [FILL_COLORS[0], FILL_COLORS[0], FILL_COLORS[1], FILL_COLORS[1]]
             if diff_vals
-            else [FILL_COLORS[0], FILL_COLORS[1]])
-        }
+            else [FILL_COLORS[0], FILL_COLORS[1]])}
     )
     data = [trace]
     layout = go.Layout(
@@ -86,14 +84,14 @@ def draw_stacked_horizontal_bar(y_vals, x_series, diff_vals, title, filename):
     """
     data = []
     for series_num, series_data in enumerate(x_series):
-        
+
         text = []
         for series_datum_num, series_datum in enumerate(series_data[1]):
             diff_val = (
                 diff_vals.pop(0)
                 if diff_vals and series_datum_num % 2 != 0
                 else None)
-            
+
             if series_datum < .02 and series_data[0] != 'Pending %':
                 text.append('')
             elif diff_val:
@@ -225,7 +223,7 @@ def draw_donuts(series_names, donuts, diff_vals, title, filename):
             The first element of the tuple is the chart name; the second
             is a list of data corresponding to each series.
         diff_vals difference between monthly values (for labels), if the
-            previous month's data is included. 
+            previous month's data is included.
         title: see draw_bar().
         filename: see draw_bar().
     """
@@ -238,9 +236,9 @@ def draw_donuts(series_names, donuts, diff_vals, title, filename):
     )
 
     donut_title_x = [.095, .365, .635, .905] if len(donuts) == 4 else [.365, .635]
-    
+
     for donut_num, donut in enumerate(donuts):
-        
+
         text = ['{:.1%}'.format(donut_val) for donut_val in donut[1]]
         if donut_num % 2 != 0 and diff_vals:
             text[0] += ('<br>(' + diff_vals.pop(0) + ')')

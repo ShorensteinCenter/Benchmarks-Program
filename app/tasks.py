@@ -2,6 +2,7 @@
 import os
 import json
 import time
+import calendar
 from datetime import datetime, timedelta, timezone
 import requests
 import pandas as pd
@@ -162,17 +163,17 @@ def generate_summary_stats(list_stats_objects):
         # is duplicated elsewhere in the table as well as a row_number column,
         # e.g. row_number == 1 corresponds to the most recent analysis for each
         # grouping
-        df = pd.read_sql(
+        df = pd.read_sql( # pylint: disable=invalid-name
             '''WITH has_prev_stats as (
-            SELECT list_stats.list_id, COUNT(*) from list_stats 
-            LEFT JOIN email_list ON list_stats.list_id = email_list.list_id 
-            WHERE email_list.store_aggregates = 'True' 
-            GROUP BY list_stats.list_id HAVING COUNT(*) >= 2) 
-            SELECT list_stats.*, 
-            ROW_NUMBER() OVER(PARTITION BY list_stats.list_id 
-            ORDER BY analysis_timestamp DESC) 
-            FROM list_stats 
-            JOIN has_prev_stats 
+            SELECT list_stats.list_id, COUNT(*) from list_stats
+            LEFT JOIN email_list ON list_stats.list_id = email_list.list_id
+            WHERE email_list.store_aggregates = 'True'
+            GROUP BY list_stats.list_id HAVING COUNT(*) >= 2)
+            SELECT list_stats.*,
+            ROW_NUMBER() OVER(PARTITION BY list_stats.list_id
+            ORDER BY analysis_timestamp DESC)
+            FROM list_stats
+            JOIN has_prev_stats
             ON has_prev_stats.list_id = list_stats.list_id;''',
             db.session.bind)
 
@@ -181,7 +182,7 @@ def generate_summary_stats(list_stats_objects):
 
     else:
 
-        df = pd.read_sql(
+        df = pd.read_sql( # pylint: disable=invalid-name
             ListStats.query.filter(ListStats.list.has(
                 store_aggregates=True)).order_by('list_id', desc(
                     'analysis_timestamp')).distinct(ListStats.list_id).statement,
@@ -219,7 +220,7 @@ def generate_diffs(list_stats, agg_stats):
                     for diff in diffs[k]]
     return diffs
 
-def send_report(
+def send_report( # pylint: disable=too-many-locals
         list_stats, agg_stats, list_id, list_name, user_email_or_emails):
     """Generates charts using Plotly and emails them to the user.
 
@@ -243,11 +244,23 @@ def send_report(
 
         # Calculate the diffs (for month-over-month change labels)
         diff_vals = generate_diffs(list_stats, agg_stats)
-        bar_titles = ['Last Month<br>Your List', 'This Month<br>Your List',
-                      'Last Month<br>Average', 'This Month<br>Average']
+
+        # Get the current month and previous month in words (for labels)
+        cur_month = datetime.now().month
+        last_month = cur_month - 1 or 12
+        cur_month_formatted = calendar.month_abbr[cur_month]
+        last_month_formatted = calendar.month_abbr[last_month]
+
+        bar_titles = [
+            'Your List<br>as of ' + last_month_formatted,
+            'Your List<br>as of ' + cur_month_formatted,
+            'Average<br>as of ' + last_month_formatted,
+            'Average<br>as of ' + cur_month_formatted]
         stacked_bar_titles = [
-            'Last Month   <br>Average   ', 'This Month   <br>Average   ',
-            'Last Month   <br>Your List   ', 'This Month   <br>Your List   ']
+            'Average   <br>as of ' + last_month_formatted + '   ',
+            'Average   <br>as of ' + cur_month_formatted + '   ',
+            'Your List   <br>as of ' + last_month_formatted + '   ',
+            'Your List   <br>as of ' + cur_month_formatted + '   ']
 
     else:
 
@@ -303,9 +316,9 @@ def send_report(
         ['Open Rate >80%', 'Open Rate <=80%'],
         [(title, [high_open_rt_vals[title_num], 1 - high_open_rt_vals[title_num]])
          for title_num, title in enumerate(bar_titles)],
-         diff_vals['high_open_rt_pct'] if diff_vals else None,
-         'Chart E: Percentage of Subscribers with User Unique Open Rate >80%',
-         list_id + '_high_open_rt_pct_' + epoch_time)
+        diff_vals['high_open_rt_pct'] if diff_vals else None,
+        'Chart E: Percentage of Subscribers with User Unique Open Rate >80%',
+        list_id + '_high_open_rt_pct_' + epoch_time)
 
     cur_yr_inactive_vals = [
         *list_stats['cur_yr_inactive_pct'],
@@ -314,7 +327,7 @@ def send_report(
     draw_donuts(
         ['Inactive in Past 365 Days', 'Active in Past 365 Days'],
         [(title,
-         [cur_yr_inactive_vals[title_num], 1 - cur_yr_inactive_vals[title_num]])
+          [cur_yr_inactive_vals[title_num], 1 - cur_yr_inactive_vals[title_num]])
          for title_num, title in enumerate(bar_titles)],
         diff_vals['cur_yr_inactive_pct'] if diff_vals else None,
         'Chart F: Percentage of Subscribers who did not Open '
@@ -514,12 +527,13 @@ def send_monthly_reports():
                         monthly_report_list.list_id)
 
         # Get the most recent analysis for the list
-        stats_object = ListStats.query.filter_by(
-            list_id=monthly_report_list.list_id).order_by(
-                desc('analysis_timestamp')).first()
+        analyses = ListStats.query.filter_by(
+            list_id=monthly_report_list.list_id).order_by(desc(
+                'analysis_timestamp')).limit(2).all()
 
-        # Extract stats from the list object
-        stats = extract_stats(stats_object)
-        send_report(stats, monthly_report_list.list_id,
+        # Generate summary statistics
+        list_stats, agg_stats = generate_summary_stats(analyses)
+
+        send_report(list_stats, agg_stats, monthly_report_list.list_id,
                     monthly_report_list.list_name,
                     users_to_email)

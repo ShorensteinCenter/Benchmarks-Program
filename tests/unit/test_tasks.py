@@ -7,7 +7,7 @@ import pandas as pd
 from app.tasks import (
     send_activated_email, import_analyze_store_list, generate_summary_stats,
     send_report, extract_stats, init_list_analysis, update_stored_data,
-    send_monthly_reports)
+    send_monthly_reports, generate_diffs)
 from app.lists import MailChimpImportError
 from app.models import ListStats
 
@@ -75,7 +75,7 @@ def test_import_analyze_store_list(
            for k, v in fake_calculation_results.items()},
         list_id=fake_list_data['list_id'])
 
-def test_import_analyze_store_list_store_results_in_db(
+def test_import_analyze_store_list_store_results_in_db( # pylint: disable=unused-argument
         mocker, fake_list_data, mocked_mailchimp_list):
     """Tests the import_analyze_store_list function when data
     is stored in the db."""
@@ -97,7 +97,7 @@ def test_import_analyze_store_list_store_results_in_db(
     mocked_db.session.add.assert_called_with(mocked_list_stats.return_value)
     mocked_db.session.commit.assert_called()
 
-def test_import_analyze_store_list_store_results_in_db_exception(
+def test_import_analyze_store_list_store_results_in_db_exception( # pylint: disable=unused-argument
         mocker, fake_list_data, mocked_mailchimp_list):
     """Tests the import_analyze_store_list function when data
     is stored in the db and an exception occurs."""
@@ -151,60 +151,93 @@ def test_generate_summary_stats_multiple_analyses(
         fake_list_stats_query_result_means.items()
     }
 
-'''
+def test_generate_diffs():
+    """Tests the generate_diffs function."""
+    fake_list_stats = {
+        'subscribers': [1, 2],
+        'open_rate': [0, 0.5]
+    }
+    fake_agg_stats = {
+        'subscribers': [10, 5],
+        'open_rate': [0.3, 0.4]
+    }
+    diffs = generate_diffs(fake_list_stats, fake_agg_stats)
+    assert diffs == {
+        'subscribers': ['+100.0%', '-50.0%'],
+        'open_rate': ['+0.0%', '+33.3%']
+    }
+
+def test_send_report_no_prev_month(mocker, fake_calculation_results):
+    """Tests the send_report function when list_stats and agg_stats only contain
+    one set of results."""
+    mocked_generate_diffs = mocker.patch('app.tasks.generate_diffs')
+    mocker.patch('app.tasks.draw_bar')
+    mocker.patch('app.tasks.draw_stacked_horizontal_bar')
+    mocker.patch('app.tasks.draw_histogram')
+    mocker.patch('app.tasks.draw_donuts')
+    mocker.patch('app.tasks.send_email')
+    fake_stats = {k: [v] for k, v in fake_calculation_results.items()}
+    send_report(fake_stats, fake_stats, '1', 'foo', ['foo@bar.com'])
+    mocked_generate_diffs.assert_not_called()
+
+def test_send_report_has_prev_month(mocker, fake_calculation_results):
+    """Tests the send_report function when list_stats and agg_stats contain two
+    sets of results."""
+    mocked_generate_diffs = mocker.patch('app.tasks.generate_diffs')
+    mocker.patch('app.tasks.draw_bar')
+    mocker.patch('app.tasks.draw_stacked_horizontal_bar')
+    mocker.patch('app.tasks.draw_histogram')
+    mocker.patch('app.tasks.draw_donuts')
+    mocker.patch('app.tasks.send_email')
+    fake_stats = {k: [v, v] for k, v in fake_calculation_results.items()}
+    send_report(fake_stats, fake_stats, '1', 'foo', ['foo@bar.com'])
+    mocked_generate_diffs.assert_called_with(fake_stats, fake_stats)
+
 def test_send_report(mocker, fake_calculation_results):
     """Tests the send_report function."""
-    mocked_db = mocker.patch('app.tasks.db')
-    agg_stats_length = 8
-    mocked_agg_stats = [1 for x in range(agg_stats_length)]
-    mocked_db.session.query.return_value.first.return_value = mocked_agg_stats
+    mocked_generate_diffs = mocker.patch('app.tasks.generate_diffs')
+    mocked_generate_diffs.return_value = {
+        k: [v, v] for k, v in fake_calculation_results.items()
+    }
     mocked_draw_bar = mocker.patch('app.tasks.draw_bar')
     mocked_draw_stacked_horizontal_bar = mocker.patch(
         'app.tasks.draw_stacked_horizontal_bar')
     mocked_draw_histogram = mocker.patch('app.tasks.draw_histogram')
     mocked_draw_donuts = mocker.patch('app.tasks.draw_donuts')
     mocked_send_email = mocker.patch('app.tasks.send_email')
-    send_report(fake_calculation_results, '1', 'foo', ['foo@bar.com'])
-    assert len(mocked_db.session.query.call_args[0]) == agg_stats_length
+    mocker.patch('app.tasks.os.environ.get', return_value='bar')
+    fake_stats = {k: [v, v] for k, v in fake_calculation_results.items()}
+    send_report(fake_stats, fake_stats, '1', 'foo', ['foo@bar.com'])
     mocked_draw_bar.assert_has_calls([
-        call(
-            ANY, [fake_calculation_results['subscribers'], mocked_agg_stats[0]],
-            ANY, ANY),
-        call(
-            ANY, [fake_calculation_results['open_rate'], mocked_agg_stats[5]],
-            ANY, ANY, percentage_values=ANY)
-        ])
+        call(ANY, [2, 2, 2, 2], [2, 2], ANY, ANY),
+        call(ANY, [0.5, 0.5, 0.5, 0.5], [0.5, 0.5], ANY, ANY, percentage_values=True)
+    ])
     mocked_draw_stacked_horizontal_bar.assert_called_with(
         ANY,
-        [(ANY, [mocked_agg_stats[1], fake_calculation_results['subscribed_pct']]),
-         (ANY, [mocked_agg_stats[2], fake_calculation_results['unsubscribed_pct']]),
-         (ANY, [mocked_agg_stats[3], fake_calculation_results['cleaned_pct']]),
-         (ANY, [mocked_agg_stats[4], fake_calculation_results['pending_pct']])],
-        ANY, ANY)
+        [('Subscribed %', [0.2, 0.2, 0.2, 0.2]),
+         ('Unsubscribed %', [0.2, 0.2, 0.2, 0.2]),
+         ('Cleaned %', [0.2, 0.2, 0.2, 0.2]),
+         ('Pending %', [0.1, 0.1, 0.1, 0.1])],
+        [0.2, 0.2], ANY, ANY)
     mocked_draw_histogram.assert_called_with(
-        ANY,
-        {'title': ANY, 'vals': fake_calculation_results['hist_bin_counts']},
-        ANY, ANY, ANY)
+        ANY, {'title': 'Subscribers', 'vals': [0.1, 0.2, 0.3]}, ANY, ANY, ANY)
     mocked_draw_donuts.assert_has_calls([
-        call(
-            ANY,
-            [(ANY, [fake_calculation_results['high_open_rt_pct'],
-                    1 - fake_calculation_results['high_open_rt_pct']]),
-             (ANY, [mocked_agg_stats[6], 1 - mocked_agg_stats[6]])],
-            ANY, ANY),
-        call(
-            ANY,
-            [(ANY, [fake_calculation_results['cur_yr_inactive_pct'],
-                    1 - fake_calculation_results['cur_yr_inactive_pct']]),
-             (ANY, [mocked_agg_stats[7], 1 - mocked_agg_stats[7]])],
-            ANY, ANY)])
+        call(ANY,
+             [(ANY, [0.1, 0.9]), (ANY, [0.1, 0.9]),
+              (ANY, [0.1, 0.9]), (ANY, [0.1, 0.9])],
+             [0.1, 0.1], ANY, ANY),
+        call(ANY,
+             [(ANY, [0.1, 0.9]), (ANY, [0.1, 0.9]),
+              (ANY, [0.1, 0.9]), (ANY, [0.1, 0.9])],
+             [0.1, 0.1], ANY, ANY)
+    ])
     mocked_send_email.assert_called_with(
-        ANY, ['foo@bar.com'], 'report-email.html', {
+        ANY, ['foo@bar.com'], ANY, {
             'title': 'We\'ve analyzed the foo list!',
             'list_id': '1',
-            'epoch_time': ANY},
-        configuration_set_name=ANY)
-'''
+            'epoch_time': ANY
+        }, configuration_set_name='bar')
+
 def test_extract_stats(fake_calculation_results):
     """Tests the extract_stats function."""
     fake_calculation_results.pop('frequency')
@@ -303,7 +336,7 @@ def test_init_list_analysis_new_list_monthly_updates(mocker, fake_list_data):
     init_list_analysis(
         {'email': 'foo@bar.com', 'user_id': 2}, fake_list_data, 1)
     mocked_associate_user_with_list.assert_called_with(2, mocked_list_object)
-'''
+
 def test_update_stored_data_empty_db(mocker, caplog):
     """Tests the update_stored_data function when there are no lists stored in
     the database."""
@@ -410,7 +443,6 @@ def test_update_stored_data_import_error(mocker, fake_list_data, caplog):
         update_stored_data()
     assert 'Error updating list foo.' in caplog.text
 
-
 def test_send_monthly_reports(mocker, fake_list_data, caplog):
     """Tests the send_monthly_reports function."""
     mocked_email_list = mocker.patch('app.tasks.EmailList')
@@ -421,13 +453,16 @@ def test_send_monthly_reports(mocker, fake_list_data, caplog):
     mocked_list_stats = mocker.patch('app.tasks.ListStats')
     mocked_stats_object = (
         mocked_list_stats.query.filter_by.return_value.order_by
-        .return_value.first.return_value)
-    mocked_extract_stats = mocker.patch('app.tasks.extract_stats')
+        .return_value.limit.return_value.all.return_value)
+    mocked_list_stats = MagicMock()
+    mocked_agg_stats = MagicMock()
+    mocked_generate_summary_stats = mocker.patch(
+        'app.tasks.generate_summary_stats',
+        return_value=(mocked_list_stats, mocked_agg_stats))
     mocked_send_report = mocker.patch('app.tasks.send_report')
     send_monthly_reports()
     assert ('Emailing foo@bar.com an updated report. List: bar (foo).'
             in caplog.text)
-    mocked_extract_stats.assert_called_with(mocked_stats_object)
+    mocked_generate_summary_stats.assert_called_with(mocked_stats_object)
     mocked_send_report.assert_called_with(
-        mocked_extract_stats.return_value, 'foo', 'bar', ['foo@bar.com'])
-'''
+        mocked_list_stats, mocked_agg_stats, 'foo', 'bar', ['foo@bar.com'])
