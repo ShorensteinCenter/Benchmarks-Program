@@ -410,6 +410,25 @@ def test_update_stored_data(mocker, fake_list_data):
          'campaign_count': 10},
         1)
 
+def test_update_stored_data_keyerror(mocker, fake_list_data, caplog):
+    """Tests the update_stored_data function when the list raises a KeyError."""
+    mocked_list_stats = mocker.patch('app.tasks.ListStats')
+    mocked_list_to_update = MagicMock(
+        **{('api_key' if k == 'key' else k): v
+           for k, v in fake_list_data.items()}
+    )
+    mocked_analysis = MagicMock(
+        analysis_timestamp=datetime(2000, 1, 1, tzinfo=timezone.utc),
+        list=mocked_list_to_update,
+        list_id=fake_list_data['list_id'])
+    (mocked_list_stats.query.order_by.return_value.distinct
+     .return_value.all.return_value) = [mocked_analysis]
+    mocked_requests = mocker.patch('app.tasks.requests')
+    mocked_requests.get.return_value.json.return_value = {}
+    with pytest.raises(MailChimpImportError):
+        update_stored_data()
+    assert ('Error updating list foo. API key is no longer valid or list '
+            'no longer exists.') in caplog.text
 
 def test_update_stored_data_import_error(mocker, fake_list_data, caplog):
     """Tests the update_stored_data function when the list import raises an error."""
@@ -441,7 +460,7 @@ def test_update_stored_data_import_error(mocker, fake_list_data, caplog):
     }
     with pytest.raises(MailChimpImportError):
         update_stored_data()
-    assert 'Error updating list foo.' in caplog.text
+    assert 'Error importing new data for list foo.' in caplog.text
 
 def test_send_monthly_reports(mocker, fake_list_data, caplog):
     """Tests the send_monthly_reports function."""

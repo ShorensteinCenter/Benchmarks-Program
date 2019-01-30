@@ -470,7 +470,17 @@ def update_stored_data():
             request_uri, params=params,
             auth=('shorenstein', associated_list_object.api_key))
         response_body = response.json()
-        response_stats = response_body['stats']
+
+        # If we can't extract a stats object, then the API key isn't working
+        try:
+            response_stats = response_body['stats']
+        except KeyError:
+            logger.exception(
+                'Error updating list %s. API key is no longer valid '
+                'or list no longer exists.', analysis.list_id)
+            failed_updates.append(analysis.list_id)
+            continue
+
         count = (response_stats['member_count'] +
                  response_stats['unsubscribe_count'] +
                  response_stats['cleaned_count'])
@@ -491,7 +501,7 @@ def update_stored_data():
         try:
             import_analyze_store_list(list_data, associated_list_object.org_id)
         except MailChimpImportError:
-            logger.error('Error updating list %s.', analysis.list_id)
+            logger.error('Error importing new data for list %s.', analysis.list_id)
             failed_updates.append(analysis.list_id)
 
     # If any updates failed, raise an exception to send an error email
