@@ -9,7 +9,7 @@ class Config():
     CELERYBEAT_SCHEDULE = {
         'update_stored_data': {
             'task': 'app.tasks.update_stored_data',
-            'schedule': crontab(minute='0', hour='0', day_of_month='*'),
+            'schedule': crontab(minute='0', hour='0,12', day_of_month='*'),
             'args': ()
         },
         'send_monthly_reports': {
