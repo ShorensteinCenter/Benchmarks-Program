@@ -109,7 +109,7 @@ def draw_stacked_horizontal_bar(y_vals, x_series, diff_vals, title, filename):
             textfont={'color': '#444'
                                if series_data[0] == 'Pending %'
                                else '#fff',
-                      'size': 9},
+                      'size': 10},
             cliponaxis=False,
             marker={'color': FILL_COLORS[series_num]},
             orientation='h')

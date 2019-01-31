@@ -3,11 +3,13 @@ import hashlib
 import json
 import requests
 from titlecase import titlecase
+import pandas as pd
+from sqlalchemy import desc
 from flask import render_template, jsonify, session, request, abort
 from wtforms.fields.core import BooleanField
 from app import app, db
 from app.forms import UserForm, OrgForm, ApiKeyForm
-from app.models import AppUser, Organization
+from app.models import AppUser, Organization, EmailList, ListStats
 from app.dbops import store_user, store_org
 from app.tasks import init_list_analysis, send_activated_email
 
@@ -35,6 +37,80 @@ def terms():
 def privacy():
     """Privacy Policy route."""
     return render_template('privacy.html')
+
+@app.route('/faq')
+def faq():
+    """FAQ route."""
+
+    # Get information about organizations
+    orgs_with_lists = pd.read_sql(
+        Organization.query.join(EmailList).filter_by(store_aggregates=True)
+        .with_entities(Organization.financial_classification,
+                       Organization.coverage_scope,
+                       Organization.coverage_focus,
+                       Organization.platform,
+                       Organization.employee_range,
+                       Organization.budget)
+        .statement,
+        db.session.bind)
+    financial_classifications = {
+        k: '{:.0%}'.format(v) for k, v in
+        dict(orgs_with_lists['financial_classification'].value_counts(
+            normalize=True)).items()}
+    coverage_scopes = {
+        k: '{:.0%}'.format(v) for k, v in
+        dict(orgs_with_lists['coverage_scope'].value_counts(
+            normalize=True)).items()}
+    coverage_focuses = {
+        k: '{:.0%}'.format(v) for k, v in
+        dict(orgs_with_lists['coverage_focus'].value_counts(
+            normalize=True)).items()}
+    platforms = {
+        k: '{:.0%}'.format(v) for k, v in
+        dict(orgs_with_lists['platform'].value_counts(
+            normalize=True)).items()}
+    employees = {
+        k: '{:.0%}'.format(v) for k, v in
+        dict(orgs_with_lists['employee_range'].value_counts(
+            normalize=True)).items()}
+    budgets = {
+        k: '{:.0%}'.format(v) for k, v in
+        dict(orgs_with_lists['budget'].value_counts(
+            normalize=True)).items()}
+
+    # Get information about lists
+    lists_allow_aggregation = pd.read_sql(
+        ListStats.query.filter(ListStats.list.has(store_aggregates=True))
+        .order_by('list_id', desc('analysis_timestamp'))
+        .distinct(ListStats.list_id)
+        .with_entities(ListStats.subscribers, ListStats.open_rate).statement,
+        db.session.bind)
+    sample_size = '{:,.0f}'.format(len(lists_allow_aggregation))
+    subscribers = {
+        'mean': '{:,.0f}'.format(lists_allow_aggregation['subscribers'].mean()),
+        'max': '{:,.0f}'.format(lists_allow_aggregation['subscribers'].max()),
+        'min': '{:,.0f}'.format(lists_allow_aggregation['subscribers'].min()),
+        'med': '{:,.0f}'.format(lists_allow_aggregation['subscribers'].median()),
+        'std': '{:,.0f}'.format(lists_allow_aggregation['subscribers'].std())
+    }
+    open_rate = {
+        'mean': '{:.1%}'.format(lists_allow_aggregation['open_rate'].mean()),
+        'max': '{:.1%}'.format(lists_allow_aggregation['open_rate'].max()),
+        'min': '{:.1%}'.format(lists_allow_aggregation['open_rate'].min()),
+        'med': '{:.1%}'.format(lists_allow_aggregation['open_rate'].median()),
+        'std': '{:.1%}'.format(lists_allow_aggregation['open_rate'].std())
+    }
+    return render_template(
+        'faq.html',
+        financial_classifications=financial_classifications,
+        coverage_scopes=coverage_scopes,
+        coverage_focuses=coverage_focuses,
+        platforms=platforms,
+        employees=employees,
+        budgets=budgets,
+        sample_size=sample_size,
+        subscribers=subscribers,
+        open_rate=open_rate)
 
 @app.route('/confirmation')
 def confirmation():
