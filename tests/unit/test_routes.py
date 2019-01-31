@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock
 import pytest
+import pandas as pd
 import flask
 
 def test_index(client):
@@ -21,6 +22,34 @@ def test_terms(client):
 def test_privacy(client):
     """Tests the privacy route."""
     assert client.get('/privacy').status_code == 200
+
+def test_faq(client, mocker):
+    """Tests the FAQ route."""
+    mocker.patch('app.routes.Organization')
+    mocker.patch('app.routes.EmailList')
+    mocker.patch('app.routes.db')
+    mocker.patch('app.routes.pd.read_sql', side_effect=([
+        pd.DataFrame({
+            'financial_classification': ['Non-Profit', 'For-Profit', 'B Corp'],
+            'coverage_scope': ['Hyperlocal', 'Hyperlocal', 'Hyperlocal'],
+            'coverage_focus': ['Single Subject', 'Multiple Subjects', 'Investigative'],
+            'platform': ['Digital Only', 'Digital Only', 'Digital Only'],
+            'employee_range': ['5 or fewer', '5 or fewer', '5 or fewer'],
+            'budget': ['$2m-$10m', '$2m-$10m', '$2m-$10m']
+        }),
+        pd.DataFrame({
+            'subscribers': [1000, 10000, 100000, 20],
+            'open_rate': [0.25751, 0.3, 0.45, 1]
+        })]))
+    mocker.patch('app.routes.ListStats')
+    response = client.get('/faq')
+    assert response.status_code == 200
+    assert ('33% of organizations are non-profits, 33% are for-profits and '
+            '33% are B Corps.').encode() in response.data
+    assert ('The mean number of subscribers for an email list in our database '
+            'is 27,755 with a standard deviation of 48,372.').encode() in response.data
+    assert ('The highest open rate is 100.0%, the lowest open rate '
+            'is 25.8%').encode() in response.data
 
 @pytest.mark.parametrize('route, status_code', [
     ('/confirmation', 404),

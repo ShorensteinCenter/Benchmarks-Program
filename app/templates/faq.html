@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container content-block">
+	<div class="row">
+		<div class="col-12">
+			<h1 class="has-bottom-margin">Frequently Asked Questions</h1>
+			<h2 class="has-bottom-margin">Who am I being benchmarked against?</h2>
+			<p>The following is a breakdown of organizations in our database. All data is self-reported.
+			<ul class="has-bottom-margin">
+				<li>{{ financial_classifications['Non-Profit'] }} of organizations are non-profits, {{ financial_classifications['For-Profit'] }} are for-profits and {{ financial_classifications['B Corp'] }} are B Corps.</li>
+				<li>{{ coverage_scopes['Hyperlocal'] }} of organizations are hyperlocal in their coverage. {{ coverage_scopes['City'] }} cover a single city. {{ coverage_scopes['State'] }}, {{ coverage_scopes['National'] }} and {{ coverage_scopes['International'] }} provide statewide, national and international coverage respectively.</li>
+				<li>{{ coverage_focuses['Single Subject'] }} of organizations focus on a single subject, while {{ coverage_focuses['Multiple Subjects'] }} cover multiple subjects. {{ coverage_focuses['Investigative'] }} of organizations are investigative in nature.</li>
+				<li>{{ platforms['Digital Only'] }} of organizations are digital only and {{ platforms['Newsletter Only'] }} are print only. {{ platforms['Digital and Print'] }} publish in both print and digital form.</li>
+				<li>{{ employees['5 or fewer'] }} of organizations have 5 or fewer employees. {{ employees['6-10'] }} have 6-10 employees, {{ employees['11-20'] }} have 11-20 employees, {{ employees['21-50'] }} have 21-50 employees and {{ employees['More than 50'] }} have more than 50 employees.</li>
+				<li>{{ budgets['Less than $500k'] }} of organizations have an annual budget of less than $500k. {{ budgets['$500k-$2m'] }} have a budget of between $500k and $2m, {{ budgets['$2m-$10m'] }} have a budget of between $2m and $10m, {{ budgets['$10m-$30m'] }} have a budget of between $10m and $30 and {{ budgets['Greater than $30m'] }} have a budget of greater than $30m.</li>
+			</ul>
+			<h2 class="has-bottom-margin">What can you tell me about the lists in your database?</h2>
+			<p>The following statistics derive from those who users who contributed their anonymized list data to our aggregate statistics (see our <a href="/privacy">Privacy Policy</a> for more information).</p>
+			<ul class="has-bottom-margin">
+				<li>These statistics cover {{ sample_size }} lists.
+				<li>The mean number of subscribers for an email list in our database is {{ subscribers['mean'] }} with a standard deviation of {{ subscribers['std'] }}. The largest list has {{ subscribers['max'] }} subscribers, the smallest list has {{ subscribers['min'] }} subscribers and the median list has {{ subscribers['med'] }} subscribers.</li>
+				<li>The mean list open rate across our dataset is {{ open_rate['mean'] }} with a standard deviation of {{ open_rate['std'] }}. The highest open rate is {{ open_rate['max'] }}, the lowest open rate is {{ open_rate['min'] }} and the median open rate is {{ open_rate['med'] }}.</li>
+			</ul>
+			<h2 class="has-bottom-margin">Want us to answer another question for you?</h2>
+			<p>Please fill out <a href="https://goo.gl/forms/mcOnjnNHZ5pujFwp2" rel="noopener" target="_blank">this form</a>. Be sure to let us know whether you'd like an answer emailed directly to you or appended to this page.</p>
+		</div>
+	</div>
+</div>
+{% endblock %}
