@@ -379,9 +379,6 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
             # Await completion of all requests and gather results
             responses = await asyncio.gather(*tasks)
 
-        # Close the session
-        await session.close()
-
         # Flatten the responses into a single list of dicts
         list_data = [response
                      for response_dict in responses
@@ -440,9 +437,6 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
 
             # Await completion of all requests and gather results
             responses = await asyncio.gather(*tasks)
-
-        # Close the session
-        await session.close()
 
         # Calculate timestamp for one year ago
         now = datetime.now(timezone.utc)

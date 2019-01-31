@@ -4,13 +4,13 @@
 	<table style="max-width:400px;margin-left:auto;margin-right:auto;margin-bottom:2.5em;border:1px solid #ddd;padding:7.5px 15px;border-radius:2px;background-color:#eee;">
 		<tr>
 			<td style="vertical-align: middle"><img style="max-height:50px" alt="Newletter Guide Logo" src="{{ url_for('static', filename='img/newsletter-guide-logo.png', _external=True) }}"></td>
-			<td style="vertical-align: middle;padding-left:10px;"><a style="font-family:Montserrat,Verdana,sans-serif;color:#a71930;font-size:22px;line-height:27.5px;text-decoration:none;" target="_blank" rel="noopener" href="https://newsletterguide.org/?utm_source=email-benchmarking-tool&utm_medium=email">Check out our new <span style="text-decoration:underline">email newsletters playbook!</span></td>
+			<td style="vertical-align: middle;padding-left:10px;"><a style="font-family:Montserrat,Verdana,sans-serif;color:#a71930;font-size:22px;line-height:27.5px;text-decoration:none;" target="_blank" rel="noopener" href="https://newsletterguide.org/?utm_source=email-benchmarking-tool&utm_medium=email">Check out our new <span style="text-decoration:underline">email newsletters playbook</span>!</a></td>
 		</tr>
 	</table>
 	<p style="text-align:center"> 
 		<img style="min-width:400px;max-width:800px;width:100%;" alt="Chart A: List Size" src="{{ url_for('static', filename='charts/' + list_id + '_size_' + epoch_time + '.png', _external=True) }}">
 	</p>
-	<p style="font-family:Montserrat,Verdana,sans-serif;margin-bottom:1.25em;margin-left:auto;margin-right:auto;max-width:1200px;">Chart A compares the total number of current subscribers on your list to the mean number of current subscribers across all lists we're tracking in our database. (This number does not include  "Pending" email addresses.)<p>
+	<p style="font-family:Montserrat,Verdana,sans-serif;margin-bottom:1.25em;margin-left:auto;margin-right:auto;max-width:1200px;">Chart A compares the total number of current subscribers on your list to the mean number of current subscribers across all lists we're tracking in our database.<p>
 	<table style="font-family:Montserrat,Verdana,sans-serif;margin-bottom:2.5em;margin-left:auto;margin-right:auto;max-width:1200px;padding:7.5px 15px 14px 15px;border:1px solid #ddd;border-radius:2px;background-color:#eee">
 		<tr>
 			<td><img alt="Tips Icon" style="max-height:25px;" src="{{ url_for('static', filename='img/light-bulb.png', _external=True) }}">
@@ -20,12 +20,17 @@
 			<td>The Shorenstein Center’s <a target="_blank" rel="noopener" href="https://newsletterguide.org/?utm_source=email-benchmarking-tool&utm_medium=email" style="text-decoration:underline;color:#a71930;">Email Newsletter Playbook</a> contains a section on <a target="_blank" rel="noopener" href="https://newsletterguide.org/#section-5-email-monetization-conversion/?utm_source=email-benchmarking-tool&utm_medium=email" style="text-decoration:underline;color:#a71930;">email acquisition tactics</a>, such as signup field/signup lightbox placement and off-platform acquisition strategies. That being said, all subscribers are not created equal. We encourage you to challenge your team to  think about your list in terms of the current status of every email address you’ve ever acquired (see Chart B, below).</td>
 		</tr>
 	</table>
+	<table style="max-width:400px;margin-left:auto;margin-right:auto;margin-bottom:2.5em;border:1px solid #ddd;padding:7.5px 15px;border-radius:2px;background-color:#eee;">
+		<tr>
+			<td style="vertical-align: middle;"><a style="font-family:Montserrat,Verdana,sans-serif;color:#a71930;font-size:22px;line-height:27.5px;text-decoration:none;" target="_blank" rel="noopener" href="{{ url_for('privacy', _external=True) }}?utm_source=report-email&utm_medium=email">Want to know whom you're being benchmarked against? Check out our <span style="text-decoration:underline">FAQ</span>!</a></td>
+		</tr>
+	</table>
 	<p style="text-align:center">
 		<img style="min-width:400px;max-width:1200px;width:100%;" alt="Chart B: List Composition" src="{{ url_for('static', filename='charts/' + list_id + '_breakdown_' + epoch_time + '.png', _external=True) }}">
 	</p>
 	<p style="font-family:Montserrat,Verdana,sans-serif;margin-bottom:1em;margin-left:auto;margin-right:auto;max-width:1200px;">Chart B breaks down the total number of unique email addresses in the entire list into percentages. In this case, the entire list refers to all email addresses ever acquired, both currently and formerly subscribed. MailChimp has four possible values for list member status:</p>
 	<ul style="font-family:Montserrat,Verdana,sans-serif;margin-left:auto;margin-right:auto;margin-bottom:1em;max-width:1200px;"><li>Subscribed: current subscribers</li><li> Unsubscribed: subscribers who removed themselves from list or whom the list owner removed</li><li>Cleaned: subscribers whom MailChimp automatically removed from your list after a number of email bounces</li><li>Pending: semi-subscribers stuck in the limbo of double opt in—or, someone who gave their email address but did not hit the confirmation button in their email inbox</li></ul>
-	<p style="font-family:Montserrat,Verdana,sans-serif;margin-bottom:1.25em;margin-left:auto;margin-right:auto;max-width:1200px;">For more information about how MailChimp breaks down your list, refer to the following support material: <a target="_blank" rel="noopener" href="https://mailchimp.com/help/about-your-contacts/" style="text-decoration:underline;color:#a71930;">MailChimp: About Your Contacts</a> and <a target="_blank" rel="noopener" href="https://mailchimp.com/help/about-cleaned-contacts/" style="text-decoration:underline;color:#a71930;">MailChimp: About Cleaned Contacts</a>.</p>
+	<p style="font-family:Montserrat,Verdana,sans-serif;margin-bottom:1.25em;margin-left:auto;margin-right:auto;max-width:1200px;">For more information about how MailChimp breaks down your list, refer to the following support material: <a target="_blank" rel="noopener" href="https://mailchimp.com/help/about-your-contacts/" style="text-decoration:underline;color:#a71930;">MailChimp: About Your Contacts</a>.</p>
 	<table style="font-family:Montserrat,Verdana,sans-serif;margin-bottom:2.5em;margin-left:auto;margin-right:auto;max-width:1200px;padding:7.5px 15px 14px 15px;border:1px solid #ddd;border-radius:2px;background-color:#eee">
 		<tr>
 			<td><img alt="Tips Icon" style="max-height:25px;" src="{{ url_for('static', filename='img/light-bulb.png', _external=True) }}">
@@ -39,7 +44,7 @@
 	<p style="text-align:center">
 		<img style="min-width:400px;max-width:800px;width:100%;" alt="Chart C: List Open Rate" src="{{ url_for('static', filename='charts/' + list_id + '_open_rate_' + epoch_time + '.png', _external=True) }}">
 	</p>
-	<p style="font-family:Montserrat,Verdana,sans-serif;margin-bottom:2.5em;margin-left:auto;margin-right:auto;max-width:1200px;">Chart C shows your List Open Rate. MailChimp calculates List Open Rate by taking the mean of your past Campaign Open Rates over the life of your list. Each Campaign Open Rate is calculated by dividing the number of recipients who opened the campaign email by the number of emails delivered. For more information on how MailChimp calculates open rates, refer to <a target="_blank" rel="noopener" href="https://shorensteincenter.org/email-analysis-research-guide#21_Inconsistently_Labeled_and_Defined_Email_Metrics/?utm_source=email-benchmarking-tool&utm_medium=email" style="text-decoration:underline;color:#a71930;">Section 2.1 of our Research Guide</a>. While List and Campaign Open Rates are the traditional way of looking at your email performance, these metrics lose a large part of the story. As with list size (Chart A, above), a better way to look at your List Open Rate is through a distribution of your subscribers' individual unique open rates (see Chart D, below).</p>
+	<p style="font-family:Montserrat,Verdana,sans-serif;margin-bottom:2.5em;margin-left:auto;margin-right:auto;max-width:1200px;">Chart C shows your List Open Rate. MailChimp calculates List Open Rate by taking the mean of your past Campaign Open Rates over the life of your list. Each Campaign Open Rate is calculated by dividing the number of recipients who opened the campaign email by the number of emails delivered. While List and Campaign Open Rates are the traditional way of looking at your email performance, these metrics lose a large part of the story. As with list size (Chart A, above), a better way to look at your List Open Rate is through a distribution of your subscribers' individual unique open rates (see Chart D, below).</p>
 	<p style="text-align:center">
 		<img style="min-width:400px;max-width:1200px;width:100%;" alt="Chart D: Distribution of Subscribers by Open Rate" src="{{ url_for('static', filename='charts/' + list_id + '_open_rate_histogram_' + epoch_time + '.png', _external=True) }}">
 	</p>
@@ -54,7 +59,7 @@
 			<span style="color:#a71930;font-size:22px;line-height:22px;display:inline-block;padding-left:5px;padding-bottom:10px;">Our Tips</span></td>
 		</tr>
 		<tr>
-			<td>We recommend surveying these users. Who are they? What are their habits? What else do they like to read? What do they want out of an email product? What might compel them to support or contribute to your work? Then, develop a few user personas. You should use this data to target your acquisition efforts towards subscribers who are likely to be be highly engaged. Alternatively, try to figure out what separates users in this category from  semi-engaged subscribers (those who open ~30-80% of your emails). Might they be better served with a different newsletter or product from your newsroom?</td>
+			<td>We recommend surveying these users. Who are they? What are their habits? What else do they like to read? What do they want out of an email product? What might compel them to support or contribute to your work? Then, develop a few user personas. You should use this data to target your acquisition efforts towards subscribers who are likely to be be highly engaged. Alternatively, try to figure out what separates users in this category from  semi-engaged subscribers (those who open ~30-80% of your emails). Might they be better served with a different newsletter or product from your newsroom? To learn more, read the <a href="https://newsletterguide.org/?utm_source=email-benchmarking-tool&utm_medium=email#section-5-email-monetization-conversion" target=-"_blank" rel="noopener">leaky bucket analogy</a>.</td>
 		</tr>
 	</table>
 	<p style="text-align:center">

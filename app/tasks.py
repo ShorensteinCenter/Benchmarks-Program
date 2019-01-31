@@ -442,6 +442,8 @@ def update_stored_data():
         logger.info('No old lists to update!')
         return
 
+    logger.info('Updating the following lists: %s!', analyses_to_update)
+
     # Placeholder for lists which failed during the update process
     failed_updates = []
 
@@ -500,6 +502,7 @@ def update_stored_data():
         # Then re-run the calculations and update the database
         try:
             import_analyze_store_list(list_data, associated_list_object.org_id)
+            logger.info('Finished updating list %s!', analysis.list_id)
         except MailChimpImportError:
             logger.error('Error importing new data for list %s.', analysis.list_id)
             failed_updates.append(analysis.list_id)
