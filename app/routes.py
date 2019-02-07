@@ -3,6 +3,7 @@ import hashlib
 import json
 import requests
 from titlecase import titlecase
+import iso8601
 import pandas as pd
 from sqlalchemy import desc
 from flask import render_template, jsonify, session, request, abort
@@ -95,6 +96,7 @@ def faq():
     }
     open_rate = {
         'mean': '{:.1%}'.format(lists_allow_aggregation['open_rate'].mean()),
+        'mean_as_pct': round(lists_allow_aggregation['open_rate'].mean() * 100, 1),
         'max': '{:.1%}'.format(lists_allow_aggregation['open_rate'].max()),
         'min': '{:.1%}'.format(lists_allow_aggregation['open_rate'].min()),
         'med': '{:.1%}'.format(lists_allow_aggregation['open_rate'].median()),
@@ -342,7 +344,7 @@ def analyze_list():
                  'store_aggregates': session['store_aggregates'],
                  'total_count': content['total_count'],
                  'open_rate': content['open_rate'],
-                 'date_created': content['date_created'],
+                 'creation_timestamp': content['date_created'],
                  'campaign_count': content['campaign_count']}
     org_id = session['org_id']
     init_list_analysis.delay(user_data, list_data, org_id)

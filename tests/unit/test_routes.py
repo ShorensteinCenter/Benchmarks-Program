@@ -390,6 +390,7 @@ def test_get_list_data(client, mocker):
 def test_analyze_list(client, mocker, fake_list_data):
     """Tests the analyze list route."""
     mocked_request = mocker.patch('app.routes.request')
+    fake_list_data['date_created'] = fake_list_data.pop('creation_timestamp')
     mocked_request.get_json.return_value = fake_list_data
     mocked_init_list_analysis = mocker.patch('app.routes.init_list_analysis')
     with client as c:
@@ -411,7 +412,7 @@ def test_analyze_list(client, mocker, fake_list_data):
             'store_aggregates': False,
             'total_count': fake_list_data['total_count'],
             'open_rate': fake_list_data['open_rate'],
-            'date_created': fake_list_data['date_created'],
+            'creation_timestamp': fake_list_data['date_created'],
             'campaign_count': fake_list_data['campaign_count']
         }
         response = c.post('/analyze-list')
