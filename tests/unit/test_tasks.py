@@ -65,7 +65,7 @@ def test_import_analyze_store_list(
     mocked_mailchimp_list_instance.calc_open_rate.assert_called_with(
         fake_list_data['open_rate'])
     mocked_mailchimp_list_instance.calc_frequency.assert_called_with(
-        fake_list_data['date_created'], fake_list_data['campaign_count'])
+        fake_list_data['creation_timestamp'], fake_list_data['campaign_count'])
     mocked_mailchimp_list_instance.calc_histogram.assert_called()
     mocked_mailchimp_list_instance.calc_high_open_rate_pct.assert_called()
     mocked_mailchimp_list_instance.calc_cur_yr_stats.assert_called()
@@ -87,6 +87,7 @@ def test_import_analyze_store_list_store_results_in_db( # pylint: disable=unused
     import_analyze_store_list(fake_list_data, 'foo')
     mocked_email_list.assert_called_with(
         list_id=fake_list_data['list_id'],
+        creation_timestamp=fake_list_data['creation_timestamp'],
         list_name=fake_list_data['list_name'],
         api_key=fake_list_data['key'],
         data_center=fake_list_data['data_center'],
@@ -376,7 +377,6 @@ def test_update_stored_data(mocker, fake_list_data):
     mocked_import_analyze_store_list = mocker.patch(
         'app.tasks.import_analyze_store_list')
     mocked_requests.get.return_value.json.return_value = {
-        'date_created': 'baz',
         'stats': {
             'member_count': 5,
             'unsubscribe_count': 6,
@@ -393,7 +393,6 @@ def test_update_stored_data(mocker, fake_list_data):
                        'stats.unsubscribe_count,'
                        'stats.cleaned_count,'
                        'stats.open_rate,'
-                       'date_created,'
                        'stats.campaign_count'),
         ),
         auth=('shorenstein', 'foo-bar1'))
@@ -406,7 +405,7 @@ def test_update_stored_data(mocker, fake_list_data):
          'store_aggregates': False,
          'total_count': 18,
          'open_rate': 1,
-         'date_created': 'baz',
+         'creation_timestamp': 'quux',
          'campaign_count': 10},
         1)
 
@@ -449,7 +448,6 @@ def test_update_stored_data_import_error(mocker, fake_list_data, caplog):
     mocked_import_analyze_store_list.side_effect = MailChimpImportError(
         'foo', 'bar')
     mocked_requests.get.return_value.json.return_value = {
-        'date_created': 'baz',
         'stats': {
             'member_count': 5,
             'unsubscribe_count': 6,

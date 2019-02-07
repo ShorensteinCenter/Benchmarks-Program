@@ -61,7 +61,7 @@ def fake_list_data():
         'store_aggregates': False,
         'total_count': 'baz',
         'open_rate': 'qux',
-        'date_created': 'quux',
+        'creation_timestamp': 'quux',
         'campaign_count': 'quuz'
     }
     yield data
