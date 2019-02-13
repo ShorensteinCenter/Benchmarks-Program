@@ -19,12 +19,14 @@ logs.setup_logging()
 # Set up flask-talisman to prevent xss and other attacks
 csp = {
     'default-src': '\'self\'',
-    'script-src': ['\'self\'', 'cdnjs.cloudflare.com', 'www.googletagmanager.com'],
-    'style-src': ['\'self\'', 'fonts.googleapis.com'],
+    'script-src': ['\'self\'', 'cdnjs.cloudflare.com', 'cdn.jsdelivr.net',
+                   'www.googletagmanager.com', 'cdn.plot.ly'],
+    'style-src': ['\'self\'', 'fonts.googleapis.com',
+                  '\'unsafe-inline\'', 'cdn.jsdelivr.net'],
     'font-src': ['\'self\'', 'fonts.gstatic.com'],
     'img-src': ['\'self\'', 'www.google-analytics.com', 'data:']}
 Talisman(app, content_security_policy=csp,
-         content_security_policy_nonce_in=['script-src', 'style-src'])
+         content_security_policy_nonce_in=['script-src'])
 
 csrf = CSRFProtect(app)
 db = SQLAlchemy(app)

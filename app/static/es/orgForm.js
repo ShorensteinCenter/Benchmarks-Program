@@ -74,6 +74,6 @@ if (orgForm) {
 		otherInput = orgForm.querySelector('#other_affiliation_name'),
 		otherInputWrapper = orgForm.querySelector(
 			'#other-affiliation-name-wrapper');
-	otherCheckbox.addEventListener('change', e =>
+	otherCheckbox.addEventListener('change', () =>
 		toggleOtherAffField(otherInput, otherInputWrapper));
 }
