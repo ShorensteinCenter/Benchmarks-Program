@@ -1,6 +1,7 @@
 h1 {
     color: $crimson;
     font-size: $h1-size;
+    font-weight: $title-weight;
     padding-bottom: $h1-extra-padding;
     text-align: center;
 
@@ -18,6 +19,7 @@ h1 {
 h2 {
     color: $crimson;
     font-size: $h2-size;
+    font-weight: $title-weight;
 
     @include media-breakpoint-up(sm) {
         font-size: $h2-size-sm;
@@ -30,6 +32,7 @@ h2 {
 
 strong {
     color: $crimson;
+    font-weight: 500;
 }
 
 .disabled-elt {

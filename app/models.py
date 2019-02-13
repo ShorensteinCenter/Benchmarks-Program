@@ -53,6 +53,7 @@ class ListStats(db.Model): # pylint: disable=too-few-public-methods
 class EmailList(db.Model): # pylint: disable=too-few-public-methods
     """Stores individual MailChimp lists."""
     list_id = db.Column(db.String(64), primary_key=True)
+    creation_timestamp = db.Column(db.DateTime)
     list_name = db.Column(db.String(128))
     api_key = db.Column(db.String(64))
     data_center = db.Column(db.String(64))

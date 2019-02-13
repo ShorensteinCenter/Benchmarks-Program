@@ -23,6 +23,7 @@
 }
 
 label {
+    font-weight: $form-label-font-weight;
 	margin-bottom: $form-label-bottom-margin;
 }
 
@@ -123,12 +124,15 @@ input:-webkit-autofill {
     -webkit-animation-fill-mode: both;
 }
 
-#submit {
+#submit, .submit-btn {
 	@extend %form-elt;
 	cursor: pointer;
+    font-weight: 500;
+    display: inline-block;
 
 	&:hover {
 		background-color: $light-grey;
+        color: inherit;
 	}
 
 	&:focus {
@@ -176,4 +180,54 @@ input:-webkit-autofill {
 .custom-control-label:after {
     top: .05rem;
     left: -1.8rem;
+}
+
+/* Datepicker */
+
+.form-control[readonly] {
+    background-color: inherit;
+}
+
+.form-control:focus {
+    color: inherit;
+    background-color: transparent;
+    border: 1px solid $medium-grey;
+    outline: none;
+    box-shadow: none;
+}
+
+.flatpickr-months {
+    margin-bottom: 0.75rem;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange, .flatpickr-day.selected.inRange,
+.flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange,
+.flatpickr-day.selected:focus, .flatpickr-day.startRange:focus,
+.flatpickr-day.endRange:focus, .flatpickr-day.selected:hover,
+.flatpickr-day.startRange:hover, .flatpickr-day.endRange:hover,
+.flatpickr-day.selected.prevMonthDay,
+.flatpickr-day.startRange.prevMonthDay,
+.flatpickr-day.endRange.prevMonthDay,
+.flatpickr-day.selected.nextMonthDay,
+.flatpickr-day.startRange.nextMonthDay,
+.flatpickr-day.endRange.nextMonthDay {
+    border-color: $crimson !important;
+    background-color: $crimson !important;
+}
+
+.flatpickr-months .flatpickr-prev-month:hover svg,
+.flatpickr-months .flatpickr-next-month:hover svg {
+    fill: $crimson !important;
+}
+
+.flatpickr-current-month span.cur-month:hover {
+    background-color: transparent !important;
+}
+
+.flatpickr-calendar {
+    border-radius: $border-radius !important;
+    box-shadow: none !important;
+    border: 1px solid $medium-grey !important;
 }

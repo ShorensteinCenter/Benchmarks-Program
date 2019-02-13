@@ -1,6 +1,7 @@
 """This module contains all routes for the web app."""
 import hashlib
 import json
+from datetime import datetime
 import requests
 from titlecase import titlecase
 import pandas as pd
@@ -15,8 +16,30 @@ from app.tasks import init_list_analysis, send_activated_email
 
 @app.route('/')
 def index():
-    """Index route."""
-    return render_template('index.html')
+    """Index route.
+
+    Pulls the creation timestamp, number of subscribers and open rate for each
+    list which allow data aggregation. The computes the age of each list."""
+    lists_allow_aggregation = pd.read_sql(
+        ListStats.query.join(EmailList)
+        .filter_by(store_aggregates=True)
+        .order_by(ListStats.list_id, desc('analysis_timestamp'))
+        .distinct(ListStats.list_id)
+        .with_entities(EmailList.creation_timestamp,
+                       ListStats.subscribers,
+                       ListStats.open_rate)
+        .statement,
+        db.session.bind)
+    lists_allow_aggregation.dropna(inplace=True)
+    current_timestamp = datetime.utcnow()
+    lists_allow_aggregation['list_age'] = (
+        lists_allow_aggregation['creation_timestamp'].apply(
+            lambda timestamp: int((current_timestamp - timestamp).days / 30)))
+    return render_template(
+        'index.html',
+        sizes=list(lists_allow_aggregation['subscribers']),
+        open_rates=list(lists_allow_aggregation['open_rate']),
+        ages=list(lists_allow_aggregation['list_age']))
 
 @app.route('/about')
 def about():
@@ -40,7 +63,12 @@ def privacy():
 
 @app.route('/faq')
 def faq():
-    """FAQ route."""
+    """FAQ route.
+
+    Calculates the percentage of organizations associated with
+    a list in the database that fall into various subcategories, e.g.
+    % Non-Profit, % For-Profit, % B Corp. Then calculates aggregates for
+    list data among lists which allow their data to be aggregated."""
 
     # Get information about organizations
     orgs_with_lists = pd.read_sql(
@@ -342,7 +370,7 @@ def analyze_list():
                  'store_aggregates': session['store_aggregates'],
                  'total_count': content['total_count'],
                  'open_rate': content['open_rate'],
-                 'date_created': content['date_created'],
+                 'creation_timestamp': content['date_created'],
                  'campaign_count': content['campaign_count']}
     org_id = session['org_id']
     init_list_analysis.delay(user_data, list_data, org_id)

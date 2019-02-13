@@ -2,7 +2,7 @@ const
     gulp = require('gulp'),
     sass = require('gulp-sass'),
     rename = require('gulp-rename'),
-    uglify = require('gulp-uglify-es').default,
+    terser = require('gulp-terser'),
     concat = require('gulp-concat'),
     gutil = require('gulp-util'),
     autoprefixer = require('gulp-autoprefixer'),
@@ -25,7 +25,8 @@ const js = {
 		 static + 'es/orgForm.js',
 		 static + 'es/admin.js',
 		 static + 'es/apiKeyForm.js',
-		 static + 'es/listsTable.js'],
+		 static + 'es/listsTable.js',
+		 static + 'es/charts.js'],
 	out: static + 'js/'
 };
 
@@ -56,25 +57,24 @@ gulp.task('scss', () => {
 gulp.task('lint', () => {
 	return gulp.src(js.in)
 		.pipe(eslint())
-		.pipe(eslint.format())
-		.pipe(eslint.failAfterError());
+		.pipe(eslint.format());
 });
 
 // uglify es
-gulp.task('uglify', () => {
+gulp.task('terser', async () => {
 	return gulp.src(js.in)
 		.pipe(concat('scripts.min.js'))
-		.pipe(uglify())
+		.pipe(terser())
 		.on('error', gutil.log)
 		.pipe(gulp.dest(js.out));
 });
 
 // default task
 gulp.task('default', 
-	gulp.series(gulp.parallel('scss', gulp.series('lint', 'uglify')), 
+	gulp.series(gulp.parallel('scss', gulp.series('lint', 'terser')), 
 		() => {
 			gulp.watch(scss.watch, gulp.series('scss'));
-			gulp.watch(js.in, gulp.series('lint', 'uglify'));
+			gulp.watch(js.in, gulp.series('lint', 'terser'));
 		}
 	)
 );
