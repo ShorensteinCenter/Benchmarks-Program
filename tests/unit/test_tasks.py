@@ -206,7 +206,8 @@ def test_send_report(mocker, fake_calculation_results):
     mocked_draw_histogram = mocker.patch('app.tasks.draw_histogram')
     mocked_draw_donuts = mocker.patch('app.tasks.draw_donuts')
     mocked_send_email = mocker.patch('app.tasks.send_email')
-    mocker.patch('app.tasks.os.environ.get', return_value='bar')
+    mocked_os = mocker.patch('app.tasks.os')
+    mocked_os.environ.get.side_effect = ['bar']
     fake_stats = {k: [v, v] for k, v in fake_calculation_results.items()}
     send_report(fake_stats, fake_stats, '1', 'foo', ['foo@bar.com'])
     mocked_draw_bar.assert_has_calls([
