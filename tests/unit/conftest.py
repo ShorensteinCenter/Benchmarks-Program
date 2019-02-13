@@ -15,8 +15,8 @@ def test_app():
 @pytest.fixture
 def client(test_app):
     """Sets up a test client."""
-    client = test_app.test_client()
-    yield client
+    with test_app.test_client() as client:
+        yield client
 
 @pytest.fixture
 def mocked_userform(mocker):

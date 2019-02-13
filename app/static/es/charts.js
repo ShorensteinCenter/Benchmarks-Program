@@ -52,7 +52,8 @@ if (indexBubbleChart) {
             .map(val => Math.round(1000 * val) / 10),
         listAges = JSON.parse(indexBubbleChart.getAttribute('data-ages')),
         janFirstDate = new Date(
-            new Date(new Date().getFullYear() - 5, 0, 1).toUTCString());
+            new Date(new Date().getFullYear() - 5, 0, 1).toUTCString()),
+        mobile = window.innerWidth < 576;
 
     // Bubble chart data from the database
     const dbData = {
@@ -114,7 +115,7 @@ if (indexBubbleChart) {
     const layout = {
         font: {
             family: 'Montserrat, sans-serif',
-            size: 16,
+            size: mobile ? 12 : 16,
         },
         yaxis: {
             range: [0, (1.25 * Math.max(...openRates) > 100) ? 100 :
@@ -123,7 +124,7 @@ if (indexBubbleChart) {
             tickfont: {
                 color: '#555'
             },
-            tickprefix: '        ',
+            tickprefix: mobile ? '    ' : '        ',
             ticksuffix: '%  ',
             title: 'List Open Rate',
             titlefont: {
@@ -148,8 +149,11 @@ if (indexBubbleChart) {
         showlegend: false,
         height: 525,
         margin: {
+            l: mobile ? 65 : 75,
             t: 5,
-            b: 105
+            b: 105,
+            r: mobile ? 45 : 75,
+            autoexpand: true
         },
         hovermode: 'closest'
     };

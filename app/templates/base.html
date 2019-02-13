@@ -14,18 +14,18 @@
 		<meta name="msapplication-TileColor" content="#b91d47">
 		<meta name="theme-color" content="#ffffff">
 		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.min.css') }}">
-		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap.native/2.0.23/bootstrap-native-v4.min.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap.native/2.0.25/bootstrap-native-v4.min.js"></script>
 		<script async type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-121222164-1"></script>
-		<script src="https://cdn.plot.ly/plotly-cartesian-latest.min.js"></script>
+		<script defer src="https://cdn.plot.ly/plotly-cartesian-latest.min.js"></script>
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-		<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+		<script defer src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 		<script nonce="{{ csp_nonce() }}">
 			window.dataLayer = window.dataLayer || [];
 			function gtag(){dataLayer.push(arguments);}
 			gtag('js', new Date());
 			gtag('config', 'UA-121222164-1');
 		</script>
-		<script src="{{ url_for('static', filename='js/scripts.min.js') }}" defer></script>
+		<script defer src="{{ url_for('static', filename='js/scripts.min.js') }}"></script>
 	</head>
 	<body>
 		<nav class="navbar navbar-light navbar-expand-lg content-block">
@@ -63,7 +63,7 @@
 		{% block content %}{% endblock %}
 		<footer class="footer">
       		<div class="container">
-      			<a href="/faq">FAQ</a><span class="link-divider">|</span><a href="/terms">Terms of Service</a><span class="link-divider">|</span><a href="/privacy">Privacy Policy</a>
+      			<a href="/faq">FAQ</a><span class="link-divider">|</span><a href="https://github.com/ShorensteinCenter/Benchmarks-Program/releases" target="_blank rel="noopener">Release Notes</a><span class="link-divider">|</span><a href="/terms">Terms of Service</a><span class="link-divider">|</span><a href="/privacy">Privacy Policy</a>
       		</div>
     	</footer>
 	</body>
