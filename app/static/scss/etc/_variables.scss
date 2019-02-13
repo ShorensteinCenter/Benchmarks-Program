@@ -6,6 +6,8 @@ $light-grey: #ededed;
 
 $border-radius: 2px;
 
+$title-weight: 400;
+
 $h1-size: 2rem;
 $h1-size-sm: 2.3rem;
 $h1-size-xxl: 3rem;
@@ -18,7 +20,7 @@ $h2-size-sm: 1.4rem;
 $h2-size-xxl: 1.9rem;
 
 $std-bottom-margin: 1.7rem;
-$content-block-margin-bottom: 5.5rem;
+$content-block-margin-bottom: 3rem;
 
 $index-svg-height: 4rem;
 
@@ -44,10 +46,11 @@ $form-invalid-msg-color: rgb(238, 95, 91);
 $form-valid-input-color: rgba(98, 196, 98, .25);
 $form-valid-msg-color: rgb(98, 196, 98);
 
-$form-label-bottom-margin: 0.2rem;
+$form-label-bottom-margin: 0.35rem;
+$form-label-font-weight: 500;
 
-$modal-drawer-width:          16rem;
-$modal-drawer-header-height:  4.25rem;
-$modal-drawer-footer-height:  4.25rem;
+$modal-drawer-width: 16rem;
+$modal-drawer-header-height: 4.25rem;
+$modal-drawer-footer-height: 4.25rem;
 
 $info-svg-dim: 0.9rem;

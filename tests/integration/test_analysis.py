@@ -55,9 +55,11 @@ def test_analysis(client, caplog):
                         data['stats']['unsubscribe_count'] +
                         data['stats']['cleaned_count']),
         'open_rate': data['stats']['open_rate'],
-        'date_created': data['date_created'],
+        'date_created': None,
         'campaign_count': data['stats']['campaign_count']
     }
+    print(request_data['date_created'])
+    print(type(request_data['date_created']))
     with client as c:
         with c.session_transaction() as sess:
             sess['user_id'] = existing_user_id

@@ -77,7 +77,7 @@ def import_analyze_store_list(list_data, org_id, user_email=None):
     # Do the data science shit
     mailing_list.calc_list_breakdown()
     mailing_list.calc_open_rate(list_data['open_rate'])
-    mailing_list.calc_frequency(list_data['date_created'],
+    mailing_list.calc_frequency(list_data['creation_timestamp'],
                                 list_data['campaign_count'])
     mailing_list.calc_histogram()
     mailing_list.calc_high_open_rate_pct()
@@ -103,6 +103,7 @@ def import_analyze_store_list(list_data, org_id, user_email=None):
         # Create a list object to go with the set of stats
         email_list = EmailList(
             list_id=list_data['list_id'],
+            creation_timestamp=list_data['creation_timestamp'],
             list_name=list_data['list_name'],
             api_key=list_data['key'],
             data_center=list_data['data_center'],
@@ -465,7 +466,6 @@ def update_stored_data():
                        'stats.unsubscribe_count,'
                        'stats.cleaned_count,'
                        'stats.open_rate,'
-                       'date_created,'
                        'stats.campaign_count'),
         )
         response = requests.get(
@@ -496,7 +496,7 @@ def update_stored_data():
                      'store_aggregates': associated_list_object.store_aggregates,
                      'total_count': count,
                      'open_rate': response_stats['open_rate'],
-                     'date_created': response_body['date_created'],
+                     'creation_timestamp': associated_list_object.creation_timestamp,
                      'campaign_count': response_stats['campaign_count']}
 
         # Then re-run the calculations and update the database

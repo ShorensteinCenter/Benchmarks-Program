@@ -1,11 +1,27 @@
 from unittest.mock import MagicMock
+from datetime import datetime
 import pytest
 import pandas as pd
 import flask
 
-def test_index(client):
+def test_index(client, mocker):
     """Tests the index route."""
-    assert client.get('/').status_code == 200
+    mocker.patch('app.routes.ListStats')
+    mocker.patch('app.routes.EmailList')
+    mocker.patch('app.routes.db')
+    mocker.patch('app.routes.pd.read_sql', return_value=(
+        pd.DataFrame({
+            'creation_timestamp': [datetime(year=2018, month=1, day=1)],
+            'subscribers': [12967],
+            'open_rate': [0.2678]})
+        )
+    )
+    timedelta = datetime.utcnow() - datetime(year=2018, month=1, day=1)
+    response = client.get('/')
+    assert response.status_code == 200
+    assert '12967'.encode() in response.data
+    assert '0.2678'.encode() in response.data
+    assert str(timedelta.days).encode() in response.data
 
 def test_about(client):
     """Tests the about route."""
@@ -390,6 +406,7 @@ def test_get_list_data(client, mocker):
 def test_analyze_list(client, mocker, fake_list_data):
     """Tests the analyze list route."""
     mocked_request = mocker.patch('app.routes.request')
+    fake_list_data['date_created'] = fake_list_data.pop('creation_timestamp')
     mocked_request.get_json.return_value = fake_list_data
     mocked_init_list_analysis = mocker.patch('app.routes.init_list_analysis')
     with client as c:
@@ -411,7 +428,7 @@ def test_analyze_list(client, mocker, fake_list_data):
             'store_aggregates': False,
             'total_count': fake_list_data['total_count'],
             'open_rate': fake_list_data['open_rate'],
-            'date_created': fake_list_data['date_created'],
+            'creation_timestamp': fake_list_data['date_created'],
             'campaign_count': fake_list_data['campaign_count']
         }
         response = c.post('/analyze-list')
