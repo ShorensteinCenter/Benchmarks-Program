@@ -1,11 +1,27 @@
 from unittest.mock import MagicMock
+from datetime import datetime
 import pytest
 import pandas as pd
 import flask
 
-def test_index(client):
+def test_index(client, mocker):
     """Tests the index route."""
-    assert client.get('/').status_code == 200
+    mocker.patch('app.routes.ListStats')
+    mocker.patch('app.routes.EmailList')
+    mocker.patch('app.routes.db')
+    mocker.patch('app.routes.pd.read_sql', return_value=(
+        pd.DataFrame({
+            'creation_timestamp': [datetime(year=2018, month=1, day=1)],
+            'subscribers': [12967],
+            'open_rate': [0.2678]})
+        )
+    )
+    timedelta = datetime.utcnow() - datetime(year=2018, month=1, day=1)
+    response = client.get('/')
+    assert response.status_code == 200
+    assert '12967'.encode() in response.data
+    assert '0.2678'.encode() in response.data
+    assert str(timedelta.days).encode() in response.data
 
 def test_about(client):
     """Tests the about route."""
