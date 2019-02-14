@@ -21,7 +21,7 @@ def test_index(client, mocker):
     assert response.status_code == 200
     assert '12967'.encode() in response.data
     assert '0.2678'.encode() in response.data
-    assert str(timedelta.days).encode() in response.data
+    assert str(timedelta.days // 30).encode() in response.data
 
 def test_about(client):
     """Tests the about route."""
