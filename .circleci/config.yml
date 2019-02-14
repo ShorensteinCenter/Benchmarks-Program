@@ -97,7 +97,7 @@ jobs:
       - run:
           name: Deploy via AWS CodeDeploy
           command: |
-            npm install -g aws-code-deploy
+            sudo npm install -g aws-code-deploy
             aws-code-deploy
 
 workflows:
