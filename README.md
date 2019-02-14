@@ -6,7 +6,7 @@ This is a tool developed by the Shorenstein Center at the Harvard Kennedy School
 
 | Branch | Tests | Code Coverage | Comments |
 | ------ | ----- | ------------- | -------- |
-| `devel` | [![CircleCI](https://circleci.com/gh/ShorensteinCenter/Benchmarks-Program/tree/develop.svg?style=svg)](https://circleci.com/gh/ShorensteinCenter/Benchmarks-Program/tree/develop) | [![codecov](https://codecov.io/gh/ShorensteinCenter/Benchmarks-Program/branch/develop/graph/badge.svg)](https://codecov.io/gh/ShorensteinCenter/Benchmarks-Program) | Current Work in Progress |
+| `devel` | [![CircleCI](https://circleci.com/gh/ShorensteinCenter/Benchmarks-Program/tree/devel.svg?style=svg)](https://circleci.com/gh/ShorensteinCenter/Benchmarks-Program/tree/devel) | [![codecov](https://codecov.io/gh/ShorensteinCenter/Benchmarks-Program/branch/devel/graph/badge.svg)](https://codecov.io/gh/ShorensteinCenter/Benchmarks-Program) | Current work in progress |
 | `master` | [![CircleCI](https://circleci.com/gh/ShorensteinCenter/Benchmarks-Program.svg?style=svg)](https://circleci.com/gh/ShorensteinCenter/Benchmarks-Program) | [![codecov](https://codecov.io/gh/ShorensteinCenter/Benchmarks-Program/branch/master/graph/badge.svg)](https://codecov.io/gh/ShorensteinCenter/Benchmarks-Program) | Latest official release |
 
 ## Getting Started
