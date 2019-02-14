@@ -1,6 +1,6 @@
 version: 2.1
 jobs:
-  build-and-test:
+  build_and_test:
     docker:
       - image: circleci/python:3.6-node-browsers
         environment:
@@ -73,7 +73,7 @@ jobs:
             . venv/bin/activate
             codecov
 
-  deploy-master:
+  deploy_master:
     docker:
       - image: circleci/node:latest
         environment:
@@ -103,12 +103,12 @@ jobs:
 
 workflows:
   version: 2
-  build-and-test:
+  build_test_deploy:
     jobs:
-      - build-and-test
-      - deploy-master:
+      - build_and_test
+      - deploy_master:
           requires:
-            - build-and-test
+            - build_and_test
           filters:
             branches:
               only: master
