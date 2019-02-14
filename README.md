@@ -2,6 +2,13 @@
 
 This is a tool developed by the Shorenstein Center at the Harvard Kennedy School to import MailChimp email list data, analyze it, and output the resulting metrics in an email report.
 
+## Branches
+
+| Branch | Tests | Code Coverage | Comments |
+| ------ | ----- | ------------- | -------- |
+| `devel` | [![CircleCI](https://circleci.com/gh/ShorensteinCenter/Benchmarks-Program/tree/devel.svg?style=svg)](https://circleci.com/gh/ShorensteinCenter/Benchmarks-Program/tree/devel) | [![codecov](https://codecov.io/gh/ShorensteinCenter/Benchmarks-Program/branch/devel/graph/badge.svg)](https://codecov.io/gh/ShorensteinCenter/Benchmarks-Program) | Current work in progress |
+| `master` | [![CircleCI](https://circleci.com/gh/ShorensteinCenter/Benchmarks-Program.svg?style=svg)](https://circleci.com/gh/ShorensteinCenter/Benchmarks-Program) | [![codecov](https://codecov.io/gh/ShorensteinCenter/Benchmarks-Program/branch/master/graph/badge.svg)](https://codecov.io/gh/ShorensteinCenter/Benchmarks-Program) | Latest official release |
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
