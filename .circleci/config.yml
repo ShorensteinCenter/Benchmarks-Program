@@ -1,0 +1,114 @@
+version: 2.1
+jobs:
+  build-and-test:
+    docker:
+      - image: circleci/python:3.6-node-browsers
+        environment:
+          - SECRET_KEY: 'circleci'
+          - SERVER_NAME: 'localhost'
+          - ENV: ci
+          - NO_PROXY: true
+          - NO_EMAIL: true
+          - FLASK_DEBUG: 1
+      - image: rabbitmq:latest
+        environment:
+          - POSTGRES_USER: root
+          - POSTGRES_PASS: test
+          - POSTGRES_DB: circle-test
+    working_directory: ~/repo
+    steps:
+      - checkout:
+          path: ~/repo
+      - restore_cache:
+          key: pip-packages-{{ .Branch }}-{{ checksum "requirements.txt" }}
+      - run:
+          name: Install python dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+      - save_cache:
+          key: pip-packages-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          paths:
+            - "venv"
+      - restore_cache:
+          key: node-packages-{{ .Branch }}-{{ checksum "package-lock.json" }}
+      - run:
+          name: Install node dependencies
+          command: |
+            npm install --unsafe-perm
+      - save_cache:
+          key: node-packages-{{ .Branch }}-{{ checksum "package-lock.json" }}
+          paths:
+            - "node-modules"
+      - run:
+          name: Wait for RabbitMQ to start
+          command: |
+            for i in `seq 1 10`;
+            do
+              nc -z localhost 5672 && echo Success && exit 0
+              echo -n .
+              sleep 2
+            done
+            echo Failed waiting for RabbitMQ && exit 1
+      - run:
+          name: Run unit tests
+          command: |
+            . venv/bin/activate
+            python -m pytest --cov=app --cov-report term-missing tests/unit
+      - run:
+          name: Run integration tests
+          command: |
+            CWD=$('pwd')
+            echo 'export PATH=$CWD/node_modules/.bin:$PATH' >> $BASH_ENV
+            source $BASH_ENV
+            . venv/bin/activate
+            python -m pytest tests/integration
+      - store_artifacts:
+          path: test-reports
+          destination: test-reports
+      - run:
+          name: Send reports to codecov.io
+          command: |
+            . venv/bin/activate
+            codecov
+
+  deploy-master:
+    docker:
+      - image: circleci/node:latest
+        environment:
+          - AWS_CODE_DEPLOY_REGION: us-west-2
+          - AWS_CODE_DEPLOY_APPLICATION_NAME: "benchmarks-project"
+          - AWS_CODE_DEPLOY_DEPLOYMENT_CONFIG_NAME: CodeDeployDefault.AllAtOnce
+          - AWS_CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: "staging"
+          - AWS_CODE_DEPLOY_SERVICE_ROLE_ARN: "arn:aws:iam::273834392857:role/CodeDeployServiceRole"
+          - AWS_CODE_DEPLOY_EC2_TAG_FILTERS: "Key=Name,Value=emailbenchmarking.com,Type=KEY_AND_VALUE"
+          - AWS_CODE_DEPLOY_APP_SOURCE: ~/repo
+          - AWS_CODE_DEPLOY_S3_FILENAME: "${CIRCLE_BUILD_NUM}#${CIRCLE_SHA1:0:7}.zip"
+          - AWS_CODE_DEPLOY_S3_BUCKET: circleci-codedeploy-bucket
+          - AWS_CODE_DEPLOY_S3_LIMIT_BUCKET_FILES: 10
+          - AWS_CODE_DEPLOY_S3_SSE: true
+          - AWS_CODE_DEPLOY_REVISION_DESCRIPTION: "${CIRCLE_BRANCH} (#${CIRCLE_SHA1:0:7})"
+          - AWS_CODE_DEPLOY_DEPLOYMENT_DESCRIPTION: "Deployed via CircleCI on $(date)"
+          - AWS_CODE_DEPLOY_DEPLOYMENT_FILE_EXISTS_BEHAVIOR: "OVERWRITE"
+    working_directory: ~/repo
+    steps:
+      - checkout:
+          path: ~/repo
+      - run:
+          name: Deploy via AWS CodeDeploy
+          command: |
+            npm install aws-code-deploy --save-dev
+            ./node_modules/aws-code-deploy/bin/aws-code-deploy.sh
+
+workflows:
+  version: 2
+  build-and-test:
+    jobs:
+      - build-and-test
+      - deploy-master:
+          requires:
+            - build-and-test
+          filters:
+            branches:
+              only: master

@@ -26,6 +26,6 @@ class Config():
     SERVER_NAME = os.environ.get('SERVER_NAME') or '127.0.0.1:5000'
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-    SES_REGION_NAME = os.environ.get('SES_REGION_NAME')
+    SES_REGION_NAME = os.environ.get('SES_REGION_NAME') or 'us-west-2'
     SES_DEFAULT_EMAIL_SOURCE = os.environ.get('SES_DEFAULT_EMAIL_SOURCE')
     NO_EMAIL = os.environ.get('NO_EMAIL')
