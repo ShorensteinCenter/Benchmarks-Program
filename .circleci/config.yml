@@ -83,6 +83,7 @@ jobs:
           - AWS_CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: "staging"
           - AWS_CODE_DEPLOY_SERVICE_ROLE_ARN: "arn:aws:iam::273834392857:role/CodeDeployServiceRole"
           - AWS_CODE_DEPLOY_EC2_TAG_FILTERS: "Key=Name,Value=emailbenchmarking.com,Type=KEY_AND_VALUE"
+          - AWS_CODE_DEPLOY_APP_SOURCE: /home/circleci/repo
           - AWS_CODE_DEPLOY_S3_FILENAME: "${CIRCLE_BUILD_NUM}#${CIRCLE_SHA1:0:7}.zip"
           - AWS_CODE_DEPLOY_S3_BUCKET: circleci-codedeploy-bucket
           - AWS_CODE_DEPLOY_S3_LIMIT_BUCKET_FILES: 10
