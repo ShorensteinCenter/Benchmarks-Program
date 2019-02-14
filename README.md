@@ -12,7 +12,7 @@ These instructions will get you a copy of the project up and running on your loc
 * [RabbitMQ](https://www.rabbitmq.com/) or another AMQP broker.
 * A relational database, e.g. [SQLite](https://www.sqlite.org) or [PostgreSQL](https://www.postgresql.org/).
 * [NodeJS](https://nodejs.org). We're currently using version 11.2, but any recent version should work. (We use [NVM](https://github.com/creationix/nvm) to manage Node versions.) 
-* [Amazon SES](https://aws.amazon.com/ses/).
+* [Amazon SES](https://aws.amazon.com/ses/) (optional, see below).
 
 ### Local Development
 
@@ -31,14 +31,17 @@ These instructions will get you a copy of the project up and running on your loc
 * `CELERY_BROKER_URI` - The URI of the Celery broker. Default `'amqp://guest:guest@localhost:5672/'` (a broker running locally on port `5672`).
 * `SQLALCHEMY_DATABASE_URI` - The URI of the database. Default is a `sqlite` database named `app.db` located at the application root.
 * `SERVER_NAME` - the URL for the app. Default `127.0.0.1:5000` (suitable for running locally). Note that the URLs for assets sent via email (images, etc.) are generated using Flask's `url_for()` function. If `SERVER_NAME` is not externally accessible these assets will not send succesfully.
+* `NO_PROXY` - We use proxies to distribute our MailChimp requests across IP addresses. Set this variable to `True` in order to disable proxying, or modify the `enable_proxy` method in `app/lists.py` according to your proxy configuration.
+* `NO_EMAIL` - If set, suppresses sending of email reports (as well as error emails, etc.).
+
+If `NO_EMAIL` is not set, Amazon SES is required along with the following variables:
+
 * `AWS_ACCESS_KEY_ID` - AWS Access Key ID for the API.
 * `AWS_SECRET_ACCESS_KEY` - AWS Secret Access Key for the API.
-* `SES_REGION_NAME` - AWS Simple Email Service region.
+* `SES_REGION_NAME` - AWS Simple Email Service region. Default `us-west-2`.
 * `SES_DEFAULT_EMAIL_SOURCE` - The default email address to send from. This email needs to be verified by SES and active outside the SES sandbox.
-* `SES_CONFIGURATION_SET` - SES Configuration set for tracking opens/clicks/etc. Optional.
-* `NO_PROXY` - We use proxies to distribute our MailChimp requests across IP addresses. Set this variable to `True` in order to disable proxying, or modify the `enable_proxy` method in `app/lists.py` according to your proxy configuration.
-* `NO_EMAIL` - Suppresses sending of emails. Note that SES is still required, emails will just be logged rather than sent. Optional.
 * `ADMIN_EMAIL` - Email address to send error emails to. Optional.
+* `SES_CONFIGURATION_SET` - SES Configuration Set for tracking opens/clicks/etc. Optional.
 
 The following variables are only required to run integration tests:
 
