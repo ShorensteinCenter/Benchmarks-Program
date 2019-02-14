@@ -512,7 +512,9 @@ class MailChimpList(): # pylint: disable=too-many-instance-attributes
             self.frequency = 0
         else:
             now = datetime.now(timezone.utc)
-            created = iso8601.parse_date(date_created)
+            created = (iso8601.parse_date(date_created)
+                       if isinstance(date_created, str)
+                       else date_created)
             list_age = now - created
             self.frequency = list_age.days / campaign_count
 
