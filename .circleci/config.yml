@@ -83,7 +83,6 @@ jobs:
           - AWS_CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: "staging"
           - AWS_CODE_DEPLOY_SERVICE_ROLE_ARN: "arn:aws:iam::273834392857:role/CodeDeployServiceRole"
           - AWS_CODE_DEPLOY_EC2_TAG_FILTERS: "Key=Name,Value=emailbenchmarking.com,Type=KEY_AND_VALUE"
-          - AWS_CODE_DEPLOY_APP_SOURCE: "${CIRCLE_WORKING_DIRECTORY}"
           - AWS_CODE_DEPLOY_S3_FILENAME: "${CIRCLE_BUILD_NUM}#${CIRCLE_SHA1:0:7}.zip"
           - AWS_CODE_DEPLOY_S3_BUCKET: circleci-codedeploy-bucket
           - AWS_CODE_DEPLOY_S3_LIMIT_BUCKET_FILES: 10
@@ -98,8 +97,8 @@ jobs:
       - run:
           name: Deploy via AWS CodeDeploy
           command: |
-            npm install aws-code-deploy --save-dev
-            ./node_modules/aws-code-deploy/bin/aws-code-deploy.sh
+            npm install -g aws-code-deploy
+            aws-code-deploy
 
 workflows:
   version: 2
