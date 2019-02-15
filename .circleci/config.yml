@@ -11,10 +11,6 @@ jobs:
           - NO_EMAIL: true
           - FLASK_DEBUG: 1
       - image: rabbitmq:latest
-        environment:
-          - POSTGRES_USER: root
-          - POSTGRES_PASS: test
-          - POSTGRES_DB: circle-test
     working_directory: ~/repo
     steps:
       - checkout:
@@ -86,7 +82,35 @@ jobs:
           - AWS_CODE_DEPLOY_APP_SOURCE: /home/circleci/repo
           - AWS_CODE_DEPLOY_S3_FILENAME: "${CIRCLE_BUILD_NUM}#${CIRCLE_SHA1:0:7}.zip"
           - AWS_CODE_DEPLOY_S3_BUCKET: circleci-codedeploy-bucket
-          - AWS_CODE_DEPLOY_S3_LIMIT_BUCKET_FILES: 10
+          - AWS_CODE_DEPLOY_S3_LIMIT_BUCKET_FILES: 25
+          - AWS_CODE_DEPLOY_S3_SSE: true
+          - AWS_CODE_DEPLOY_REVISION_DESCRIPTION: "${CIRCLE_BRANCH} (#${CIRCLE_SHA1:0:7})"
+          - AWS_CODE_DEPLOY_DEPLOYMENT_DESCRIPTION: "Deployed via CircleCI on $(date)"
+          - AWS_CODE_DEPLOY_DEPLOYMENT_FILE_EXISTS_BEHAVIOR: "OVERWRITE"
+    working_directory: ~/repo
+    steps:
+      - checkout:
+          path: ~/repo
+      - run:
+          name: Deploy via AWS CodeDeploy
+          command: |
+            sudo npm install -g aws-code-deploy
+            aws-code-deploy
+
+  deploy_devel:
+    docker:
+      - image: circleci/node:latest
+        environment:
+          - AWS_CODE_DEPLOY_REGION: us-west-2
+          - AWS_CODE_DEPLOY_APPLICATION_NAME: "benchmarks-project"
+          - AWS_CODE_DEPLOY_DEPLOYMENT_CONFIG_NAME: CodeDeployDefault.AllAtOnce
+          - AWS_CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: "testing"
+          - AWS_CODE_DEPLOY_SERVICE_ROLE_ARN: "arn:aws:iam::273834392857:role/CodeDeployServiceRole"
+          - AWS_CODE_DEPLOY_EC2_TAG_FILTERS: "Key=Name,Value=test.emailbenchmarking.com,Type=KEY_AND_VALUE"
+          - AWS_CODE_DEPLOY_APP_SOURCE: /home/circleci/repo
+          - AWS_CODE_DEPLOY_S3_FILENAME: "${CIRCLE_BUILD_NUM}#${CIRCLE_SHA1:0:7}-testing.zip"
+          - AWS_CODE_DEPLOY_S3_BUCKET: circleci-codedeploy-bucket
+          - AWS_CODE_DEPLOY_S3_LIMIT_BUCKET_FILES: 25
           - AWS_CODE_DEPLOY_S3_SSE: true
           - AWS_CODE_DEPLOY_REVISION_DESCRIPTION: "${CIRCLE_BRANCH} (#${CIRCLE_SHA1:0:7})"
           - AWS_CODE_DEPLOY_DEPLOYMENT_DESCRIPTION: "Deployed via CircleCI on $(date)"
@@ -106,6 +130,12 @@ workflows:
   build_test_deploy:
     jobs:
       - build_and_test
+      - deploy_devel:
+          requires:
+            - build_and_test
+          filters:
+            branches:
+              only: devel
       - deploy_master:
           requires:
             - build_and_test
