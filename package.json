@@ -22,7 +22,7 @@
     "gulp-util": "^3.0.8"
   },
   "dependencies": {
-    "electron": "^4.0.4",
+    "electron": "^9.4.0",
     "orca": "^1.2.1"
   }
 }
