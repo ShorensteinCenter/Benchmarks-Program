@@ -1,5 +1,5 @@
 aiodns==1.1.1
-aiohttp==3.5.4
+aiohttp==3.7.4
 alembic==1.0.4
 amqp==2.3.2
 astroid==2.1.0
