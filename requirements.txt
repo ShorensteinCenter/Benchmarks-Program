@@ -51,7 +51,7 @@ mccabe==0.6.1
 more-itertools==4.3.0
 multidict==4.5.1
 nbformat==4.4.0
-numpy==1.16.1
+numpy==1.22.0
 packaging==18.0
 pandas==0.24.1
 pip-autoremove==0.9.1
