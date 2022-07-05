@@ -60,7 +60,7 @@ pluggy==0.8.0
 psutil==5.4.8
 psycopg2-binary==2.7.6.1
 py==1.7.0
-pycares==2.3.0
+pycares==4.2.0
 pylint==2.2.2
 pyparsing==2.3.0
 pytest==4.2.1
